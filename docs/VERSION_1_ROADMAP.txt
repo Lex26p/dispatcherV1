@@ -1,0 +1,1835 @@
+Dispatcher — дорожная карта первой версии
+Файл: docs/VERSION_1_ROADMAP.txt
+Версия документа: 0.1
+Дата: 2026-07-08
+Статус: начальная дорожная карта первой версии
+Продукт: Dispatcher
+Репозиторий: https://github.com/Lex26p/dispatcherV1.git
+Рабочая ветка: master
+
+================================================================================
+1. Назначение документа
+================================================================================
+
+Этот документ фиксирует дорожную карту первой версии Dispatcher.
+
+В отличие от DEFERRED_FEATURES.txt, этот документ описывает не отложенные идеи,
+а практическую очередность разработки первой версии приложения.
+
+Главный принцип:
+
+    не разрабатывать все сервисы одновременно.
+
+После подготовки фундамента сервисы и модули разрабатываются последовательно,
+через понятные вертикальные срезы.
+
+Каждый этап должен давать проверяемый результат:
+
+    проект собирается;
+    приложение запускается;
+    новая часть изолирована и документирована;
+    критическая логика покрыта тестами, если применимо;
+    SERVICE.md / MODULE.md обновлены;
+    ограничения зафиксированы.
+
+================================================================================
+2. Цель первой версии
+================================================================================
+
+Первая версия Dispatcher должна стать первым рабочим контуром универсальной
+диспетчерской системы.
+
+Первая версия должна уметь:
+
+    создавать объектную модель;
+    добавлять устройства через Конфигуратор оборудования;
+    создавать теги;
+    опрашивать симулятор;
+    опрашивать Modbus TCP;
+    опрашивать SNMP basic;
+    хранить текущие значения в памяти;
+    показывать текущие значения во frontend;
+    отправлять live-обновления через WebSocket;
+    архивировать историю по политикам;
+    создавать простые аварии;
+    показывать события и аварии;
+    выполнять базовые команды через Command Service;
+    показывать простые дашборды;
+    показывать базовые мнемосхемы с zoom колесом мыши;
+    поддерживать панельный дашборд basic;
+    поддерживать рабочее место basic;
+    вести аудит важных действий;
+    иметь базовые роли;
+    иметь системную диагностику;
+    иметь системные настройки через UI;
+    иметь basic backup конфигурации;
+    запускаться на Linux через systemd.
+
+================================================================================
+3. Что не является целью первой версии
+================================================================================
+
+Первая версия не должна включать:
+
+    микросервисы;
+    удаленные PollingNode;
+    обязательный TimescaleDB;
+    полный drag-and-drop редактор дашбордов;
+    полный редактор мнемосхем;
+    Script Debugger;
+    Rule Engine без кода;
+    MFA;
+    dual approval;
+    AD / LDAP / OIDC / SAML;
+    сложную эскалацию уведомлений;
+    SMS / Telegram / Teams;
+    OPC UA / MQTT / BACnet / S7 / IEC 104 / DNP3;
+    ServiceDesk / ERP / 1C / CMMS;
+    полный report designer;
+    hot standby;
+    кластеризацию;
+    мобильное приложение;
+    Docker deployment.
+
+Эти функции перечислены в docs/DEFERRED_FEATURES.txt.
+
+================================================================================
+4. Общий подход к разработке первой версии
+================================================================================
+
+Разработка первой версии идет не по принципу "сначала все модели, потом весь UI",
+а через последовательность фундаментальных этапов и вертикальных срезов.
+
+Правильный порядок:
+
+    1. документация и правила проекта;
+    2. CMake и структура репозитория;
+    3. базовые модули;
+    4. common/core/contracts;
+    5. базовые доменные модели;
+    6. интерфейс протокольного драйвера;
+    7. симулятор;
+    8. текущие значения;
+    9. polling;
+    10. REST API;
+    11. frontend current values;
+    12. WebSocket;
+    13. устройства и Конфигуратор оборудования;
+    14. реальные протоколы;
+    15. история;
+    16. события и аварии;
+    17. команды;
+    18. дашборды;
+    19. мнемосхемы;
+    20. панели и рабочие места;
+    21. безопасность и аудит;
+    22. диагностика и настройки;
+    23. backup;
+    24. Linux deploy;
+    25. стабилизация первой версии.
+
+================================================================================
+5. Этап 0 — проектная фиксация
+================================================================================
+
+Цель:
+
+    зафиксировать смысл проекта, правила работы, отложенные функции и roadmap.
+
+Документы:
+
+    docs/PROJECT_SPECIFICATION.txt
+    docs/SPRINT_001_PLAN.txt
+    docs/DEFERRED_FEATURES.txt
+    docs/VERSION_1_ROADMAP.txt
+
+Результат этапа:
+
+    у проекта есть начальная документационная база;
+    можно в любой момент открыть репозиторий и восстановить контекст;
+    понятно, что делаем сейчас и что отложено.
+
+Статус:
+
+    выполняется сейчас.
+
+================================================================================
+6. Этап 1 — технический фундамент репозитория
+================================================================================
+
+Цель:
+
+    привести стартовый CMake-проект к структуре Dispatcher.
+
+Основные задачи:
+
+    настроить CMakePresets без Ninja;
+    оставить только x64-debug и x64-release;
+    убрать x86 presets;
+    создать базовую структуру папок;
+    создать dispatcher_server;
+    подготовить CMake для backend/apps и backend/libs;
+    создать первые SERVICE.md;
+    создать docs/services/index.md;
+    убедиться, что проект собирается.
+
+Папки:
+
+    backend/
+    backend/apps/
+    backend/apps/dispatcher_server/
+    backend/libs/
+    frontend/
+    docs/
+    database/
+    scripts/
+    tools/
+    tests/
+
+Основной executable:
+
+    backend/apps/dispatcher_server
+
+Ожидаемый запуск:
+
+    Dispatcher server
+    Version: 0.1.0-dev
+    Mode: Development
+    Status: starting
+
+Критерии готовности:
+
+    проект открывается в Visual Studio;
+    x64-debug работает;
+    x64-release работает;
+    Ninja не используется;
+    x86 не используется;
+    dispatcher_server собирается;
+    dispatcher_server запускается;
+    в Git нет out/build/.vs.
+
+================================================================================
+7. Этап 2 — базовые модули common/core/contracts
+================================================================================
+
+Цель:
+
+    создать фундаментальные библиотеки, от которых будут зависеть остальные
+    сервисы.
+
+Модули:
+
+    scada_common;
+    scada_core;
+    scada_contracts.
+
+scada_common:
+
+    UUID;
+    Timestamp;
+    Result;
+    Error;
+    ErrorCode;
+    CorrelationId;
+    VersionInfo;
+    базовые enum/value types.
+
+scada_core:
+
+    ApplicationContext;
+    ModuleInfo;
+    ModuleStatus;
+    IModule;
+    IHealthCheck;
+    ISettingsProvider placeholder;
+    IEventBus placeholder;
+    lifecycle модулей;
+    registry модулей.
+
+scada_contracts:
+
+    DTO-заготовки;
+    API envelope;
+    error response;
+    paged response;
+    operation response;
+    WebSocket envelope placeholder.
+
+Критерии готовности:
+
+    все три модуля имеют SERVICE.md;
+    все три модуля подключены через CMake;
+    dispatcher_server линкуется с ними;
+    можно вывести список зарегистрированных модулей;
+    проект собирается.
+
+================================================================================
+8. Этап 3 — объектная модель
+================================================================================
+
+Цель:
+
+    создать базовую модель объектов и местоположений.
+
+Модуль:
+
+    scada_objects
+
+Основные сущности:
+
+    ObjectNode;
+    ObjectType;
+    ResponsibilityZone;
+    ObjectPath;
+    ObjectTree;
+    ObjectAccessScope placeholder.
+
+Минимальная логика:
+
+    создание ObjectNode в памяти;
+    построение пути объекта;
+    базовая проверка parent/child;
+    подготовка к хранению в PostgreSQL;
+    DTO для API.
+
+Пока без:
+
+    полноценного PostgreSQL repository;
+    сложной модели прав;
+    UI дерева объектов.
+
+Критерии готовности:
+
+    модели созданы;
+    базовые тесты дерева объектов есть;
+    SERVICE.md обновлен;
+    ограничения текущей реализации указаны.
+
+================================================================================
+9. Этап 4 — устройства и подключения
+================================================================================
+
+Цель:
+
+    создать доменную модель устройств и подключений.
+
+Модуль:
+
+    scada_devices
+
+Основные сущности:
+
+    Device;
+    DeviceConnection;
+    DeviceStatus;
+    DeviceLifecycleStatus;
+    DeviceConnectionStatus;
+    DeviceDraft;
+    DeviceDraftConnection;
+    DeviceDraftTag placeholder;
+    DeviceTemplate placeholder.
+
+Минимальная логика:
+
+    устройство связано с ObjectNode;
+    устройство имеет одно или несколько подключений в модели;
+    для MVP реально используем одно подключение;
+    хранится минимальный runtime-статус связи;
+    есть модель черновика для Конфигуратора оборудования.
+
+Пока без:
+
+    полноценного UI Конфигуратора;
+    импорта Excel/CSV;
+    PostgreSQL persistence.
+
+Критерии готовности:
+
+    модели устройств созданы;
+    черновики заложены;
+    SERVICE.md обновлен;
+    dispatcher_server собирается.
+
+================================================================================
+10. Этап 5 — теги и текущие значения
+================================================================================
+
+Цель:
+
+    создать центральную модель тегов и TagValueStore.
+
+Модуль:
+
+    scada_tags
+
+Основные сущности:
+
+    Tag;
+    TagType;
+    TagDataType;
+    TagQuality;
+    TagCurrentValue;
+    TagAddress;
+    TagArchivePolicy;
+    TagImportance;
+    TagScalingRule;
+    TagValueExtractionRule;
+    TagGroup placeholder.
+
+TagValueStore:
+
+    хранит текущие значения в памяти;
+    потокобезопасен;
+    поддерживает set/get;
+    поддерживает batch update;
+    хранит timestamp и quality;
+    не пишет историю напрямую;
+    публикует событие изменения через EventBus позже.
+
+Value extraction:
+
+    bit index;
+    byte index;
+    mask;
+    shift;
+    bit length;
+    enum mapping;
+    boolean mapping.
+
+Критерии готовности:
+
+    модели тегов созданы;
+    TagValueStore работает в памяти;
+    есть тесты TagValueStore;
+    есть тесты value extraction;
+    SERVICE.md обновлен.
+
+================================================================================
+11. Этап 6 — интерфейс протокольного драйвера
+================================================================================
+
+Цель:
+
+    создать единый интерфейс драйверов.
+
+Модуль:
+
+    scada_protocols
+
+Основные интерфейсы:
+
+    IProtocolDriver;
+    ProtocolDriverRegistry;
+    ProtocolCapabilities;
+    ProtocolReadRequest;
+    ProtocolReadResult;
+    ProtocolWriteRequest;
+    ProtocolWriteResult;
+    ConnectionTestRequest;
+    ConnectionTestResult;
+    TestPollRequest;
+    TestPollResult.
+
+Правила:
+
+    драйвер не пишет в БД;
+    драйвер не пишет напрямую в TagValueStore;
+    драйвер возвращает результат чтения;
+    Polling Service решает, что делать с результатом;
+    тестовый опрос не изменяет текущие значения.
+
+Критерии готовности:
+
+    интерфейсы созданы;
+    SERVICE.md обновлен;
+    компиляция проходит;
+    можно зарегистрировать fake driver.
+
+================================================================================
+12. Этап 7 — MockDriver и SimulatorDriver
+================================================================================
+
+Цель:
+
+    дать проекту источник данных без реального оборудования.
+
+Модуль:
+
+    scada_protocols
+
+MockDriver:
+
+    используется в unit tests;
+    возвращает заранее заданные значения;
+    может имитировать ошибки.
+
+SimulatorDriver:
+
+    используется для разработки и демонстрации;
+    генерирует значения;
+    поддерживает базовые типы тегов;
+    поддерживает изменение качества;
+    может имитировать аварийные значения;
+    позже сможет имитировать команды.
+
+Критерии готовности:
+
+    MockDriver работает;
+    SimulatorDriver работает;
+    TestPollResult возвращается;
+    можно прочитать несколько симулированных тегов;
+    есть базовые тесты.
+
+================================================================================
+13. Этап 8 — Polling Service basic
+================================================================================
+
+Цель:
+
+    создать минимальный опрос через Scheduler -> Queue -> Worker.
+
+Модуль:
+
+    scada_polling
+
+Основные сущности:
+
+    PollingScheduler;
+    PollingQueue;
+    PollingWorkerPool;
+    PollingTask;
+    PollingResult;
+    DevicePollingState;
+    ConnectionPollingState;
+    PollingNode;
+    PollingSettings.
+
+Минимальный поток:
+
+    PollingScheduler
+    -> PollingQueue
+    -> WorkerPool / async I/O
+    -> IProtocolDriver
+    -> TagValueStore.
+
+Правила:
+
+    не создавать отдельный поток на каждое устройство;
+    использовать worker pool или async I/O;
+    поддержать interval;
+    поддержать timeout;
+    поддержать retry basic;
+    поддержать quality update.
+
+Пока без:
+
+    сложного backoff;
+    remote polling node;
+    реального Modbus;
+    реального SNMP.
+
+Критерии готовности:
+
+    SimulatorDriver опрашивается по расписанию;
+    TagValueStore обновляется;
+    логируются ошибки;
+    SERVICE.md обновлен;
+    тестовый сценарий работает.
+
+================================================================================
+14. Этап 9 — REST API current values
+================================================================================
+
+Цель:
+
+    дать frontend и тестам доступ к текущим значениям.
+
+Модули:
+
+    scada_contracts;
+    dispatcher_server;
+    scada_tags;
+    scada_polling.
+
+API:
+
+    GET /api/v1/ui/tags/{id}/current
+    POST /api/v1/ui/tags/current/batch
+    GET /api/health/live
+    GET /api/health/ready
+
+Контракты:
+
+    TagCurrentValueDto;
+    ErrorResponse;
+    PagedResponse placeholder;
+    OperationResponse placeholder.
+
+Критерии готовности:
+
+    dispatcher_server запускает HTTP;
+    health endpoint работает;
+    current values endpoint возвращает данные из TagValueStore;
+    ошибки имеют единый формат;
+    correlation_id добавляется в важные ответы.
+
+================================================================================
+15. Этап 10 — первый frontend экран
+================================================================================
+
+Цель:
+
+    создать первый Blazor WebAssembly экран текущих значений.
+
+Frontend:
+
+    frontend/Dispatcher.Web
+
+Первый экран:
+
+    Current Values
+
+Показывает:
+
+    список тегов;
+    значение;
+    качество;
+    timestamp;
+    source;
+    статус загрузки;
+    ошибку API, если есть.
+
+Пока без:
+
+    сложной навигации;
+    ролей;
+    дашбордов;
+    WebSocket.
+
+Критерии готовности:
+
+    frontend запускается;
+    страница получает значения через REST;
+    ошибки отображаются;
+    есть MODULE.md для базового frontend-модуля.
+
+================================================================================
+16. Этап 11 — WebSocket live updates
+================================================================================
+
+Цель:
+
+    перейти от REST-only к REST initial load + WebSocket updates.
+
+Модули:
+
+    dispatcher_server;
+    scada_contracts;
+    scada_tags;
+    scada_polling.
+
+WebSocket:
+
+    единый envelope;
+    Subscribe message;
+    Unsubscribe message;
+    TagValuesBatchChanged;
+    TagQualityChanged;
+    connection state.
+
+Минимальная подписка:
+
+    подписка на список tagId;
+    batch updates;
+    ограничение max_tags_per_subscription;
+    batch interval.
+
+Критерии готовности:
+
+    frontend получает начальное состояние через REST;
+    frontend получает изменения через WebSocket;
+    при reconnect делает REST refresh;
+    UI показывает connection state.
+
+================================================================================
+17. Этап 12 — PostgreSQL и миграции
+================================================================================
+
+Цель:
+
+    подключить PostgreSQL и версионированные миграции.
+
+Модули:
+
+    scada_core;
+    scada_settings;
+    scada_objects;
+    scada_devices;
+    scada_tags;
+    scada_security.
+
+Папка:
+
+    database/migrations/
+
+Минимальные таблицы:
+
+    schema_version;
+    object_nodes;
+    responsibility_zones;
+    devices;
+    device_connections;
+    tags;
+    tag_addresses;
+    tag_current_values;
+    setting_definitions;
+    setting_values.
+
+Правила:
+
+    PostgreSQL используется сразу;
+    миграции версионированные;
+    auto apply миграций настраиваемо;
+    production не должен бесконтрольно применять миграции.
+
+Критерии готовности:
+
+    приложение подключается к PostgreSQL;
+    проверяет версию схемы;
+    может выполнить миграции в development;
+    SERVICE.md обновлены.
+
+================================================================================
+18. Этап 13 — Конфигуратор оборудования basic
+================================================================================
+
+Цель:
+
+    создать первый рабочий контур добавления устройств через черновики.
+
+Модули:
+
+    scada_devices;
+    scada_protocols;
+    scada_tags;
+    dispatcher_server;
+    frontend.
+
+Функции:
+
+    создать device draft;
+    добавить connection;
+    добавить draft tags;
+    проверить настройки;
+    test connection;
+    test poll;
+    integrate draft в рабочие devices/tags.
+
+Правило:
+
+    импорт и ручное добавление не пишут сразу в рабочие устройства;
+    сначала создаются черновики.
+
+Критерии готовности:
+
+    можно создать черновик устройства;
+    можно выполнить test connection;
+    можно выполнить test poll;
+    можно интегрировать устройство без критических ошибок;
+    интегрированное устройство участвует в опросе.
+
+================================================================================
+19. Этап 14 — Modbus TCP
+================================================================================
+
+Цель:
+
+    добавить первый реальный промышленный протокол.
+
+Модуль:
+
+    scada_protocols
+
+Функции:
+
+    Modbus TCP over IPv4;
+    Modbus TCP over IPv6;
+    DNS host;
+    port;
+    unit id;
+    timeout;
+    retry;
+    holding registers;
+    input registers;
+    coils;
+    discrete inputs;
+    batch read;
+    byte order;
+    word order;
+    value extraction;
+    test connection;
+    test poll.
+
+Пока без:
+
+    всех edge cases;
+    advanced diagnostics;
+    auto-discovery.
+
+Критерии готовности:
+
+    ModbusTcpDriver читает тестовое устройство / симулятор;
+    TestPollResult работает;
+    Polling Service читает Modbus tags;
+    качество ошибок корректно выставляется.
+
+================================================================================
+20. Этап 15 — SNMP basic
+================================================================================
+
+Цель:
+
+    добавить SNMP basic.
+
+Модуль:
+
+    scada_protocols
+
+Функции:
+
+    SNMP v2c;
+    SNMP v3 модель настроек;
+    get;
+    getBulk basic;
+    walk later / limited;
+    OID address;
+    data type conversion;
+    IPv4;
+    IPv6;
+    DNS;
+    timeout;
+    retry;
+    secret handling placeholder.
+
+Пока без:
+
+    полноценного MIB UI;
+    расширенного walk UI;
+    SNMP set advanced.
+
+Критерии готовности:
+
+    SnmpDriver выполняет get;
+    TestPollResult работает;
+    Polling Service читает SNMP tags;
+    качество ошибок корректно выставляется.
+
+================================================================================
+21. Этап 16 — Historian basic
+================================================================================
+
+Цель:
+
+    добавить историю значений по TagArchivePolicy.
+
+Модуль:
+
+    scada_historian
+
+Сущности:
+
+    ArchivePolicyEvaluator;
+    HistorianBuffer;
+    HistorianWriter;
+    HistoricalValue;
+    HistoricalQuery;
+    RetentionPolicy placeholder.
+
+Таблица:
+
+    tag_history
+
+Функции:
+
+    OnChange;
+    Periodic;
+    OnQualityChange;
+    OnChangeWithDeadband;
+    min_archive_interval_ms;
+    batch insert;
+    basic history query;
+    max_points.
+
+Критерии готовности:
+
+    история пишется только по политике;
+    batch insert работает;
+    REST history query возвращает данные;
+    Trend basic может запросить историю.
+
+================================================================================
+22. Этап 17 — Event Service basic
+================================================================================
+
+Цель:
+
+    создать единый поток событий.
+
+Модуль:
+
+    scada_events
+
+Сущности:
+
+    Event;
+    EventType;
+    EventCategory;
+    EventSeverity;
+    EventStore;
+    EventDispatcher;
+    EventViewFilter basic.
+
+Функции:
+
+    запись события;
+    поиск событий;
+    фильтр по времени;
+    фильтр по объекту;
+    фильтр по устройству;
+    фильтр по типу;
+    correlation_id;
+    WebSocket EventCreated.
+
+Критерии готовности:
+
+    события сохраняются;
+    события показываются через API;
+    frontend может показать список событий.
+
+================================================================================
+23. Этап 18 — Alarm Service basic
+================================================================================
+
+Цель:
+
+    добавить простые аварии.
+
+Модуль:
+
+    scada_alarms
+
+Сущности:
+
+    AlarmRule;
+    AlarmCondition;
+    ActiveAlarm;
+    AlarmTransition;
+    AlarmComment basic.
+
+Условия:
+
+    HighLimit;
+    LowLimit;
+    Equal;
+    NotEqual;
+    BadQuality;
+    CommunicationLost;
+    Stale.
+
+Функции:
+
+    срабатывание аварии;
+    снятие аварии;
+    квитирование;
+    комментарий basic;
+    событие на каждый переход;
+    active alarms API;
+    WebSocket AlarmRaised / AlarmChanged / AlarmCleared / AlarmAcknowledged.
+
+Критерии готовности:
+
+    авария создается по значению тега;
+    авария снимается по условию;
+    квитирование работает;
+    события аварий видны в Event Service.
+
+================================================================================
+24. Этап 19 — Command Service basic
+================================================================================
+
+Цель:
+
+    добавить безопасный путь управления.
+
+Модуль:
+
+    scada_commands
+
+Сущности:
+
+    Command;
+    CommandPolicy;
+    CommandRequest;
+    CommandExecution;
+    CommandResult.
+
+Функции:
+
+    preview;
+    execute;
+    status;
+    risk level;
+    confirmation basic;
+    reason/comment по настройке;
+    write-tag command;
+    Modbus write basic, если готово;
+    audit;
+    event;
+    quality checks.
+
+Правило:
+
+    прямой записи в тег через UI API нет.
+
+Критерии готовности:
+
+    команда доступна через Command API;
+    preview объясняет доступность;
+    execute создает CommandExecution;
+    результат попадает в Event Service и Audit.
+
+================================================================================
+25. Этап 20 — Security и Audit basic
+================================================================================
+
+Цель:
+
+    добавить базовых пользователей, роли, сессии и аудит.
+
+Модули:
+
+    scada_security;
+    scada_audit.
+
+Функции:
+
+    User;
+    Role;
+    Permission;
+    Scope basic;
+    Admin;
+    Engineer;
+    Operator;
+    Viewer;
+    PanelRuntime;
+    WorkstationRuntime;
+    login;
+    logout;
+    session;
+    password hash;
+    audit_records;
+    audit_change_sets basic;
+    security events.
+
+Пока без:
+
+    MFA;
+    external auth;
+    dual approval;
+    advanced role mapping.
+
+Критерии готовности:
+
+    можно войти пользователем;
+    права проверяются на backend;
+    команды проверяются через CommandPolicy;
+    важные действия попадают в audit.
+
+================================================================================
+26. Этап 21 — Dashboard basic
+================================================================================
+
+Цель:
+
+    создать простые дашборды.
+
+Модуль:
+
+    scada_dashboards
+
+Сущности:
+
+    Dashboard;
+    DashboardWindow;
+    Widget;
+    WidgetBinding;
+    DashboardPermission;
+    DashboardVersion basic.
+
+Виджеты MVP:
+
+    TagValueWidget;
+    StatusIndicatorWidget;
+    AlarmListWidget;
+    EventListWidget;
+    TrendWidget basic;
+    CommandButtonWidget;
+    TextWidget;
+    TableWidget basic.
+
+Функции:
+
+    создать дашборд;
+    создать окно;
+    добавить виджет;
+    привязать тег;
+    опубликовать;
+    открыть runtime.
+
+Критерии готовности:
+
+    пользователь видит дашборд;
+    виджеты получают начальные данные;
+    виджеты получают WebSocket updates;
+    команды в виджетах идут через Command Service.
+
+================================================================================
+27. Этап 22 — Mimic basic
+================================================================================
+
+Цель:
+
+    добавить базовые мнемосхемы.
+
+Модуль:
+
+    scada_mimics
+
+Сущности:
+
+    MimicDiagram;
+    MimicElement;
+    MimicElementBinding;
+    MimicStateRule;
+    MimicResource.
+
+Функции:
+
+    загрузить SVG;
+    создать basic elements;
+    привязать элемент к тегу;
+    менять состояние элемента по TagQuality/Value;
+    вставить мнемосхему в дашборд;
+    zoom колесом мыши;
+    pan;
+    fit to screen;
+    reset zoom.
+
+Пока без:
+
+    полного редактора мнемосхем;
+    библиотеки SVG-элементов;
+    анимаций advanced.
+
+Критерии готовности:
+
+    мнемосхема отображается;
+    zoom колесом мыши работает;
+    pan работает;
+    состояния basic работают.
+
+================================================================================
+28. Этап 23 — PanelDashboard basic
+================================================================================
+
+Цель:
+
+    добавить панельный режим.
+
+Модули:
+
+    scada_dashboards;
+    scada_security;
+    frontend.
+
+Сущности:
+
+    PanelInstance;
+    PanelGroup;
+    PanelSession;
+    PanelServiceAccount.
+
+Функции:
+
+    register panel;
+    heartbeat;
+    assigned dashboard;
+    fullscreen mode;
+    restricted navigation;
+    read-only mode;
+    safe commands optional;
+    connection status.
+
+Критерии готовности:
+
+    панель открывается по назначенному dashboard;
+    heartbeat виден;
+    потеря связи отображается;
+    команды проходят через CommandPolicy.
+
+================================================================================
+29. Этап 24 — Workstation basic
+================================================================================
+
+Цель:
+
+    добавить режим рабочего места оператора.
+
+Модули:
+
+    scada_security;
+    scada_dashboards;
+    frontend.
+
+Сущности:
+
+    Workstation;
+    WorkstationAccount;
+    OperatorShiftSession.
+
+Функции:
+
+    register workstation;
+    heartbeat;
+    assigned dashboard;
+    active operator;
+    operator login;
+    operator logout;
+    actions audit with WorkstationId.
+
+Пока без:
+
+    полной передачи смены;
+    расширенного журнала смен;
+    графика смен.
+
+Критерии готовности:
+
+    рабочее место открывает назначенный дашборд;
+    оператор авторизуется;
+    действия пишутся с WorkstationId и operator_user_id.
+
+================================================================================
+30. Этап 25 — Notifications basic
+================================================================================
+
+Цель:
+
+    добавить базовый центр уведомлений.
+
+Модуль:
+
+    scada_notifications
+
+Сущности:
+
+    NotificationRule;
+    NotificationMessage;
+    NotificationDelivery;
+    UserContact basic.
+
+Функции:
+
+    уведомление в UI;
+    notification center;
+    уведомления по авариям;
+    уведомления по системным проблемам;
+    delivery log;
+    email channel optional.
+
+Пока без:
+
+    SMS;
+    Telegram;
+    Teams;
+    сложной эскалации;
+    webhook channel advanced.
+
+Критерии готовности:
+
+    авария создает notification;
+    пользователь видит notification center;
+    delivery log сохраняется.
+
+================================================================================
+31. Этап 26 — Scheduler basic
+================================================================================
+
+Цель:
+
+    добавить базовый планировщик системных задач.
+
+Модуль:
+
+    scada_scheduler
+
+Функции:
+
+    OneTime;
+    Interval;
+    Daily;
+    retention job;
+    backup job basic;
+    aggregation placeholder;
+    task execution log.
+
+Пока без:
+
+    Cron;
+    CalendarBased;
+    ShiftBased;
+    complex task workflow.
+
+Критерии готовности:
+
+    задача запускается по расписанию;
+    результат фиксируется;
+    ошибки фиксируются как события.
+
+================================================================================
+32. Этап 27 — Maintenance / PPR basic
+================================================================================
+
+Цель:
+
+    добавить минимальный ППР.
+
+Модуль:
+
+    scada_maintenance
+
+Сущности:
+
+    MaintenanceObject;
+    MaintenanceTask;
+    MaintenanceComment.
+
+Функции:
+
+    ручное создание MaintenanceObject;
+    ручное создание MaintenanceTask;
+    статусы;
+    ответственный;
+    комментарии;
+    связь с ObjectNode / Device;
+    события переходов.
+
+Пока без:
+
+    чек-листов advanced;
+    материалов;
+    стоимости;
+    подрядчиков;
+    сложных расписаний.
+
+Критерии готовности:
+
+    можно создать задачу ППР;
+    можно изменить статус;
+    событие создается;
+    задача видна в UI.
+
+================================================================================
+33. Этап 28 — Integration API basic
+================================================================================
+
+Цель:
+
+    добавить минимальный внешний API.
+
+Модуль:
+
+    scada_integrations
+
+Функции:
+
+    ServiceAccount;
+    ApiToken;
+    token hash;
+    scopes basic;
+    allowed IP ranges placeholder;
+    read current values;
+    read events;
+    read alarms;
+    read history limited;
+    OpenAPI skeleton.
+
+Пока без:
+
+    webhooks;
+    external command API advanced;
+    ERP/1C/CMMS;
+    SDK generation.
+
+Критерии готовности:
+
+    сервисный аккаунт может читать разрешенные данные;
+    действия пишутся в audit;
+    OpenAPI содержит основные endpoints.
+
+================================================================================
+34. Этап 29 — Settings UI и runtime settings
+================================================================================
+
+Цель:
+
+    сделать системные настройки управляемыми через UI.
+
+Модуль:
+
+    scada_settings
+
+Функции:
+
+    setting_definitions;
+    setting_values;
+    setting_categories;
+    validation;
+    audit changes;
+    restart-required flag;
+    hot-reload flag;
+    secret flag;
+    UI settings pages basic.
+
+Bootstrap остается в файле:
+
+    /etc/scada/scada_server.yaml в Linux;
+    локальный dev config в Windows.
+
+Критерии готовности:
+
+    администратор видит настройки;
+    может изменить runtime-настройку;
+    изменение пишется в audit/event;
+    опасные настройки требуют подтверждения.
+
+================================================================================
+35. Этап 30 — Diagnostics basic
+================================================================================
+
+Цель:
+
+    добавить системную диагностику.
+
+Модуль:
+
+    scada_diagnostics
+
+Функции:
+
+    SystemHealth;
+    ModuleHealth;
+    health/live;
+    health/ready;
+    health/details;
+    database health;
+    polling metrics;
+    historian buffer metrics;
+    WebSocket clients;
+    disk space;
+    logs status;
+    configuration validation.
+
+Пока без:
+
+    Prometheus;
+    Grafana;
+    OpenTelemetry traces advanced;
+    расширенной истории метрик.
+
+Критерии готовности:
+
+    UI показывает состояние системы;
+    health endpoints работают;
+    Degraded/Unhealthy имеют причины;
+    важные переходы пишутся в Event Service.
+
+================================================================================
+36. Этап 31 — Backup basic
+================================================================================
+
+Цель:
+
+    добавить базовый backup конфигурации.
+
+Модуль:
+
+    scada_backup
+
+Функции:
+
+    manual configuration backup;
+    backup before mass integration;
+    backup history;
+    audit;
+    restore basic если успеваем;
+    backup manifest.
+
+Пока без:
+
+    backup истории;
+    backup вложений advanced;
+    частичного restore;
+    encrypted backup advanced.
+
+Критерии готовности:
+
+    backup создается;
+    backup содержит manifest;
+    backup отображается в UI;
+    действие фиксируется в audit.
+
+================================================================================
+37. Этап 32 — Linux deploy через systemd
+================================================================================
+
+Цель:
+
+    подготовить эксплуатацию без Docker.
+
+Linux layout:
+
+    /opt/dispatcher
+    /etc/dispatcher
+    /var/lib/dispatcher
+    /var/log/dispatcher
+
+Пользователь:
+
+    dispatcher
+
+Service:
+
+    dispatcher-server.service
+
+Функции:
+
+    install script basic;
+    config template;
+    systemd unit;
+    log directory;
+    data directory;
+    health check after start.
+
+Пока без:
+
+    deb/rpm;
+    Docker;
+    Kubernetes;
+    clustering.
+
+Критерии готовности:
+
+    dispatcher_server запускается как systemd service;
+    config читается;
+    логи пишутся;
+    health endpoint отвечает.
+
+================================================================================
+38. Этап 33 — стабилизация первой версии
+================================================================================
+
+Цель:
+
+    подготовить первую версию к использованию.
+
+Проверить:
+
+    сборка Windows x64-debug;
+    сборка Windows x64-release;
+    сборка Linux;
+    базовые тесты;
+    документация;
+    SERVICE.md / MODULE.md;
+    known limitations;
+    backlog;
+    technical debt;
+    migration scripts;
+    smoke tests;
+    demo data;
+    simulator scenario;
+    UI basic.
+
+Результат:
+
+    первая версия Dispatcher может быть установлена, запущена и использована
+    для базовой диспетчеризации через симулятор, Modbus TCP и SNMP basic.
+
+================================================================================
+39. Первый вертикальный срез
+================================================================================
+
+Первый важнейший вертикальный срез после фундамента:
+
+    SimulatorDriver
+    -> Polling Service
+    -> TagValueStore
+    -> REST API
+    -> Blazor Current Values page.
+
+Зачем:
+
+    проверить архитектуру;
+    проверить CMake;
+    проверить backend modules;
+    проверить frontend/backend обмен;
+    получить первый видимый результат;
+    не ждать реализации реальных протоколов.
+
+Критерий успеха:
+
+    симулированный тег меняется;
+    Polling Service его опрашивает;
+    TagValueStore хранит значение;
+    REST API возвращает значение;
+    Blazor страница показывает значение.
+
+================================================================================
+40. Второй вертикальный срез
+================================================================================
+
+Второй срез:
+
+    SimulatorDriver
+    -> Polling Service
+    -> TagValueStore
+    -> AlarmRule
+    -> Event Service
+    -> UI active alarms.
+
+Зачем:
+
+    проверить аварии;
+    проверить события;
+    проверить связь значений и событий;
+    подготовить диспетчер аварий.
+
+Критерий успеха:
+
+    симулированное значение превышает порог;
+    создается авария;
+    создается событие;
+    UI показывает активную аварию;
+    при возврате значения авария снимается.
+
+================================================================================
+41. Третий вертикальный срез
+================================================================================
+
+Третий срез:
+
+    Dashboard
+    -> WidgetBinding
+    -> TagValueStore
+    -> WebSocket
+    -> UI Widget update.
+
+Зачем:
+
+    проверить live-визуализацию;
+    проверить подписки;
+    проверить batch updates;
+    подготовить панельные дашборды.
+
+Критерий успеха:
+
+    виджет показывает тег;
+    значение обновляется через WebSocket;
+    качество отображается;
+    потеря соединения отображается.
+
+================================================================================
+42. Четвертый вертикальный срез
+================================================================================
+
+Четвертый срез:
+
+    CommandButtonWidget
+    -> Command API preview
+    -> Command Service
+    -> CommandPolicy
+    -> SimulatorDriver write
+    -> Event/Audit
+    -> UI command status.
+
+Зачем:
+
+    проверить безопасный путь управления.
+
+Критерий успеха:
+
+    пользователь нажимает кнопку;
+    preview показывает условия;
+    execute выполняет команду;
+    результат виден в UI;
+    событие и audit созданы.
+
+================================================================================
+43. Пятый вертикальный срез
+================================================================================
+
+Пятый срез:
+
+    Device Configurator
+    -> DeviceDraft
+    -> TestConnection
+    -> TestPoll
+    -> Integrate
+    -> Polling Service
+    -> Current Values UI.
+
+Зачем:
+
+    проверить реальный рабочий процесс инженера.
+
+Критерий успеха:
+
+    инженер создает черновик;
+    проверяет связь;
+    выполняет тестовый опрос;
+    исправляет ошибки;
+    интегрирует устройство;
+    устройство начинает опрашиваться;
+    значения видны в UI.
+
+================================================================================
+44. Приоритет разработки сервисов
+================================================================================
+
+После фундамента сервисы разрабатываются в таком порядке:
+
+    1. scada_common
+    2. scada_core
+    3. scada_contracts
+    4. scada_objects
+    5. scada_devices
+    6. scada_tags
+    7. scada_protocols
+    8. scada_polling
+    9. dispatcher_server API layer
+    10. frontend Current Values
+    11. WebSocket layer
+    12. scada_historian
+    13. scada_events
+    14. scada_alarms
+    15. scada_commands
+    16. scada_security
+    17. scada_audit
+    18. scada_dashboards
+    19. scada_mimics
+    20. scada_notifications
+    21. scada_scheduler
+    22. scada_maintenance
+    23. scada_integrations
+    24. scada_settings
+    25. scada_diagnostics
+    26. scada_backup
+    27. Linux deploy
+
+Причина порядка:
+
+    сначала данные и поток значений;
+    потом история и аварии;
+    потом управление;
+    потом визуализация;
+    потом эксплуатационные функции;
+    потом интеграции и стабилизация.
+
+================================================================================
+45. Минимальные проверки после каждого этапа
+================================================================================
+
+После каждого этапа:
+
+    git status;
+    сборка;
+    запуск, если есть executable;
+    тесты, если есть;
+    проверка SERVICE.md;
+    обновление статуса реализации;
+    обновление development-log, когда появится;
+    commit;
+    push.
+
+Если этап добавляет модуль:
+
+    модуль имеет SERVICE.md;
+    в SERVICE.md есть статус реализации;
+    docs/services/index.md обновлен, когда появится.
+
+Если этап добавляет функцию, но часть отложена:
+
+    отложенная часть должна быть в DEFERRED_FEATURES.txt или backlog.md.
+
+================================================================================
+46. Ожидаемый результат первой версии
+================================================================================
+
+Первая версия считается достигнутой, когда:
+
+    Dispatcher устанавливается и запускается;
+    есть backend dispatcher_server;
+    есть frontend Dispatcher.Web;
+    есть PostgreSQL schema;
+    есть объектная модель;
+    есть устройства;
+    есть теги;
+    есть симулятор;
+    есть Modbus TCP;
+    есть SNMP basic;
+    есть Polling Service;
+    есть TagValueStore;
+    есть REST API;
+    есть WebSocket;
+    есть Current Values UI;
+    есть Historian basic;
+    есть Alarm/Event basic;
+    есть Command basic;
+    есть Dashboard basic;
+    есть Mimic basic с zoom колесом мыши;
+    есть PanelDashboard basic;
+    есть Workstation basic;
+    есть Security/Audit basic;
+    есть Settings UI basic;
+    есть Diagnostics basic;
+    есть Backup basic;
+    есть Linux systemd deploy;
+    есть документация;
+    есть список ограничений;
+    есть backlog.
+
+================================================================================
+47. Текущий статус
+================================================================================
+
+Выполнено:
+
+    Шаг 1 — PROJECT_SPECIFICATION.txt.
+    Шаг 2 — SPRINT_001_PLAN.txt.
+    Шаг 3 — DEFERRED_FEATURES.txt.
+
+В работе:
+
+    Шаг 4 — VERSION_1_ROADMAP.txt.
+
+Следующий шаг после этого документа:
+
+    Шаг 5 — корректировка CMakePresets:
+        только x64-debug и x64-release;
+        без x86;
+        без Ninja;
+        без использования V1 во внутренних именах проекта.
+
+================================================================================
+Конец документа
+================================================================================
