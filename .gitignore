@@ -1,0 +1,29 @@
+# Build outputs
+out/
+build/
+cmake-build-*/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+
+# Runtime data
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
