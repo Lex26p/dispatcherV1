@@ -1,0 +1,820 @@
+Dispatcher — отложенные функции
+Файл: docs/DEFERRED_FEATURES.txt
+Версия документа: 0.1
+Дата: 2026-07-08
+Статус: начальная фиксация отложенных функций
+Продукт: Dispatcher
+Репозиторий: https://github.com/Lex26p/dispatcherV1.git
+Рабочая ветка: master
+
+================================================================================
+1. Назначение документа
+================================================================================
+
+Этот документ фиксирует функции, возможности и направления развития Dispatcher,
+которые мы не реализуем сейчас, но закладываем архитектурно.
+
+Документ не является планом работ и не содержит детальных шагов реализации.
+
+Назначение:
+
+    не потерять будущие идеи;
+    явно отделить MVP от будущих этапов;
+    не перегружать первую версию;
+    понимать, какие модели и интерфейсы нужно заложить заранее;
+    быстро восстановить контекст проекта при продолжении разработки.
+
+Правило проекта:
+
+    если функция отмечена как:
+        заложить позже;
+        реализовать позже;
+        не входит в MVP;
+        будущий спринт;
+        UI позже;
+        модель сейчас, реализация позже;
+
+    она должна быть отражена в этом документе или в будущем docs/backlog.md.
+
+================================================================================
+2. Архитектура и микросервисы
+================================================================================
+
+Отложено:
+
+    Вынос Polling Service в отдельный микросервис.
+    Вынос Historian Service в отдельный микросервис.
+    Вынос Notification Service в отдельный микросервис.
+    Вынос Integration Service в отдельный микросервис.
+    Вынос Script Service в отдельный микросервис.
+    Вынос Scheduler Service в отдельный микросервис.
+    Вынос Report Service в отдельный микросервис.
+    Вынос Diagnostics Service в отдельный микросервис.
+    Отдельные приложения:
+        dispatcher_polling_service;
+        dispatcher_historian_service;
+        dispatcher_notification_service;
+        dispatcher_script_service;
+        dispatcher_integration_service.
+    External service mode для модулей.
+    Внешний брокер событий.
+    NATS Core.
+    NATS JetStream.
+    Durable event log для важных событий через внешний брокер.
+    Краткосрочный replay событий через брокер.
+    Kafka для крупной аналитики и event streaming, если появится необходимость.
+    gRPC / Protobuf для внутренних сервисов.
+    Микросервисное развертывание.
+    Module dependency visualization.
+    Dynamic module loading.
+    Plugin SDK для драйверов.
+    Dynamic protocol driver loading.
+
+================================================================================
+3. Удаленные узлы опроса
+================================================================================
+
+Отложено:
+
+    Remote Polling Node.
+    Отдельное приложение удаленного узла опроса.
+    Синхронизация конфигурации удаленного узла.
+    Буферизация данных на удаленном узле при потере связи.
+    Доставка важных событий с удаленного узла в центральный сервер.
+    Автоматическое распределение устройств по PollingNode.
+    Расширенная диагностика удаленных PollingNode.
+    Протокол обмена между центральным сервером и удаленным PollingNode.
+    Управление версиями удаленных узлов.
+    Обновление удаленных узлов.
+    Offline mode для удаленных узлов.
+    Security model для удаленных узлов.
+    Remote node health history.
+
+================================================================================
+4. Протоколы и драйверы
+================================================================================
+
+Отложено:
+
+    OPC UA driver.
+    MQTT driver / MQTT channel.
+    BACnet driver.
+    Siemens S7 driver.
+    IEC 60870-5-104 driver.
+    DNP3 driver.
+    EtherNet/IP driver.
+    REST polling driver.
+    WebSocket source driver.
+    gRPC source driver.
+    SQL source driver.
+    File source driver.
+    Корпоративные / внутренние протоколы заказчика.
+    Автоматическое обнаружение устройств.
+    Protocol discovery в Конфигураторе оборудования.
+    Импорт тегов из протокола.
+    MIB-файлы для SNMP.
+    SNMP walk UI.
+    SNMP set — осторожная реализация после базового чтения.
+    Расширенная диагностика протокольных драйверов.
+    Профили драйверов.
+    Сторонний SDK для драйверов.
+    Загрузка драйверов как plugins.
+    Расширенный симулятор протоколов.
+    Тестовые стенды протоколов.
+    Автоматическая оптимизация Modbus-блоков на сложных картах.
+    Расширенные Modbus edge cases.
+    Продвинутые byte order / word order сценарии.
+    Расширенный импорт адресов из файлов оборудования.
+
+================================================================================
+5. История, Historian и time-series
+================================================================================
+
+Отложено:
+
+    TimescaleDB как расширенное time-series хранилище.
+    Continuous aggregates.
+    Compression истории.
+    Cold storage.
+    Расширенные RetentionPolicy.
+    Разные политики backup истории.
+    Disk spool для важных и критических тегов.
+    Восстановление Historian из disk spool.
+    Импорт истории.
+    Экспорт истории как тяжелая фоновая задача.
+    Advanced history export tasks.
+    Downsampling policies.
+    Расширенные агрегированные таблицы истории.
+    Расширенный Historical Query Planner.
+    Расширенная защита от тяжелых запросов.
+    Очередь тяжелых исторических запросов.
+    История метрик Historian.
+    Расширенный viewer dropped points.
+    Расширенное версионирование исторических настроек.
+    Архивирование в объектное хранилище.
+    Холодный архив в отдельное хранилище.
+    Data compaction.
+    History repair tools.
+
+================================================================================
+6. Аварии, suppression, shelving и корреляция
+================================================================================
+
+Отложено:
+
+    Полная модель Alarm Suppression.
+    Полная модель Alarm Shelving.
+    Расширенные suppression rules.
+    Расширенные shelving rules.
+    Корреляция аварий.
+    Подавление дочерних аварий.
+    Root cause анализ аварий.
+    Расширенная группировка аварий.
+    Alarm flood protection.
+    Alarm analytics.
+    Alarm KPI.
+    Расширенный viewer жизненного цикла аварии.
+    Расширенные комментарии к авариям.
+    Вложения к авариям в UI.
+    Alarm templates advanced.
+    Массовое редактирование аварийных правил advanced.
+    Approval workflow для отключения аварийных правил.
+    Расширенная интеграция аварий с ППР.
+    Отчеты по авариям.
+    Alarm heatmap.
+    Alarm timeline advanced.
+
+================================================================================
+7. События, аудит и диспетчер событий
+================================================================================
+
+Отложено:
+
+    Расширенный Event Dispatcher UI.
+    Сохраненные фильтры событий advanced.
+    Индивидуальные EventViewFilter для ролей и рабочих мест.
+    Расширенный поиск по событиям.
+    Аналитика событий.
+    Security event analytics.
+    Advanced audit viewer.
+    Audit export advanced.
+    Сравнение изменений конфигурации.
+    Configuration diff viewer.
+    Расширенное восстановление цепочки событий по correlation_id.
+    Граф причинно-следственных связей causation_id.
+    Event replay advanced.
+    Долгосрочная оптимизация хранения событий.
+    Отдельный event warehouse.
+    Расширенная маскировка чувствительных данных в audit.
+    Audit retention policies.
+
+================================================================================
+8. Команды и управление
+================================================================================
+
+Отложено:
+
+    Dual approval для критических команд.
+    Approval workflow.
+    MFA для критических действий.
+    Расширенный Command Policy editor.
+    Расширенный CommandLock viewer.
+    Advanced command conflict rules.
+    Command simulation scenarios.
+    Автоматическая проверка результата команды advanced.
+    Сложные команды с несколькими шагами.
+    Command workflow.
+    Command rollback, если применимо.
+    External command API advanced.
+    Расширенная аналитика команд.
+    Отчеты по командам.
+    Командные сценарии.
+    Расширенное управление ControlBlock.
+    Настраиваемые PIN-политики операторов.
+
+================================================================================
+9. Пользователи, роли и безопасность
+================================================================================
+
+Отложено:
+
+    MFA.
+    TOTP.
+    Email code.
+    Hardware key.
+    Captcha или дополнительная защита login, если понадобится.
+    External auth providers.
+    LDAP.
+    Active Directory.
+    OIDC.
+    OAuth2.
+    SAML.
+    CorporateRoleService.
+    Role mapping UI.
+    Комбинирование внешних и локальных ролей advanced.
+    Security dashboard.
+    Security analytics.
+    Secret rotation workflow.
+    Advanced token management.
+    Fine-grained API scopes editor.
+    Session anomaly detection.
+    Passwordless login, если когда-нибудь понадобится.
+    Расширенные политики паролей.
+    Approval для изменения security settings.
+    Разграничение доступа к секретам advanced.
+    Secret Store advanced.
+    Hardware security module integration, если потребуется.
+    Explicit deny rules не используются по текущему решению и не планируются,
+    если архитектурное решение не будет пересмотрено.
+
+================================================================================
+10. Уведомления
+================================================================================
+
+Отложено:
+
+    SMS channel.
+    Telegram channel.
+    Microsoft Teams channel.
+    Push notifications.
+    Webhook notification channel.
+    CorporateMessenger channel.
+    CorporateNotificationProvider.
+    Полноценное подтверждение контактов.
+    Расширенные графики уведомлений.
+    Расширенные паузы / отпуск / замещение.
+    Полная эскалация уведомлений.
+    Расширенная группировка уведомлений.
+    Deduplication advanced.
+    Rate limit policies advanced.
+    Расширенные шаблоны уведомлений.
+    Многоязычные шаблоны уведомлений.
+    Интеграция с внешними системами уведомлений.
+    Notification Service как отдельный микросервис.
+    Advanced notification delivery viewer.
+    Notification analytics.
+
+================================================================================
+11. Скрипты и автоматизация
+================================================================================
+
+Отложено:
+
+    Полноценный Script Editor.
+    Script Debugger.
+    Библиотека примеров скриптов.
+    Advanced sandbox.
+    WebAssembly sandbox.
+    Полный набор ScriptTrigger.
+    Rule Engine без кода.
+    Визуальный редактор правил.
+    Расширенный Script API.
+    Script package management.
+    Script dependencies viewer.
+    Script performance profiler.
+    Script Service как микросервис.
+    Расширенная диагностика автоматизаций.
+    Script marketplace не планируется для первой версии.
+    Version diff для скриптов.
+    Approval workflow для публикации скриптов.
+    Расширенное тестирование скриптов на симуляторе.
+
+================================================================================
+12. Планировщик
+================================================================================
+
+Отложено:
+
+    Cron schedules.
+    CalendarBased schedules.
+    ShiftBased schedules.
+    Complex maintenance schedules.
+    Расширенный missed_run_policy.
+    Расширенный TaskLock viewer.
+    Scheduler Service как микросервис.
+    Расширенный viewer фоновых задач.
+    Расширенная история выполнений задач.
+    Зависимости между задачами.
+    Task workflow.
+    Task retry policies advanced.
+    Distributed scheduler для микросервисов.
+    Расширенная диагностика Scheduler.
+
+================================================================================
+13. ППР, обслуживание и эксплуатация
+================================================================================
+
+Отложено:
+
+    Сложные расписания ППР.
+    ППР по наработке / счетчикам.
+    Расширенный редактор чек-листов.
+    Обязательные фото.
+    Условные пункты чек-листа.
+    Электронная подпись выполнения.
+    Личные кабинеты подрядчиков.
+    Учет стоимости работ.
+    Учет материалов и запчастей.
+    Интеграция с ERP.
+    Интеграция с ServiceDesk.
+    Интеграция с CMMS.
+    Интеграция с 1C.
+    Полноценные отчеты по ППР.
+    Maintenance analytics.
+    Maintenance KPI.
+    Связь ППР с документацией advanced.
+    Approval выполнения ППР advanced.
+    Подрядчики и внешние пользователи advanced.
+
+================================================================================
+14. Интеграции и внешний API
+================================================================================
+
+Отложено:
+
+    Outbound webhooks.
+    Webhook retry policy.
+    Webhook signature validation.
+    Webhook templates.
+    Inbound webhooks.
+    External event ingestion.
+    External tag update через webhook.
+    ServiceDesk integration.
+    ERP integration.
+    1C integration.
+    CMMS integration.
+    BI integration.
+    Advanced OpenAPI portal.
+    SDK generation.
+    API client libraries.
+    Integration API analytics.
+    Advanced integration request viewer.
+    External command API advanced.
+    Integration Service как микросервис.
+    Mapping rules advanced.
+    Transformation scripts.
+    API usage analytics.
+    API quotas advanced.
+    Event export streaming.
+
+================================================================================
+15. Дашборды и виджеты
+================================================================================
+
+Отложено:
+
+    Полный drag-and-drop Dashboard Editor.
+    Расширенный редактор шаблонов дашбордов.
+    Полноценный viewer версий дашбордов.
+    BarChartWidget.
+    PieChartWidget.
+    HeatmapWidget.
+    MapWidget.
+    TimelineWidget.
+    MaintenanceWidget.
+    CameraWidget.
+    DocumentWidget.
+    CustomHtmlWidget.
+    CustomScriptWidget.
+    AdvancedTrendWidget.
+    Расширенная библиотека виджетов.
+    Widget marketplace не планируется для первой версии.
+    Расширенные условные стили.
+    Расширенные WidgetAction.
+    Расширенные WidgetCondition.
+    Responsive dashboard editor advanced.
+    Dashboard export/import with resources.
+    Dashboard templates advanced.
+    Dashboard performance profiler.
+
+Не требуется по текущему решению:
+
+    автоматическая смена окон дашборда;
+    сохранение состояния окна дашборда.
+
+================================================================================
+16. Мнемосхемы
+================================================================================
+
+Отложено:
+
+    Полноценный Mimic Editor.
+    Библиотека SVG-элементов мнемосхем.
+    SVG editor.
+    Импорт SVG.
+    Расширенное управление слоями.
+    Группы элементов.
+    Расширенные привязки к тегам.
+    Анимации мнемосхем.
+    Mini-map / overview map для больших мнемосхем.
+    Zoom to selected object.
+    Touch pinch zoom.
+    Плавный zoom / pan.
+    Сохранение пользовательского viewport как опциональная функция.
+    Mimic templates advanced.
+    Версионирование мнемосхем advanced.
+    Расширенный editor StateRules.
+    Расширенный editor MimicElementAction.
+    Импорт мнемосхем из старых SCADA, если понадобится.
+
+Обязательно для MVP / первой базовой реализации:
+
+    zoom колесом мыши;
+    pan;
+    fit to screen;
+    reset zoom.
+
+================================================================================
+17. UI / UX
+================================================================================
+
+Отложено:
+
+    Полноценный мобильный интерфейс.
+    High contrast theme.
+    Расширенный глобальный поиск.
+    Сохраненные пользовательские представления таблиц advanced.
+    Расширенная встроенная справка.
+    UI help system.
+    Шаблоны экранов advanced.
+    Advanced kiosk management.
+    UI performance profiler.
+    Offline / limited mode для панелей.
+    Visual regression tests.
+    Accessibility review.
+    Полноценный design system portal.
+    Расширенные пользовательские настройки UI.
+    Multi-language UI beyond Russian.
+    UI localization management.
+    Панельный touch UI advanced.
+    Operator workstation multi-monitor layout advanced.
+
+================================================================================
+18. Панели и рабочие места
+================================================================================
+
+Отложено:
+
+    Расширенный Panel Management UI.
+    Advanced kiosk management.
+    Offline / limited mode для панелей.
+    Touch pinch zoom для панелей.
+    Расширенное управление PanelGroup.
+    Panel update management.
+    Panel diagnostics history.
+    Workstation shift handover advanced.
+    Расширенный журнал смен.
+    Shift schedule UI.
+    Shift analytics.
+    Operator handover checklist.
+    Multi-monitor workstation layout.
+    Рабочее место как notification channel advanced.
+    Панельные команды advanced.
+
+================================================================================
+19. Диагностика, мониторинг и observability
+================================================================================
+
+Отложено:
+
+    Расширенная история метрик.
+    Prometheus metrics.
+    Grafana dashboards.
+    OpenTelemetry traces.
+    External log collector.
+    SNMP monitoring of Dispatcher itself.
+    Расширенный viewer очередей.
+    Расширенный viewer длительных операций.
+    Расширенная диагностика производительности API.
+    История health status по сервисам.
+    Advanced Diagnostics Service.
+    Diagnostics Service как микросервис.
+    Performance dashboards.
+    Queue performance analytics.
+    Log viewer advanced.
+    Alerting on system metrics advanced.
+    Distributed tracing for microservices.
+    Synthetic checks.
+
+Отложено отдельно:
+
+    расширенная диагностика конкретного устройства;
+    историческая диагностика связи каждого устройства;
+    расширенная статистика DeviceCommunicationStats.
+
+================================================================================
+20. Backup, restore, import, export
+================================================================================
+
+Отложено:
+
+    Полный ZIP Project Package.
+    Импорт/экспорт дашбордов с ресурсами.
+    Импорт/экспорт мнемосхем.
+    Импорт/экспорт вложений.
+    Configuration diff viewer.
+    Частичный restore selected entities.
+    Import adapters from legacy SCADA.
+    Custom transformation scripts.
+    S3/MinIO storage.
+    File deduplication.
+    File antivirus scan.
+    Large file management.
+    Optional digital signature for packages.
+    Advanced encrypted backup management.
+    Backup истории.
+    Backup вложений advanced.
+    Restore dry-run advanced.
+    Backup verification.
+    Backup retention advanced.
+    Backup schedule advanced.
+    Release installer.
+    Linux deb/rpm packages.
+
+================================================================================
+21. Файлы и хранилище
+================================================================================
+
+Отложено:
+
+    S3/MinIO storage provider.
+    File deduplication.
+    File antivirus scan.
+    Large file management.
+    Digital signatures.
+    File versioning advanced.
+    Object storage lifecycle policies.
+    Attachment preview UI advanced.
+    Document management advanced.
+    File permission advanced.
+    Cold file storage.
+
+================================================================================
+22. Системные настройки
+================================================================================
+
+Отложено:
+
+    Rollback setting.
+    Restore settings profile.
+    Compare settings versions.
+    Settings change approval.
+    Settings profiles:
+        MVP;
+        Production;
+        HighLoad;
+        Demo.
+    MFA settings UI.
+    External auth provider UI.
+    Role mapping UI.
+    S3/MinIO settings.
+    Feature flags management UI.
+    Advanced settings diff viewer.
+    Temporary debug/trace UI with auto-expire.
+    Settings import/export.
+    Settings templates.
+    Advanced secret settings management.
+    Approval для критических настроек.
+
+================================================================================
+23. Отчеты
+================================================================================
+
+Отложено:
+
+    scada_reports как полноценный модуль отчетов.
+    Historical reports.
+    Alarm reports.
+    Maintenance reports.
+    Availability reports.
+    Audit reports.
+    Scheduled reports.
+    PDF export.
+    Excel export.
+    Report templates.
+    Report Designer.
+    Scheduled report delivery.
+    BI export advanced.
+    Report Service как микросервис.
+
+================================================================================
+24. Лицензирование и редакции
+================================================================================
+
+Отложено:
+
+    scada_license.
+    License / Edition Service.
+    Ограничение по количеству тегов.
+    Ограничение по количеству устройств.
+    Ограничение по количеству пользователей.
+    Ограничение по модулям.
+    Редакции продукта.
+    License activation.
+    Offline license.
+    License audit.
+    License UI.
+
+Лицензирование не входит в MVP.
+
+================================================================================
+25. DevOps, сборка, релизы и развертывание
+================================================================================
+
+Отложено:
+
+    CI/CD pipeline.
+    Automated release packaging.
+    Dockerfile.
+    docker-compose.
+    Container health checks.
+    Containerized PostgreSQL option.
+    Microservices deployment scripts.
+    Release installer.
+    Linux deb package.
+    Linux rpm package.
+    Automated migration tool.
+    Developer documentation portal.
+    Static analysis.
+    clang-tidy.
+    Advanced compiler warnings policy.
+    Sanitizers, если потребуется.
+    Performance benchmarks.
+    Long-running panel tests.
+    Load tests.
+    Automated deployment scripts.
+    Environment templates.
+    Production hardening checklist.
+
+Текущие решения:
+
+    Docker не используем на первом этапе.
+    Ninja не используем.
+    x86 не используем.
+    Используем x64-debug и x64-release.
+
+================================================================================
+26. Тестирование
+================================================================================
+
+Отложено:
+
+    Playwright E2E tests.
+    Visual regression tests для дашбордов.
+    Panel mode long-running tests.
+    Load testing 100000+ tags.
+    Historian load tests.
+    WebSocket load tests.
+    Protocol integration labs.
+    Automated Modbus simulator tests advanced.
+    Automated SNMP simulator tests advanced.
+    Test data generator.
+    Fault injection tests.
+    Chaos testing для микросервисов.
+    Security penetration tests.
+    Performance benchmark suite.
+
+В ближайшей разработке нужны только базовые unit/integration tests для ядра и
+критической логики.
+
+================================================================================
+27. Производительность и масштабирование
+================================================================================
+
+Отложено:
+
+    HighLoad profile.
+    Advanced performance tuning.
+    Horizontal scaling.
+    Hot standby.
+    Clustering.
+    Distributed cache.
+    Advanced current value sharding.
+    Advanced WebSocket scaling.
+    Load balancing.
+    Multi-node backend.
+    Database read replicas.
+    Advanced PostgreSQL partition management.
+    Performance auto-diagnostics.
+    Tag processing optimization advanced.
+    Memory profiling.
+    CPU profiling.
+    UI performance profiling.
+    High-frequency tag optimization beyond MVP.
+
+================================================================================
+28. Мобильные приложения и внешние клиенты
+================================================================================
+
+Отложено:
+
+    Полноценное мобильное приложение.
+    Мобильный web UI.
+    Push notifications mobile.
+    Offline mobile mode.
+    Technician mobile app.
+    External operator app.
+    API client SDK.
+    Mobile-friendly maintenance tasks advanced.
+    QR-code device cards.
+    Camera/photo workflow advanced.
+
+================================================================================
+29. Legacy SCADA и миграции с других систем
+================================================================================
+
+Отложено:
+
+    Import adapters from legacy SCADA.
+    Protocol discovery from existing systems.
+    Tag mapping import.
+    Dashboard migration.
+    Mimic migration.
+    Alarm rules migration.
+    Historical data migration.
+    Custom transformation scripts.
+    Legacy data validation.
+    Migration reports.
+    Migration dry-run.
+
+================================================================================
+30. Функции, которые сейчас не планируются как обязательные
+================================================================================
+
+Не являются обязательными для первой версии:
+
+    Marketplace.
+    Widget marketplace.
+    Driver marketplace.
+    Full enterprise license system.
+    GraphQL.
+    Mobile native app.
+    Cloud-only deployment.
+    Kubernetes deployment.
+    Multi-tenant SaaS mode.
+    AI analytics.
+    Predictive maintenance AI.
+    Digital twin advanced.
+
+Эти направления могут быть пересмотрены только после появления реальной
+потребности.
+
+================================================================================
+31. Текущий статус
+================================================================================
+
+Этот файл является начальным списком отложенных функций.
+
+В будущем он может быть преобразован или синхронизирован с:
+
+    docs/backlog.md;
+    GitHub Issues;
+    project board;
+    release planning documents.
+
+До появления полноценного docs/backlog.md этот документ является основным
+местом фиксации отложенных функций.
+
+================================================================================
+Конец документа
+================================================================================
