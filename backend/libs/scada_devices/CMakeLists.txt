@@ -4,6 +4,7 @@ add_library(scada_devices STATIC
     src/device_module.cpp
     src/device_protocol.cpp
     src/device_state.cpp
+    src/device_validation.cpp
 )
 
 target_include_directories(scada_devices
