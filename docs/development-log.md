@@ -107,7 +107,7 @@ Sprint 001 закрыт.
 
 ## Статус
 
-Закрывается на шаге 21.
+Закрыт.
 
 ## Цель спринта
 
@@ -124,8 +124,6 @@ Sprint 001 закрыт.
 - прав доступа;
 - зон ответственности;
 - ППР.
-
----
 
 ## Выполнено
 
@@ -146,8 +144,6 @@ Sprint 001 закрыт.
 
 Сборка и запуск прошли успешно.
 
----
-
 ### Шаг 14 — ObjectTree
 
 Добавлен `ObjectTree`.
@@ -165,8 +161,6 @@ Sprint 001 закрыт.
 - циклические ссылки.
 
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 15 — ObjectHierarchyRules
 
@@ -197,8 +191,6 @@ Sprint 001 закрыт.
 
 Сборка и запуск прошли успешно.
 
----
-
 ### Шаг 16 — ResponsibilityZone
 
 Добавлена сущность:
@@ -221,8 +213,6 @@ Sprint 001 закрыт.
 
 Сборка и запуск прошли успешно.
 
----
-
 ### Шаг 17 — Typed object identifiers
 
 Добавлен общий шаблон:
@@ -237,8 +227,6 @@ Sprint 001 закрыт.
 Объектная модель переведена с общего `Uuid` на доменные идентификаторы там, где это уже оправдано.
 
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 18 — Object DTO contracts
 
@@ -261,8 +249,6 @@ Sprint 001 закрыт.
 
 Сборка и запуск прошли успешно.
 
----
-
 ### Шаг 19 — Object repository interfaces
 
 Добавлены repository-интерфейсы объектной модели:
@@ -280,8 +266,6 @@ Sprint 001 закрыт.
 - file-based.
 
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 20 — Object database migration draft
 
@@ -301,7 +285,20 @@ PostgreSQL пока не подключался.
 
 Сборка и запуск прошли успешно.
 
----
+### Шаг 21 — Sprint 002 docs update and close
+
+Обновлена документация и закрыт Sprint 002.
+
+Обновлены:
+
+- `docs/development-log.md`;
+- `docs/known-limitations.md`.
+
+Создан:
+
+- `docs/SPRINT_002_SUMMARY.md`.
+
+Сборка и запуск прошли успешно.
 
 ## Итог Sprint 002
 
@@ -323,61 +320,259 @@ PostgreSQL пока не подключался.
 
 ---
 
-## Что сознательно не делали в Sprint 002
+# Sprint 003 — Device Model Foundation
 
-В Sprint 002 не добавлялись:
+## Статус
 
+Закрывается на шаге 28.
+
+## Цель спринта
+
+Создать базовую модель устройств Dispatcher.
+
+Модель устройств должна стать фундаментом для будущих модулей:
+
+- тегов;
+- polling;
+- protocol drivers;
+- диагностики связи;
+- аварий связи;
+- команд управления;
+- истории;
+- API;
+- UI карточек устройств.
+
+---
+
+## Выполнено
+
+### Шаг 22 — scada_devices
+
+Добавлен модуль:
+
+- `backend/libs/scada_devices`.
+
+Добавлены базовые элементы модели устройств:
+
+- `DeviceId`;
+- `DeviceProtocol`;
+- `DeviceState`;
+- `IpMode`;
+- `DeviceConnection`;
+- `Device`;
+- `get_device_module_info()`.
+
+Модуль подключен к CMake и к `dispatcher_server`.
+
+`dispatcher_server` теперь отображает модуль:
+
+- `scada_devices | Devices | Running`.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 23 — Device validation and connection rules
+
+Добавлена базовая валидация устройства.
+
+Добавлены:
+
+- `DeviceValidationCode`;
+- `DeviceValidationIssue`;
+- `DeviceValidationResult`;
+- `validate_device()`;
+- `requires_network_endpoint()`;
+- `is_runtime_enabled_state()`.
+
+Проверяются:
+
+- пустая идентичность устройства;
+- отсутствие привязки к объекту после выхода из `Draft`;
+- несовпадение `Device::protocol` и `DeviceConnection::protocol`;
+- отсутствие `host`;
+- некорректный `port`;
+- отсутствие endpoint для runtime-устройства.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 24 — Device diagnostics model
+
+Добавлена модель диагностики устройства.
+
+Добавлены:
+
+- `DeviceDiagnostics`;
+- `DeviceCommunicationStatus`;
+- `DeviceHealthStatus`.
+
+Диагностика хранит:
+
+- идентификатор устройства;
+- статус связи;
+- статус здоровья;
+- счетчик успешных запросов;
+- счетчик ошибочных запросов;
+- счетчик таймаутов;
+- счетчик переподключений;
+- последнюю задержку;
+- последнюю ошибку.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 25 — Device DTO contracts
+
+В `scada_contracts` добавлены DTO-контракты устройств.
+
+Добавлены:
+
+- `DeviceConnectionDto`;
+- `DeviceDto`;
+- `DeviceListDto`;
+- `DeviceValidationIssueDto`;
+- `DeviceValidationResultDto`;
+- `DeviceDiagnosticsDto`.
+
+Зафиксировано правило:
+
+- `scada_contracts` не зависит от `scada_devices`;
+- идентификаторы в DTO передаются строками;
+- enum-значения в DTO передаются строками.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 26 — Device repository interfaces
+
+Добавлены repository-интерфейсы устройств.
+
+Добавлены:
+
+- `IDeviceRepository`;
+- `IDeviceDiagnosticsRepository`.
+
+Интерфейсы подготовлены для будущих реализаций:
+
+- in-memory;
+- PostgreSQL;
+- mock;
+- file-based.
+
+Реализация хранения пока не добавлялась.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 27 — Device database migration draft
+
+Добавлена черновая SQL-миграция:
+
+- `database/migrations/0002_device_model.sql`.
+
+Миграция описывает будущие таблицы:
+
+- `devices`;
+- `device_diagnostics`.
+
+Миграция зависит от объектной модели, потому что `devices.object_id` ссылается на `object_nodes.id`.
+
+PostgreSQL пока не подключался.
+
+Сборка и запуск прошли успешно.
+
+---
+
+## Итог Sprint 003
+
+В Sprint 003 создан фундамент модели устройств Dispatcher.
+
+Сейчас в проекте есть:
+
+- модуль устройств;
+- типизированный идентификатор устройства;
+- базовая сущность устройства;
+- модель подключения устройства;
+- поддержка IPv4/IPv6/Auto на уровне модели;
+- базовые протоколы `ModbusTcp`, `Snmp`, `Simulator`, `Custom`;
+- жизненные состояния устройства;
+- базовая валидация устройства;
+- модель диагностики устройства;
+- DTO-контракты устройств;
+- repository-интерфейсы устройств;
+- черновая SQL-миграция устройств.
+
+---
+
+## Что сознательно не делали в Sprint 003
+
+В Sprint 003 не добавлялись:
+
+- Modbus TCP driver;
+- SNMP driver;
+- Polling Engine;
+- реальные сетевые подключения;
+- Boost.Asio;
+- теги;
+- текущие значения;
+- аварии связи;
 - PostgreSQL-подключение;
-- реализация репозиториев;
+- реализация repository;
 - HTTP API;
 - frontend;
-- unit-тесты;
-- устройства;
-- теги;
-- аварии;
-- история;
-- polling;
-- авторизация.
+- unit-тесты.
 
 Эти задачи будут выполняться в следующих спринтах.
 
 ---
 
-# Текущее состояние после Sprint 002
+# Текущее состояние после Sprint 003
 
 Проект находится в состоянии:
 
     Dispatcher backend foundation
         +
     Object Model foundation
+        +
+    Device Model foundation
 
 Текущий технический фокус завершен.
 
 Следующий логический фокус:
 
-    Device Model Foundation
+    Tag Model Foundation
 
 ---
 
 # Следующий спринт
 
-## Sprint 003 — Device Model Foundation
+## Sprint 004 — Tag Model Foundation
 
-Цель Sprint 003:
+Цель Sprint 004:
 
-Создать базовую модель устройств Dispatcher.
+Создать базовую модель тегов Dispatcher.
 
 Планируемые направления:
 
-- модуль `scada_devices`;
-- `DeviceId`;
-- `DeviceType`;
-- `DeviceConnection`;
-- параметры подключения;
-- IPv4/IPv6/DNS;
-- состояние устройства;
-- repository-интерфейсы устройств;
-- черновая миграция устройств.
+- модуль `scada_tags`;
+- `TagId`;
+- `TagType`;
+- `TagValueType`;
+- `TagQuality`;
+- `TagAddress`;
+- `TagArchivePolicy`;
+- `Tag`;
+- `TagCurrentValue`;
+- связь тега с устройством;
+- связь тега с объектом;
+- DTO-контракты тегов;
+- repository-интерфейсы тегов;
+- черновая SQL-миграция тегов.
 
 ---
 
@@ -387,7 +582,8 @@ PostgreSQL пока не подключался.
 
 - Sprint 001 — Project Foundation.
 - Sprint 002 — Object Model Foundation.
+- Sprint 003 — Device Model Foundation.
 
 ## Следующий
 
-- Sprint 003 — Device Model Foundation.
+- Sprint 004 — Tag Model Foundation.
