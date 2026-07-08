@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dispatcher::objects
@@ -15,7 +16,9 @@ namespace dispatcher::objects
         DuplicateId,
         MissingParent,
         SelfParent,
-        CycleDetected
+        CycleDetected,
+        InvalidRootType,
+        InvalidParentChildRelation
     };
 
     struct ObjectTreeValidationIssue

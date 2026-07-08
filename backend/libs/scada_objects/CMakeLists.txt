@@ -1,4 +1,5 @@
 add_library(scada_objects STATIC
+    src/object_hierarchy_rules.cpp
     src/object_module.cpp
     src/object_node.cpp
     src/object_path.cpp

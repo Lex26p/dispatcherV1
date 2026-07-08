@@ -1,5 +1,6 @@
 #include "scada_objects/object_tree.h"
 
+#include "scada_objects/object_hierarchy_rules.h"
 #include "scada_objects/object_path.h"
 
 #include <algorithm>
@@ -108,6 +109,19 @@ namespace dispatcher::objects
 
             return false;
         }
+
+        [[nodiscard]] std::optional<ObjectNode> find_parent(
+            const std::vector<ObjectNode>& objects,
+            const ObjectNode& object
+        )
+        {
+            if (!object.parent_id.has_value())
+            {
+                return std::nullopt;
+            }
+
+            return find_object_by_id(objects, object.parent_id.value());
+        }
     }
 
     bool ObjectTreeValidationResult::is_valid() const noexcept
@@ -204,6 +218,17 @@ namespace dispatcher::objects
                 );
             }
 
+            if (object.is_root() && !is_allowed_root_type(object.type))
+            {
+                result.issues.push_back(
+                    ObjectTreeValidationIssue{
+                        .code = ObjectTreeValidationCode::InvalidRootType,
+                        .object_id = object.id,
+                        .message = "Object type is not allowed as root object."
+                    }
+                );
+            }
+
             if (object.parent_id.has_value())
             {
                 const auto parent_id = object.parent_id.value();
@@ -228,6 +253,21 @@ namespace dispatcher::objects
                             .message = "Object parent does not exist in tree."
                         }
                     );
+                }
+
+                const auto parent = find_parent(objects_, object);
+                if (parent.has_value() && parent->id != object.id)
+                {
+                    if (!is_allowed_child_type(parent->type, object.type))
+                    {
+                        result.issues.push_back(
+                            ObjectTreeValidationIssue{
+                                .code = ObjectTreeValidationCode::InvalidParentChildRelation,
+                                .object_id = object.id,
+                                .message = "Object type is not allowed under selected parent type."
+                            }
+                        );
+                    }
                 }
             }
 
@@ -260,6 +300,10 @@ namespace dispatcher::objects
             return "SelfParent";
         case ObjectTreeValidationCode::CycleDetected:
             return "CycleDetected";
+        case ObjectTreeValidationCode::InvalidRootType:
+            return "InvalidRootType";
+        case ObjectTreeValidationCode::InvalidParentChildRelation:
+            return "InvalidParentChildRelation";
         }
 
         return "Unknown";

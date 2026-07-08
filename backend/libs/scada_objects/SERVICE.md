@@ -25,6 +25,7 @@
 - `ObjectNode`;
 - `ObjectType`;
 - `ObjectTree`;
+- правила допустимой иерархии объектов;
 - иерархию объектов;
 - построение пути объекта;
 - поиск объекта по идентификатору;
@@ -62,17 +63,56 @@
 - `EquipmentGroup`;
 - `Custom`.
 
+## Базовые правила иерархии
+
+Корневыми объектами могут быть:
+
+- `Site`;
+- `Building`;
+- `Zone`;
+- `Line`;
+- `EquipmentGroup`;
+- `Custom`.
+
+Примеры допустимой иерархии:
+
+```text
+Site
+ └── Building
+      └── Floor
+           └── Room
+                └── Cabinet
+                     └── Rack
+```
+
+```text
+Site
+ └── Zone
+      └── Line
+           └── EquipmentGroup
+```
+
+```text
+Building
+ └── Room
+      └── Cabinet
+```
+
+`Custom` разрешен как гибкий тип для случаев, когда стандартных типов недостаточно.
+
 ## Основные файлы
 
 - `include/scada_objects/object_type.h`
 - `include/scada_objects/object_node.h`
 - `include/scada_objects/object_path.h`
 - `include/scada_objects/object_tree.h`
+- `include/scada_objects/object_hierarchy_rules.h`
 - `include/scada_objects/object_module.h`
 - `src/object_type.cpp`
 - `src/object_node.cpp`
 - `src/object_path.cpp`
 - `src/object_tree.cpp`
+- `src/object_hierarchy_rules.cpp`
 - `src/object_module.cpp`
 
 ## Зависимости
@@ -99,6 +139,10 @@
 - Добавлена проверка отсутствующего родителя.
 - Добавлена проверка `parent_id == id`.
 - Добавлена проверка циклических ссылок.
+- Добавлены правила допустимых root-типов.
+- Добавлены правила допустимых parent/child связей.
+- Добавлена проверка недопустимого типа корневого объекта.
+- Добавлена проверка недопустимой связи parent/child.
 - Добавлен `get_object_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -110,7 +154,6 @@
 ### Нужно доделать
 
 - Добавить `ResponsibilityZone`.
-- Добавить правила допустимых parent/child связей.
 - Добавить типизированные идентификаторы объектов.
 - Добавить репозитории.
 - Добавить API объектной модели.
