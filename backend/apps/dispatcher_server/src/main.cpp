@@ -1,9 +1,9 @@
 #include "scada_common/error.h"
-#include "scada_common/id_types.h"
-#include "scada_common/result.h"
 #include "scada_common/timestamp.h"
 #include "scada_common/version.h"
 #include "scada_contracts/api_envelope.h"
+#include "scada_core/application_context.h"
+#include "scada_core/event_bus.h"
 #include "scada_core/module_info.h"
 
 #include <cstdlib>
@@ -12,57 +12,76 @@
 
 namespace
 {
-    dispatcher::common::Result<std::string> validate_startup_mode(std::string mode)
+    dispatcher::common::Result<void> register_initial_modules(dispatcher::core::ApplicationContext& context)
     {
-        if (mode.empty())
+        for (auto module : dispatcher::core::get_initial_module_list())
         {
-            return dispatcher::common::Result<std::string>::failure(
-                dispatcher::common::make_error(
-                    dispatcher::common::ErrorCode::ValidationFailed,
-                    "Startup mode must not be empty"
-                )
-            );
+            auto result = context.register_module(std::move(module));
+            if (result.is_failure())
+            {
+                return result;
+            }
         }
 
-        return dispatcher::common::Result<std::string>::success(std::move(mode));
+        return dispatcher::common::Result<void>::success();
+    }
+
+    void print_startup_error(const dispatcher::common::Error& error)
+    {
+        std::cerr << "Startup failed: "
+            << dispatcher::common::to_string(error.code)
+            << " | "
+            << error.message
+            << '\n';
     }
 }
 
 int main()
 {
     const auto version = dispatcher::common::get_version_info();
-    const auto correlation_id = dispatcher::common::CorrelationId::startup();
-    const auto startup_time = dispatcher::common::now_utc();
 
-    const auto startup_mode = validate_startup_mode(std::string{ version.mode });
-    if (startup_mode.is_failure())
+    dispatcher::core::ApplicationContext context{
+        std::string{version.product_name},
+        std::string{version.executable_name}
+    };
+
+    const auto register_result = register_initial_modules(context);
+    if (register_result.is_failure())
     {
-        std::cerr << "Startup failed: "
-            << dispatcher::common::to_string(startup_mode.error().code)
-            << " | "
-            << startup_mode.error().message
-            << '\n';
-
+        print_startup_error(register_result.error());
         return EXIT_FAILURE;
     }
 
-    const auto startup_envelope = dispatcher::contracts::make_success_envelope(
-        correlation_id.str(),
-        "Dispatcher server startup initialized"
-    );
-    const auto modules = dispatcher::core::get_initial_module_list();
+    const auto start_result = context.start();
+    if (start_result.is_failure())
+    {
+        print_startup_error(start_result.error());
+        return EXIT_FAILURE;
+    }
 
-    std::cout << version.product_name << " server" << '\n';
-    std::cout << "Executable: " << version.executable_name << '\n';
+    const auto startup_time = dispatcher::common::now_utc();
+    const auto startup_envelope = dispatcher::contracts::make_success_envelope(
+        context.startup_correlation_id().str(),
+        "Dispatcher application context started"
+    );
+    const auto startup_event = dispatcher::core::make_core_event(
+        "ApplicationStarted",
+        "Dispatcher server application context started",
+        context.startup_correlation_id().str()
+    );
+
+    std::cout << context.application_name() << " server" << '\n';
+    std::cout << "Executable: " << context.executable_name() << '\n';
     std::cout << "Version: " << version.version << '\n';
-    std::cout << "Mode: " << startup_mode.value() << '\n';
-    std::cout << "Status: starting" << '\n';
-    std::cout << "CorrelationId: " << correlation_id.str() << '\n';
+    std::cout << "Mode: " << version.mode << '\n';
+    std::cout << "Status: " << (context.is_started() ? "started" : "not_started") << '\n';
+    std::cout << "CorrelationId: " << context.startup_correlation_id().str() << '\n';
     std::cout << "Startup time UTC: " << dispatcher::common::to_iso8601_utc(startup_time) << '\n';
     std::cout << "Startup message: " << startup_envelope.message << '\n';
+    std::cout << "Startup event: " << startup_event.type << " | " << startup_event.message << '\n';
     std::cout << "Modules:" << '\n';
 
-    for (const auto& module : modules)
+    for (const auto& module : context.modules())
     {
         std::cout << "  - " << module.code
             << " | " << module.name

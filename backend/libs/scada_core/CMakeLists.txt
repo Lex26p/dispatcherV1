@@ -1,4 +1,6 @@
 add_library(scada_core STATIC
+    src/application_context.cpp
+    src/event_bus.cpp
     src/module_info.cpp
 )
 
