@@ -1,1 +1,0 @@
-#include "scada_core/entity_base.h"

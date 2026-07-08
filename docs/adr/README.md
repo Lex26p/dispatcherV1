@@ -1,1 +1,0 @@
-﻿# Dispatcher architecture decision records
