@@ -5,6 +5,7 @@ add_library(scada_objects STATIC
     src/object_path.cpp
     src/object_tree.cpp
     src/object_type.cpp
+    src/responsibility_zone.cpp
 )
 
 target_include_directories(scada_objects
