@@ -4,7 +4,7 @@
 
 `scada_devices` — backend-модуль модели устройств Dispatcher.
 
-Модуль отвечает за описание устройств, их связь с объектной моделью, базовые параметры подключения и базовую валидацию устройства.
+Модуль отвечает за описание устройств, их связь с объектной моделью, базовые параметры подключения, базовую валидацию устройства и модель диагностики.
 
 Устройство в Dispatcher — это техническая сущность, через которую система получает данные или отправляет команды.
 
@@ -30,10 +30,14 @@
 - `IpMode`;
 - `DeviceValidationCode`;
 - `DeviceValidationResult`;
+- `DeviceDiagnostics`;
+- `DeviceCommunicationStatus`;
+- `DeviceHealthStatus`;
 - связь устройства с `ObjectId`;
 - базовую идентичность устройства;
 - базовую модель сетевого подключения;
 - базовую проверку корректности устройства;
+- базовую модель диагностики устройства;
 - подготовку к будущему polling и protocol drivers.
 
 ## Что модуль не должен делать
@@ -138,6 +142,59 @@
 - указан ли корректный `port`;
 - может ли устройство работать в runtime.
 
+## Диагностика устройства
+
+На текущем этапе добавлена базовая модель диагностики устройства.
+
+`DeviceDiagnostics` хранит:
+
+- идентификатор устройства;
+- статус связи;
+- статус здоровья;
+- количество успешных запросов;
+- количество ошибочных запросов;
+- количество таймаутов;
+- количество переподключений;
+- последнюю задержку обмена;
+- последнюю ошибку.
+
+Диагностика пока не обновляется автоматически.
+
+Позже ее будут обновлять:
+
+- Polling Engine;
+- Protocol Drivers;
+- Device Manager;
+- Diagnostics Service.
+
+## DeviceCommunicationStatus
+
+Статус связи устройства.
+
+Поддерживаются значения:
+
+- `Unknown`;
+- `NotConfigured`;
+- `Online`;
+- `Degraded`;
+- `Offline`;
+- `Timeout`;
+- `ProtocolError`;
+- `Disabled`.
+
+## DeviceHealthStatus
+
+Общее состояние здоровья устройства.
+
+Поддерживаются значения:
+
+- `Unknown`;
+- `Healthy`;
+- `Warning`;
+- `Critical`;
+- `Offline`;
+- `Disabled`.
+
 ## Правила подключения
 
 Сетевой endpoint требуется для:
@@ -218,12 +275,14 @@
 - `include/scada_devices/device_connection.h`
 - `include/scada_devices/device.h`
 - `include/scada_devices/device_validation.h`
+- `include/scada_devices/device_diagnostics.h`
 - `include/scada_devices/device_module.h`
 - `src/device_protocol.cpp`
 - `src/device_state.cpp`
 - `src/device_connection.cpp`
 - `src/device.cpp`
 - `src/device_validation.cpp`
+- `src/device_diagnostics.cpp`
 - `src/device_module.cpp`
 
 ## Зависимости
@@ -253,6 +312,11 @@
 - Добавлена проверка `host`.
 - Добавлена проверка `port`.
 - Добавлена проверка runtime endpoint.
+- Добавлен `DeviceDiagnostics`.
+- Добавлен `DeviceCommunicationStatus`.
+- Добавлен `DeviceHealthStatus`.
+- Добавлены базовые счетчики диагностики устройства.
+- Добавлены методы проверки состояния диагностики.
 - Добавлен `get_device_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -261,6 +325,7 @@
 
 - Формируем базовую модель устройств Dispatcher.
 - Закладываем правила конфигурации устройства.
+- Закладываем модель диагностики устройства.
 
 ### Нужно доделать
 
@@ -268,7 +333,6 @@
 - Добавить DTO-контракты устройства.
 - Добавить repository-интерфейсы устройств.
 - Добавить черновую миграцию БД.
-- Добавить модель диагностики устройства.
 - Добавить API устройств позже.
 - Добавить UI карточки устройства позже.
 

@@ -1,6 +1,7 @@
 add_library(scada_devices STATIC
     src/device.cpp
     src/device_connection.cpp
+    src/device_diagnostics.cpp
     src/device_module.cpp
     src/device_protocol.cpp
     src/device_state.cpp
