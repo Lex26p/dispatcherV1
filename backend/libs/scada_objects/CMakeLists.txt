@@ -2,6 +2,7 @@ add_library(scada_objects STATIC
     src/object_module.cpp
     src/object_node.cpp
     src/object_path.cpp
+    src/object_tree.cpp
     src/object_type.cpp
 )
 
