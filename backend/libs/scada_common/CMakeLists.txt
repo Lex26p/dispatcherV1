@@ -1,4 +1,7 @@
 add_library(scada_common STATIC
+    src/error.cpp
+    src/id_types.cpp
+    src/timestamp.cpp
     src/version.cpp
 )
 

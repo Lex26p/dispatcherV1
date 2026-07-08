@@ -1,0 +1,158 @@
+[1mdiff --git a/CMakePresets.json b/CMakePresets.json[m
+[1mindex dc3e092..89021bd 100644[m
+[1m--- a/CMakePresets.json[m
+[1m+++ b/CMakePresets.json[m
+[36m@@ -1,105 +1,48 @@[m
+ ﻿{[m
+[31m-    "version": 3,[m
+[31m-    "configurePresets": [[m
+[31m-        {[m
+[31m-            "name": "windows-base",[m
+[31m-            "hidden": true,[m
+[31m-            "generator": "Ninja",[m
+[31m-            "binaryDir": "${sourceDir}/out/build/${presetName}",[m
+[31m-            "installDir": "${sourceDir}/out/install/${presetName}",[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_C_COMPILER": "cl.exe",[m
+[31m-                "CMAKE_CXX_COMPILER": "cl.exe"[m
+[31m-            },[m
+[31m-            "condition": {[m
+[31m-                "type": "equals",[m
+[31m-                "lhs": "${hostSystemName}",[m
+[31m-                "rhs": "Windows"[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "x64-debug",[m
+[31m-            "displayName": "x64 Debug",[m
+[31m-            "inherits": "windows-base",[m
+[31m-            "architecture": {[m
+[31m-                "value": "x64",[m
+[31m-                "strategy": "external"[m
+[31m-            },[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Debug",[m
+[31m-                "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "x64-release",[m
+[31m-            "displayName": "x64 Release",[m
+[31m-            "inherits": "x64-debug",[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Release",[m
+[31m-                "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "x86-debug",[m
+[31m-            "displayName": "x86 Debug",[m
+[31m-            "inherits": "windows-base",[m
+[31m-            "architecture": {[m
+[31m-                "value": "x86",[m
+[31m-                "strategy": "external"[m
+[31m-            },[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Debug",[m
+[31m-                "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "x86-release",[m
+[31m-            "displayName": "x86 Release",[m
+[31m-            "inherits": "x86-debug",[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Release",[m
+[31m-                "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VSINSTALLDIR}Common7/IDE/CommonExtensions/Microsoft/CMake/cmake/Microsoft/SegmentHeap.cmake"[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "linux-debug",[m
+[31m-            "displayName": "Linux Debug",[m
+[31m-            "generator": "Ninja",[m
+[31m-            "binaryDir": "${sourceDir}/out/build/${presetName}",[m
+[31m-            "installDir": "${sourceDir}/out/install/${presetName}",[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Debug"[m
+[31m-            },[m
+[31m-            "condition": {[m
+[31m-                "type": "equals",[m
+[31m-                "lhs": "${hostSystemName}",[m
+[31m-                "rhs": "Linux"[m
+[31m-            },[m
+[31m-            "vendor": {[m
+[31m-                "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {[m
+[31m-                    "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"[m
+[31m-                }[m
+[31m-            }[m
+[31m-        },[m
+[31m-        {[m
+[31m-            "name": "macos-debug",[m
+[31m-            "displayName": "macOS Debug",[m
+[31m-            "generator": "Ninja",[m
+[31m-            "binaryDir": "${sourceDir}/out/build/${presetName}",[m
+[31m-            "installDir": "${sourceDir}/out/install/${presetName}",[m
+[31m-            "cacheVariables": {[m
+[31m-                "CMAKE_BUILD_TYPE": "Debug"[m
+[31m-            },[m
+[31m-            "condition": {[m
+[31m-                "type": "equals",[m
+[31m-                "lhs": "${hostSystemName}",[m
+[31m-                "rhs": "Darwin"[m
+[31m-            },[m
+[31m-            "vendor": {[m
+[31m-                "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {[m
+[31m-                    "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"[m
+[31m-                }[m
+[31m-            }[m
+[31m-        }[m
+[31m-    ][m
+[31m-}[m
+[32m+[m[32m  "version": 3,[m
+[32m+[m[32m  "configurePresets": [[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "name": "windows-vs2026-x64-base",[m
+[32m+[m[32m      "displayName": "Windows VS 2026 x64 Base",[m
+[32m+[m[32m      "hidden": true,[m
+[32m+[m[32m      "generator": "Visual Studio 18 2026",[m
+[32m+[m[32m      "architecture": {[m
+[32m+[m[32m        "value": "x64",[m
+[32m+[m[32m        "strategy": "external"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "binaryDir": "${sourceDir}/out/build/${presetName}",[m
+[32m+[m[32m      "installDir": "${sourceDir}/out/install/${presetName}",[m
+[32m+[m[32m      "condition": {[m
+[32m+[m[32m        "type": "equals",[m
+[32m+[m[32m        "lhs": "${hostSystemName}",[m
+[32m+[m[32m        "rhs": "Windows"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "name": "x64-debug",[m
+[32m+[m[32m      "displayName": "x64 Debug",[m
+[32m+[m[32m      "description": "Dispatcher Debug build for Windows x64 using Visual Studio 2026 generator.",[m
+[32m+[m[32m      "inherits": "windows-vs2026-x64-base"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "name": "x64-release",[m
+[32m+[m[32m      "displayName": "x64 Release",[m
+[32m+[m[32m      "description": "Dispatcher Release build for Windows x64 using Visual Studio 2026 generator.",[m
+[32m+[m[32m      "inherits": "windows-vs2026-x64-base"[m
+[32m+[m[32m    }[m
+[32m+[m[32m  ],[m
+[32m+[m[32m  "buildPresets": [[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "name": "x64-debug",[m
+[32m+[m[32m      "displayName": "Build x64 Debug",[m
+[32m+[m[32m      "configurePreset": "x64-debug",[m
+[32m+[m[32m      "configuration": "Debug"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "name": "x64-release",[m
+[32m+[m[32m      "displayName": "Build x64 Release",[m
+[32m+[m[32m      "configurePreset": "x64-release",[m
+[32m+[m[32m      "configuration": "Release"[m
+[32m+[m[32m    }[m
+[32m+[m[32m  ][m
+[32m+[m[32m}[m
+\ No newline at end of file[m
