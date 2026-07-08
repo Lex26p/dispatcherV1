@@ -2,6 +2,7 @@ add_library(scada_common STATIC
     src/error.cpp
     src/entity_id.cpp
     src/lifecycle_state.cpp
+    src/audit_info.cpp
     src/id_types.cpp
     src/timestamp.cpp
     src/version.cpp
