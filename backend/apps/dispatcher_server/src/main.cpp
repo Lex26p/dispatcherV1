@@ -6,6 +6,7 @@
 #include "scada_core/event_bus.h"
 #include "scada_core/module_info.h"
 #include "scada_objects/object_module.h"
+#include "scada_devices/device_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -28,6 +29,12 @@ namespace
         if (objects_result.is_failure())
         {
             return objects_result;
+        }
+
+        auto devices_result = context.register_module(dispatcher::devices::get_device_module_info());
+        if (devices_result.is_failure())
+        {
+            return devices_result;
         }
 
         return dispatcher::common::Result<void>::success();
