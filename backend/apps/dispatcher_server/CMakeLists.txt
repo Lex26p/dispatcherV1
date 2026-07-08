@@ -12,6 +12,7 @@ target_link_libraries(dispatcher_server
         scada_common
         scada_contracts
         scada_core
+        scada_objects
 )
 
 set_target_properties(dispatcher_server
