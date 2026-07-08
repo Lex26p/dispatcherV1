@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scada_common/id_types.h"
+#include "scada_objects/object_ids.h"
 
 #include <string>
 #include <string_view>
@@ -10,19 +11,19 @@ namespace dispatcher::objects
 {
     struct ResponsibilityZone
     {
-        dispatcher::common::Uuid id;
+        ResponsibilityZoneId id;
         std::string code;
         std::string name;
         std::string description;
 
-        std::vector<dispatcher::common::Uuid> object_ids;
+        std::vector<ObjectId> object_ids;
         std::vector<dispatcher::common::Uuid> user_ids;
         std::vector<std::string> role_codes;
 
         [[nodiscard]] bool has_valid_identity() const noexcept;
 
         [[nodiscard]] bool contains_object(
-            const dispatcher::common::Uuid& object_id
+            const ObjectId& object_id
         ) const;
 
         [[nodiscard]] bool contains_user(
@@ -46,7 +47,7 @@ namespace dispatcher::objects
     struct ResponsibilityZoneValidationIssue
     {
         ResponsibilityZoneValidationCode code = ResponsibilityZoneValidationCode::EmptyIdentity;
-        dispatcher::common::Uuid zone_id;
+        ResponsibilityZoneId zone_id;
         std::string message;
     };
 

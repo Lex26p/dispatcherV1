@@ -4,6 +4,22 @@ namespace dispatcher::objects
 {
     namespace
     {
+        [[nodiscard]] bool contains_object_id(
+            const std::vector<ObjectId>& values,
+            const ObjectId& value
+        )
+        {
+            for (const auto& existing_value : values)
+            {
+                if (existing_value == value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         [[nodiscard]] bool contains_uuid(
             const std::vector<dispatcher::common::Uuid>& values,
             const dispatcher::common::Uuid& value
@@ -30,6 +46,29 @@ namespace dispatcher::objects
                 if (existing_value == value)
                 {
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        [[nodiscard]] bool has_duplicate_object_id(
+            const std::vector<ObjectId>& values
+        )
+        {
+            for (std::size_t left_index = 0; left_index < values.size(); ++left_index)
+            {
+                if (values[left_index].empty())
+                {
+                    continue;
+                }
+
+                for (std::size_t right_index = left_index + 1; right_index < values.size(); ++right_index)
+                {
+                    if (values[left_index] == values[right_index])
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -89,10 +128,10 @@ namespace dispatcher::objects
     }
 
     bool ResponsibilityZone::contains_object(
-        const dispatcher::common::Uuid& object_id
+        const ObjectId& object_id
     ) const
     {
-        return contains_uuid(object_ids, object_id);
+        return contains_object_id(object_ids, object_id);
     }
 
     bool ResponsibilityZone::contains_user(
@@ -142,7 +181,7 @@ namespace dispatcher::objects
             );
         }
 
-        if (has_duplicate_uuid(zone.object_ids))
+        if (has_duplicate_object_id(zone.object_ids))
         {
             result.issues.push_back(
                 ResponsibilityZoneValidationIssue{

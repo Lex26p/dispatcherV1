@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scada_common/id_types.h"
+#include "scada_objects/object_ids.h"
 #include "scada_objects/object_node.h"
 
 #include <optional>
@@ -24,7 +24,7 @@ namespace dispatcher::objects
     struct ObjectTreeValidationIssue
     {
         ObjectTreeValidationCode code = ObjectTreeValidationCode::EmptyIdentity;
-        dispatcher::common::Uuid object_id;
+        ObjectId object_id;
         std::string message;
     };
 
@@ -46,17 +46,17 @@ namespace dispatcher::objects
         [[nodiscard]] const std::vector<ObjectNode>& objects() const noexcept;
 
         [[nodiscard]] std::optional<ObjectNode> find_by_id(
-            const dispatcher::common::Uuid& id
+            const ObjectId& id
         ) const;
 
         [[nodiscard]] std::vector<ObjectNode> roots() const;
 
         [[nodiscard]] std::vector<ObjectNode> children_of(
-            const dispatcher::common::Uuid& parent_id
+            const ObjectId& parent_id
         ) const;
 
         [[nodiscard]] std::string path_of(
-            const dispatcher::common::Uuid& leaf_id
+            const ObjectId& leaf_id
         ) const;
 
         [[nodiscard]] ObjectTreeValidationResult validate() const;

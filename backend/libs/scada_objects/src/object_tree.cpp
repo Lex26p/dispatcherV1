@@ -12,13 +12,13 @@ namespace dispatcher::objects
     namespace
     {
         [[nodiscard]] bool contains_id(
-            const std::vector<dispatcher::common::Uuid>& ids,
-            const dispatcher::common::Uuid& id
+            const std::vector<ObjectId>& ids,
+            const ObjectId& id
         )
         {
             return std::ranges::any_of(
                 ids,
-                [&id](const dispatcher::common::Uuid& existing_id)
+                [&id](const ObjectId& existing_id)
                 {
                     return existing_id == id;
                 }
@@ -27,7 +27,7 @@ namespace dispatcher::objects
 
         [[nodiscard]] bool has_duplicate_id(
             const std::vector<ObjectNode>& objects,
-            const dispatcher::common::Uuid& id
+            const ObjectId& id
         )
         {
             if (id.empty())
@@ -55,7 +55,7 @@ namespace dispatcher::objects
 
         [[nodiscard]] bool parent_exists(
             const std::vector<ObjectNode>& objects,
-            const dispatcher::common::Uuid& parent_id
+            const ObjectId& parent_id
         )
         {
             return std::ranges::any_of(
@@ -77,7 +77,7 @@ namespace dispatcher::objects
                 return false;
             }
 
-            std::vector<dispatcher::common::Uuid> visited;
+            std::vector<ObjectId> visited;
             visited.push_back(start.id);
 
             auto current = start;
@@ -145,7 +145,7 @@ namespace dispatcher::objects
     }
 
     std::optional<ObjectNode> ObjectTree::find_by_id(
-        const dispatcher::common::Uuid& id
+        const ObjectId& id
     ) const
     {
         return find_object_by_id(objects_, id);
@@ -167,7 +167,7 @@ namespace dispatcher::objects
     }
 
     std::vector<ObjectNode> ObjectTree::children_of(
-        const dispatcher::common::Uuid& parent_id
+        const ObjectId& parent_id
     ) const
     {
         std::vector<ObjectNode> result;
@@ -184,7 +184,7 @@ namespace dispatcher::objects
     }
 
     std::string ObjectTree::path_of(
-        const dispatcher::common::Uuid& leaf_id
+        const ObjectId& leaf_id
     ) const
     {
         return build_object_path(objects_, leaf_id);
