@@ -1,5 +1,6 @@
 add_library(scada_contracts STATIC
     src/api_envelope.cpp
+    src/object_dto.cpp
 )
 
 target_include_directories(scada_contracts
