@@ -2,6 +2,7 @@ add_library(scada_core STATIC
     src/application_context.cpp
     src/event_bus.cpp
     src/module_info.cpp
+    src/entity_base.cpp
 )
 
 target_include_directories(scada_core
@@ -9,12 +10,13 @@ target_include_directories(scada_core
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_compile_features(scada_core
-    PUBLIC
-        cxx_std_20
-)
-
 target_link_libraries(scada_core
     PUBLIC
         scada_common
+        scada_contracts
+)
+
+target_compile_features(scada_core
+    PUBLIC
+        cxx_std_20
 )
