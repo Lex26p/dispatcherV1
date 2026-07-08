@@ -7,6 +7,13 @@ target_compile_features(dispatcher_server
         cxx_std_20
 )
 
+target_link_libraries(dispatcher_server
+    PRIVATE
+        scada_common
+        scada_contracts
+        scada_core
+)
+
 set_target_properties(dispatcher_server
     PROPERTIES
         OUTPUT_NAME "dispatcher_server"
