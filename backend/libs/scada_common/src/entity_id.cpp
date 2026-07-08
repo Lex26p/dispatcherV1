@@ -1,0 +1,1 @@
+#include "scada_common/entity_id.h"
