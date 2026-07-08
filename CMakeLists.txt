@@ -1,21 +1,19 @@
-﻿# CMakeList.txt: проект CMake для dispatcherV1; включите исходный код и определения,
-# укажите здесь логику для конкретного проекта.
-#
-cmake_minimum_required (VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.20)
 
-# Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+project(
+    Dispatcher
+    VERSION 0.1.0
+    DESCRIPTION "Dispatcher SCADA and dispatching platform"
+    LANGUAGES CXX
+)
+
+if(POLICY CMP0141)
+    cmake_policy(SET CMP0141 NEW)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug,RelWithDebInfo>>:ProgramDatabase>")
 endif()
 
-project ("dispatcherV1")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Добавьте источник в исполняемый файл этого проекта.
-add_executable (dispatcherV1 "dispatcherV1.cpp" "dispatcherV1.h")
-
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET dispatcherV1 PROPERTY CXX_STANDARD 20)
-endif()
-
-# TODO: Добавьте тесты и целевые объекты, если это необходимо.
+add_subdirectory(backend/apps/dispatcher_server)
