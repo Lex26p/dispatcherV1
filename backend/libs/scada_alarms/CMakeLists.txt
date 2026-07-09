@@ -2,6 +2,7 @@ add_library(scada_alarms STATIC
     src/alarm_lifecycle.cpp
     src/alarm_module.cpp
     src/alarm_record.cpp
+    src/alarm_rule.cpp
 )
 
 target_include_directories(scada_alarms
@@ -19,4 +20,5 @@ target_link_libraries(scada_alarms
         scada_common
         scada_core
         scada_events
+        scada_tags
 )
