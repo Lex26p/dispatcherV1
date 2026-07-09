@@ -2,6 +2,7 @@ add_library(scada_api STATIC
     src/api_endpoint.cpp
     src/api_mapper.cpp
     src/api_module.cpp
+    src/api_read_endpoint.cpp
     src/api_response.cpp
     src/api_route_registry.cpp
 )
