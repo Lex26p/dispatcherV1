@@ -2,39 +2,39 @@
 
 @inject IDispatcherApiClient ApiClient
 
-<PageTitle>Runtime - Dispatcher</PageTitle>
+<PageTitle>Текущие значения - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
     <MudStack Spacing="3">
         <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
             <div>
-                <MudText Typo="Typo.h4" HtmlTag="h1">Runtime</MudText>
+                <MudText Typo="Typo.h4" HtmlTag="h1">Текущие значения</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    Current tag values placeholder.
+                    Срез текущих значений тегов и качества данных.
                 </MudText>
             </div>
 
             <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">
-                Mock values
+                Демо-данные
             </MudChip>
         </MudStack>
 
         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            Runtime values are loaded from the frontend placeholder API client.
-            Real `/api/runtime/values` integration will be added later.
+            На этой странице пока отображаются демо-данные.
+            Реальное подключение к `/api/runtime/values` будет добавлено позже.
         </MudAlert>
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Values
+                        Значений
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @_values.Count
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Runtime values in current placeholder snapshot.
+                        Значения в текущем демо-срезе.
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -42,13 +42,13 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Good quality
+                        Хорошее качество
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @GoodQualityCount
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Values with Good quality.
+                        Значения с хорошим качеством.
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -56,22 +56,22 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Bad or uncertain
+                        Требуют внимания
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @BadOrUncertainCount
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Values requiring operator attention.
+                        Значения с сомнительным качеством или ошибкой связи.
                     </MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
         <MudPaper Elevation="0" Class="dispatcher-card">
-            <MudText Typo="Typo.h6">Current values</MudText>
+            <MudText Typo="Typo.h6">Таблица текущих значений</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
-                This table models the future runtime value screen.
+                Эта таблица моделирует будущий экран текущих значений.
             </MudText>
 
             <MudTable T="RuntimeValueViewModel"
@@ -81,44 +81,44 @@
                       Elevation="0"
                       Class="dispatcher-table">
                 <HeaderContent>
-                    <MudTh>Tag</MudTh>
-                    <MudTh>Object</MudTh>
-                    <MudTh>Device</MudTh>
-                    <MudTh>Value</MudTh>
-                    <MudTh>Quality</MudTh>
-                    <MudTh>Timestamp</MudTh>
+                    <MudTh>Тег</MudTh>
+                    <MudTh>Объект</MudTh>
+                    <MudTh>Устройство</MudTh>
+                    <MudTh>Значение</MudTh>
+                    <MudTh>Качество</MudTh>
+                    <MudTh>Время</MudTh>
                 </HeaderContent>
 
                 <RowTemplate Context="value">
-                    <MudTd DataLabel="Tag">
+                    <MudTd DataLabel="Тег">
                         <MudText Typo="Typo.body2">@value.TagCode</MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">@value.TagName</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Object">
+                    <MudTd DataLabel="Объект">
                         <MudText Typo="Typo.body2" Color="Color.Secondary">@value.ObjectPath</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Device">
+                    <MudTd DataLabel="Устройство">
                         <MudText Typo="Typo.body2">@value.DeviceName</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Value">
+                    <MudTd DataLabel="Значение">
                         <MudText Typo="Typo.body2">
                             @value.Value @value.Unit
                         </MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Quality">
+                    <MudTd DataLabel="Качество">
                         <MudChip T="string"
                                  Color="@GetQualityColor(value.Quality)"
                                  Variant="Variant.Outlined"
                                  Size="Size.Small">
-                            @value.Quality
+                            @FormatQuality(value.Quality)
                         </MudChip>
                     </MudTd>
 
-                    <MudTd DataLabel="Timestamp">
+                    <MudTd DataLabel="Время">
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @value.Timestamp.ToString("HH:mm:ss")
                         </MudText>
@@ -154,6 +154,30 @@
             "CommunicationError" => Color.Error,
             "Bad" => Color.Error,
             _ => Color.Default
+        };
+    }
+
+    private static string FormatQuality(
+        string quality
+    )
+    {
+        return quality switch
+        {
+            "Good" => "Хорошее",
+            "Uncertain" => "Сомнительное",
+            "Bad" => "Плохое",
+            "CommunicationError" => "Ошибка связи",
+            "Timeout" => "Тайм-аут",
+            "DeviceError" => "Ошибка устройства",
+            "ProtocolError" => "Ошибка протокола",
+            "OutOfRange" => "Вне диапазона",
+            "Manual" => "Ручное",
+            "Simulation" => "Симуляция",
+            "Maintenance" => "Обслуживание",
+            "Stale" => "Устарело",
+            "Disabled" => "Отключено",
+            "NotInitialized" => "Не инициализировано",
+            _ => quality
         };
     }
 }

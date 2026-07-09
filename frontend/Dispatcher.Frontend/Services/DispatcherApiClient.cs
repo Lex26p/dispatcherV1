@@ -94,61 +94,61 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
             new()
             {
                 TagCode = "PUMP_01_STATUS",
-                TagName = "Pump 01 Status",
-                ObjectPath = "/Demo/Pump Station/Pump 01",
-                DeviceName = "Simulator Device",
-                Value = "Running",
+                TagName = "Насос 01: состояние",
+                ObjectPath = "/Демо/Насосная станция/Насос 01",
+                DeviceName = "Устройство-симулятор",
+                Value = "Работает",
                 Unit = "",
                 Quality = "Good",
-                Source = "Mock runtime",
+                Source = "Демо-источник",
                 Timestamp = now.AddSeconds(-4)
             },
             new()
             {
                 TagCode = "PUMP_01_PRESSURE",
-                TagName = "Pump 01 Pressure",
-                ObjectPath = "/Demo/Pump Station/Pump 01",
-                DeviceName = "Simulator Device",
+                TagName = "Насос 01: давление",
+                ObjectPath = "/Демо/Насосная станция/Насос 01",
+                DeviceName = "Устройство-симулятор",
                 Value = "4.20",
-                Unit = "bar",
+                Unit = "бар",
                 Quality = "Good",
-                Source = "Mock runtime",
+                Source = "Демо-источник",
                 Timestamp = now.AddSeconds(-6)
             },
             new()
             {
                 TagCode = "TANK_01_LEVEL",
-                TagName = "Tank 01 Level",
-                ObjectPath = "/Demo/Tank Farm/Tank 01",
-                DeviceName = "Simulator Device",
+                TagName = "Резервуар 01: уровень",
+                ObjectPath = "/Демо/Резервуарный парк/Резервуар 01",
+                DeviceName = "Устройство-симулятор",
                 Value = "72.5",
                 Unit = "%",
                 Quality = "Good",
-                Source = "Mock runtime",
+                Source = "Демо-источник",
                 Timestamp = now.AddSeconds(-8)
             },
             new()
             {
                 TagCode = "LINE_01_FLOW",
-                TagName = "Line 01 Flow",
-                ObjectPath = "/Demo/Pipe Line/Line 01",
-                DeviceName = "Simulator Device",
+                TagName = "Линия 01: расход",
+                ObjectPath = "/Демо/Трубопровод/Линия 01",
+                DeviceName = "Устройство-симулятор",
                 Value = "18.7",
-                Unit = "m³/h",
+                Unit = "м³/ч",
                 Quality = "Uncertain",
-                Source = "Mock runtime",
+                Source = "Демо-источник",
                 Timestamp = now.AddSeconds(-12)
             },
             new()
             {
                 TagCode = "REMOTE_DEVICE_SIGNAL",
-                TagName = "Remote Device Signal",
-                ObjectPath = "/Demo/Remote Site/Device 01",
-                DeviceName = "Remote Simulator",
-                Value = "N/A",
+                TagName = "Удаленное устройство: сигнал",
+                ObjectPath = "/Демо/Удаленный объект/Устройство 01",
+                DeviceName = "Удаленный симулятор",
+                Value = "Н/Д",
                 Unit = "",
                 Quality = "CommunicationError",
-                Source = "Mock runtime",
+                Source = "Демо-источник",
                 Timestamp = now.AddSeconds(-30)
             }
         ];
@@ -172,7 +172,7 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
                 Severity = "Info",
                 SourceType = "Tag",
                 SourceName = "PUMP_01_STATUS",
-                Message = "Pump 01 status changed to Running.",
+                Message = "Состояние насоса 01 изменилось на «Работает».",
                 CorrelationId = "mock-runtime-0001"
             },
             new()
@@ -182,8 +182,8 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
                 Category = "Polling",
                 Severity = "Warning",
                 SourceType = "Device",
-                SourceName = "Remote Simulator",
-                Message = "Remote simulator polling quality changed to CommunicationError.",
+                SourceName = "REMOTE_DEVICE_SIGNAL",
+                Message = "Качество опроса удаленного устройства изменилось на «Ошибка связи».",
                 CorrelationId = "mock-polling-0002"
             },
             new()
@@ -194,7 +194,7 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
                 Severity = "Info",
                 SourceType = "Tag",
                 SourceName = "TANK_01_LEVEL",
-                Message = "History sample accepted by historian buffer.",
+                Message = "Историческое значение принято буфером истории.",
                 CorrelationId = "mock-historian-0003"
             },
             new()
@@ -205,7 +205,7 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
                 Severity = "Critical",
                 SourceType = "Alarm",
                 SourceName = "TANK_01_HIGH_LEVEL",
-                Message = "High level alarm raised for Tank 01.",
+                Message = "Возникла авария высокого уровня резервуара 01.",
                 CorrelationId = "mock-alarm-0004"
             }
         ];
@@ -225,24 +225,24 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
             {
                 Id = "ALM-0001",
                 RaisedAt = now.AddMinutes(-7),
-                ObjectPath = "/Demo/Tank Farm/Tank 01",
+                ObjectPath = "/Демо/Резервуарный парк/Резервуар 01",
                 SourceName = "TANK_01_HIGH_LEVEL",
                 Severity = "Critical",
                 Priority = "High",
                 State = "Active",
-                Message = "Tank 01 level is above high threshold.",
+                Message = "Уровень резервуара 01 выше верхнего аварийного порога.",
                 Acknowledged = false
             },
             new()
             {
                 Id = "ALM-0002",
                 RaisedAt = now.AddMinutes(-2),
-                ObjectPath = "/Demo/Remote Site/Device 01",
+                ObjectPath = "/Демо/Удаленный объект/Устройство 01",
                 SourceName = "REMOTE_DEVICE_SIGNAL",
                 Severity = "Warning",
                 Priority = "Medium",
                 State = "Active",
-                Message = "Remote device communication quality is bad.",
+                Message = "Качество связи с удаленным устройством плохое.",
                 Acknowledged = true
             }
         ];

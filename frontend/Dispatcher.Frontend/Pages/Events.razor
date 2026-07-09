@@ -2,39 +2,39 @@
 
 @inject IDispatcherApiClient ApiClient
 
-<PageTitle>Events - Dispatcher</PageTitle>
+<PageTitle>События - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
     <MudStack Spacing="3">
         <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
             <div>
-                <MudText Typo="Typo.h4" HtmlTag="h1">Events</MudText>
+                <MudText Typo="Typo.h4" HtmlTag="h1">События</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    Event journal placeholder.
+                    Журнал событий Dispatcher.
                 </MudText>
             </div>
 
             <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">
-                Mock events
+                Демо-данные
             </MudChip>
         </MudStack>
 
         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            Events are loaded from the frontend placeholder API client.
-            Real `/api/events` integration will be added later.
+            На этой странице пока отображаются демо-события.
+            Реальное подключение к `/api/events` будет добавлено позже.
         </MudAlert>
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Events
+                        Событий
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @_events.Count
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Records in current placeholder journal.
+                        Записи в текущем демо-журнале.
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -42,13 +42,13 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Warnings
+                        Предупреждения
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @WarningCount
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Warning events in the current view.
+                        События с важностью «Предупреждение».
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -56,22 +56,22 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Critical
+                        Критические
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mt-1">
                         @CriticalCount
                     </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        Critical events in the current view.
+                        События с критической важностью.
                     </MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
         <MudPaper Elevation="0" Class="dispatcher-card">
-            <MudText Typo="Typo.h6">Event journal</MudText>
+            <MudText Typo="Typo.h6">Журнал событий</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
-                This table models the future event journal.
+                Эта таблица моделирует будущий журнал событий.
             </MudText>
 
             <MudTable T="EventRecordViewModel"
@@ -81,44 +81,46 @@
                       Elevation="0"
                       Class="dispatcher-table">
                 <HeaderContent>
-                    <MudTh>Time</MudTh>
-                    <MudTh>Category</MudTh>
-                    <MudTh>Severity</MudTh>
-                    <MudTh>Source</MudTh>
-                    <MudTh>Message</MudTh>
-                    <MudTh>Correlation</MudTh>
+                    <MudTh>Время</MudTh>
+                    <MudTh>Категория</MudTh>
+                    <MudTh>Важность</MudTh>
+                    <MudTh>Источник</MudTh>
+                    <MudTh>Сообщение</MudTh>
+                    <MudTh>Корреляция</MudTh>
                 </HeaderContent>
 
                 <RowTemplate Context="eventRecord">
-                    <MudTd DataLabel="Time">
+                    <MudTd DataLabel="Время">
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @eventRecord.Timestamp.ToString("HH:mm:ss")
                         </MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Category">
-                        <MudText Typo="Typo.body2">@eventRecord.Category</MudText>
+                    <MudTd DataLabel="Категория">
+                        <MudText Typo="Typo.body2">@FormatCategory(eventRecord.Category)</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Severity">
+                    <MudTd DataLabel="Важность">
                         <MudChip T="string"
                                  Color="@GetSeverityColor(eventRecord.Severity)"
                                  Variant="Variant.Outlined"
                                  Size="Size.Small">
-                            @eventRecord.Severity
+                            @FormatSeverity(eventRecord.Severity)
                         </MudChip>
                     </MudTd>
 
-                    <MudTd DataLabel="Source">
+                    <MudTd DataLabel="Источник">
                         <MudText Typo="Typo.body2">@eventRecord.SourceName</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@eventRecord.SourceType</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @FormatSourceType(eventRecord.SourceType)
+                        </MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Message">
+                    <MudTd DataLabel="Сообщение">
                         <MudText Typo="Typo.body2">@eventRecord.Message</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Correlation">
+                    <MudTd DataLabel="Корреляция">
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
                             @eventRecord.CorrelationId
                         </MudText>
@@ -154,6 +156,49 @@
             "Critical" => Color.Error,
             "Error" => Color.Error,
             _ => Color.Default
+        };
+    }
+
+    private static string FormatSeverity(
+        string severity
+    )
+    {
+        return severity switch
+        {
+            "Info" => "Информация",
+            "Warning" => "Предупреждение",
+            "Critical" => "Критическая",
+            "Error" => "Ошибка",
+            _ => severity
+        };
+    }
+
+    private static string FormatCategory(
+        string category
+    )
+    {
+        return category switch
+        {
+            "Runtime" => "Текущие значения",
+            "Polling" => "Опрос",
+            "Historian" => "История",
+            "Alarms" => "Аварии",
+            "System" => "Система",
+            _ => category
+        };
+    }
+
+    private static string FormatSourceType(
+        string sourceType
+    )
+    {
+        return sourceType switch
+        {
+            "Tag" => "Тег",
+            "Device" => "Устройство",
+            "Alarm" => "Авария",
+            "System" => "Система",
+            _ => sourceType
         };
     }
 }
