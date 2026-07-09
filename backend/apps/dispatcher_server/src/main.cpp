@@ -14,6 +14,7 @@
 #include "scada_historian/historian_module.h"
 #include "scada_events/event_module.h"
 #include "scada_alarms/alarm_module.h"
+#include "scada_api/api_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -84,6 +85,12 @@ namespace
         if (alarms_result.is_failure())
         {
             return alarms_result;
+        }
+
+        auto api_result = context.register_module(dispatcher::api::get_api_module_info());
+        if (api_result.is_failure())
+        {
+            return api_result;
         }
 
         return dispatcher::common::Result<void>::success();

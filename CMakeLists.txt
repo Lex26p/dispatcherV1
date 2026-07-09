@@ -28,5 +28,6 @@ add_subdirectory(backend/libs/scada_runtime)
 add_subdirectory(backend/libs/scada_historian)
 add_subdirectory(backend/libs/scada_events)
 add_subdirectory(backend/libs/scada_alarms)
+add_subdirectory(backend/libs/scada_api)
 
 add_subdirectory(backend/apps/dispatcher_server)
