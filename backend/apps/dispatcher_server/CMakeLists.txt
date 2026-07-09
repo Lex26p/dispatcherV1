@@ -20,6 +20,7 @@ target_link_libraries(dispatcher_server
         scada_runtime
         scada_historian
         scada_events
+        scada_alarms
 )
 
 set_target_properties(dispatcher_server

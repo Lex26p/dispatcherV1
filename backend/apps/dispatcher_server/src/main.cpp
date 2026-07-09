@@ -13,6 +13,7 @@
 #include "scada_runtime/runtime_module.h"
 #include "scada_historian/historian_module.h"
 #include "scada_events/event_module.h"
+#include "scada_alarms/alarm_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -77,6 +78,12 @@ namespace
         if (events_result.is_failure())
         {
             return events_result;
+        }
+
+        auto alarms_result = context.register_module(dispatcher::alarms::get_alarm_module_info());
+        if (alarms_result.is_failure())
+        {
+            return alarms_result;
         }
 
         return dispatcher::common::Result<void>::success();
