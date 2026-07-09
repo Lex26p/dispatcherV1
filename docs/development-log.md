@@ -992,3 +992,169 @@ MVP foundation stage завершен.
 - transition from mock frontend data to backend data;
 - frontend real API client;
 - real integration foundations.
+
+---
+
+# Sprint 011 — Russian UI Cleanup and Frontend Terminology
+
+## Статус
+
+Закрыт.
+
+## Этап
+
+Post-MVP development.
+
+## Цель спринта
+
+Привести frontend-интерфейс Dispatcher к русскому языку по умолчанию и зафиксировать единую терминологию пользовательского интерфейса.
+
+## Выполнено
+
+### Шаг 74 — Sprint 011 plan and UI terminology foundation
+
+Созданы:
+
+- `docs/SPRINT_011_PLAN.md`;
+- `docs/UI_TERMINOLOGY.md`.
+
+Зафиксирована языковая политика:
+
+    новый пользовательский текст во frontend пишем на русском языке
+
+Английский язык оставлен как будущая локализация.
+
+### Шаг 75 — Translate layout and navigation
+
+Переведены:
+
+- AppBar;
+- Drawer;
+- sidebar navigation;
+- operator status panel.
+
+Пункты меню теперь отображаются на русском:
+
+- Обзор;
+- Система;
+- Объекты;
+- Устройства;
+- Теги;
+- Текущие значения;
+- События;
+- Аварии.
+
+### Шаг 76 — Translate overview, system, objects, devices and tags pages
+
+Переведены:
+
+- overview page;
+- system page;
+- objects page;
+- devices page;
+- tags page.
+
+System page теперь показывает русские названия и описания demo backend modules.
+
+### Шаг 77 — Translate runtime, events and alarms pages
+
+Переведены:
+
+- runtime page;
+- events page;
+- alarms page.
+
+На русском отображаются:
+
+- заголовки;
+- summary cards;
+- table headers;
+- quality labels;
+- severity labels;
+- priority labels;
+- alarm states;
+- acknowledgement labels;
+- demo messages.
+
+### Шаг 78 — Add UI state text foundation
+
+Добавлены:
+
+- `UiStateKind`;
+- `UiText`;
+- `UiStatePanel`.
+
+UI state foundation покрывает:
+
+- demo data;
+- loading;
+- empty;
+- warning;
+- error;
+- not implemented;
+- no connection.
+
+Страницы System/Runtime/Events/Alarms используют общий блок «Демо-данные».
+
+Страницы Objects/Devices/Tags используют общий блок «Функция пока не реализована».
+
+### Шаг 79 — Update frontend docs and improve loading screen
+
+Обновлены:
+
+- `frontend/README.md`;
+- `frontend/Dispatcher.Frontend/SERVICE.md`.
+
+Улучшен стартовый экран загрузки Blazor WebAssembly.
+
+Теперь при первом открытии frontend пользователь видит:
+
+- брендовый loading panel;
+- логотип `D`;
+- текст «Загрузка интерфейса»;
+- spinner;
+- анимированную полосу загрузки.
+
+### Шаг 80 — Sprint 011 docs update and closure
+
+Создан:
+
+- `docs/SPRINT_011_SUMMARY.md`.
+
+Обновлены:
+
+- `docs/development-log.md`;
+- `docs/known-limitations.md`.
+
+Sprint 011 закрыт.
+
+## Итог
+
+Frontend стал русскоязычным по умолчанию.
+
+Принята политика:
+
+    русский UI сейчас
+    английский позже как локализация
+
+## Ограничения после Sprint 011
+
+Остаются:
+
+- demo-data;
+- mock API client;
+- отсутствие real HTTP API;
+- отсутствие realtime client;
+- отсутствие localization engine;
+- отсутствие real backend integration.
+
+## Следующий рекомендуемый спринт
+
+    Sprint 012 — Backend HTTP API Transport Foundation
+
+Фокус:
+
+- backend HTTP transport;
+- `/api/system/health`;
+- `/api/system/modules`;
+- подготовка real frontend API integration.

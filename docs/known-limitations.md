@@ -945,3 +945,92 @@ Mock-data не отражает реальное состояние backend.
 - error handling policy;
 - loading states;
 - empty states.
+
+---
+
+# Ограничения после Sprint 011
+
+## Frontend стал русскоязычным, но локализация еще не реализована
+
+После Sprint 011 основной пользовательский UI переведен на русский язык.
+
+Однако полноценный localization engine пока не реализован.
+
+Ограничения:
+
+- нет resource files;
+- нет переключения языка;
+- нет culture switching;
+- нет fallback language;
+- нет проверки полноты локализации.
+
+Английский язык планируется позже как дополнительная локализация.
+
+## Route paths остаются английскими
+
+URL routes остаются техническими:
+
+- `/system`;
+- `/objects`;
+- `/devices`;
+- `/tags`;
+- `/runtime`;
+- `/events`;
+- `/alarms`.
+
+Это принято сознательно.
+
+Причина:
+
+- route paths являются техническим контрактом;
+- пользовательские подписи уже русские;
+- русские URL могут усложнить поддержку.
+
+## Demo-data остается временной
+
+Несмотря на русский UI, данные на страницах пока demo/mock:
+
+- System;
+- Runtime;
+- Events;
+- Alarms.
+
+Реальное подключение к backend API пока отсутствует.
+
+## UI state foundation не заменяет real error handling
+
+Добавлены:
+
+- `UiStateKind`;
+- `UiText`;
+- `UiStatePanel`.
+
+Но пока нет:
+
+- реальной обработки HTTP errors;
+- retry logic;
+- loading state вокруг реальных запросов;
+- cancellation handling;
+- toast/snackbar error policy;
+- global error boundary.
+
+## Loading screen является статическим
+
+Стартовый экран загрузки Blazor WebAssembly улучшен, но он статический.
+
+Ограничения:
+
+- не показывает реальный процент загрузки;
+- не показывает этапы загрузки;
+- не проверяет состояние backend;
+- не обрабатывает offline mode;
+- не содержит retry action.
+
+## Следующий критичный gap
+
+Главный gap после Sprint 011:
+
+    frontend выглядит как операторский UI,
+    но данные все еще не приходят из backend.
+
+Следующий этап должен закрыть backend HTTP transport foundation.
