@@ -26,6 +26,18 @@ Frontend использует:
 - Blazor WebAssembly;
 - MudBlazor.
 
+## API client foundation
+
+Добавлен placeholder API client:
+
+- `IDispatcherApiClient`;
+- `DispatcherApiClient`;
+- `DispatcherApiClientOptions`.
+
+На текущем этапе API client возвращает mock-data.
+
+Реальные HTTP-запросы будут добавлены после реализации backend HTTP transport и API handlers.
+
 ## Запуск
 
 Из корня репозитория:
@@ -48,7 +60,7 @@ Frontend использует:
 
 Пока нет:
 
-- backend API integration;
+- real backend API integration;
 - realtime integration;
 - authentication;
 - real data;

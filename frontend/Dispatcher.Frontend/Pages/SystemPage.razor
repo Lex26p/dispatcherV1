@@ -1,21 +1,158 @@
 @page "/system"
 
+@inject IDispatcherApiClient ApiClient
+
 <PageTitle>System - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">System</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        System overview placeholder.
-    </MudText>
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h4" HtmlTag="h1">System</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    System overview and backend module foundation.
+                </MudText>
+            </div>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Planned content</MudText>
+            <MudChip T="string"
+                     Color="Color.Warning"
+                     Variant="Variant.Outlined">
+                Mock data
+            </MudChip>
+        </MudStack>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Backend module list" Icon="@Icons.Material.Filled.Extension" />
-            <MudListItem Text="Gateway startup status" Icon="@Icons.Material.Filled.PowerSettingsNew" />
-            <MudListItem Text="API route count" Icon="@Icons.Material.Filled.Route" />
-            <MudListItem Text="Realtime gateway status" Icon="@Icons.Material.Filled.Sync" />
-        </MudList>
-    </MudPaper>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            Frontend API client is registered, but it currently returns mock data.
+            Real HTTP transport will be connected after backend API handlers are implemented.
+        </MudAlert>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Gateway mode
+                    </MudText>
+
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_gatewaySummary.Mode
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        @_gatewaySummary.Message
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        API foundation
+                    </MudText>
+
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_apiSummary.RouteCount routes
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        @_apiSummary.ReadEndpointCount read endpoints
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Realtime foundation
+                    </MudText>
+
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_apiSummary.RealtimeChannelCount channels
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        WebSocket/SSE transport is planned.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="dispatcher-card">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+                <div>
+                    <MudText Typo="Typo.h6">Backend modules</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Modules registered by dispatcher_server foundation.
+                    </MudText>
+                </div>
+
+                <MudChip T="string"
+                         Color="Color.Success"
+                         Variant="Variant.Filled"
+                         Size="Size.Small">
+                    @_modules.Count running
+                </MudChip>
+            </MudStack>
+
+            <MudTable T="BackendModuleViewModel"
+                      Items="_modules"
+                      Dense="true"
+                      Hover="true"
+                      Elevation="0"
+                      Class="dispatcher-table">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Status</MudTh>
+                </HeaderContent>
+
+                <RowTemplate Context="module">
+                    <MudTd DataLabel="Code">
+                        <MudText Typo="Typo.body2">@module.Code</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Name">
+                        <MudText Typo="Typo.body2">@module.Name</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Description">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @module.Description
+                        </MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string"
+                                 Color="@GetModuleStatusColor(module.Status)"
+                                 Variant="Variant.Outlined"
+                                 Size="Size.Small">
+                            @module.Status
+                        </MudChip>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudStack>
 </div>
+
+@code {
+    private IReadOnlyList<BackendModuleViewModel> _modules = [];
+    private GatewaySummaryViewModel _gatewaySummary = new();
+    private ApiRouteSummaryViewModel _apiSummary = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _modules = await ApiClient.GetBackendModulesAsync();
+        _gatewaySummary = await ApiClient.GetGatewaySummaryAsync();
+        _apiSummary = await ApiClient.GetApiRouteSummaryAsync();
+    }
+
+    private static Color GetModuleStatusColor(
+        string status
+    )
+    {
+        return string.Equals(status, "Running", StringComparison.OrdinalIgnoreCase)
+            ? Color.Success
+            : Color.Warning;
+    }
+}

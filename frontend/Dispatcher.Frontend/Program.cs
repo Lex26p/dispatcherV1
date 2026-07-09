@@ -1,4 +1,5 @@
 using Dispatcher.Frontend;
+using Dispatcher.Frontend.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -9,5 +10,14 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
+
+builder.Services.AddScoped(
+    _ => new HttpClient
+    {
+        BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+    }
+);
+
+builder.Services.AddScoped<IDispatcherApiClient, DispatcherApiClient>();
 
 await builder.Build().RunAsync();

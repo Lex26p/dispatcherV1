@@ -172,3 +172,28 @@ body {
 .dispatcher-drawer .mud-nav-link-icon {
     color: inherit !important;
 }
+
+.dispatcher-table {
+    background: transparent;
+}
+
+    .dispatcher-table .mud-table-container,
+    .dispatcher-table .mud-table-root,
+    .dispatcher-table table,
+    .dispatcher-table thead,
+    .dispatcher-table tbody,
+    .dispatcher-table tr,
+    .dispatcher-table td,
+    .dispatcher-table th {
+        background: transparent !important;
+    }
+
+    .dispatcher-table th {
+        color: #94a3b8 !important;
+        font-weight: 700;
+    }
+
+    .dispatcher-table td {
+        color: #e5e7eb !important;
+        border-color: rgba(148, 163, 184, 0.14) !important;
+    }

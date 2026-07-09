@@ -10,7 +10,7 @@
 
 Foundation.
 
-Приложение пока не подключено к backend API.
+Приложение пока не подключено к реальному backend HTTP API.
 
 ## Текущие возможности
 
@@ -23,6 +23,10 @@ Foundation.
 - sidebar navigation;
 - Drawer;
 - overview page;
+- System page;
+- backend modules placeholder;
+- gateway summary placeholder;
+- API client placeholder;
 - placeholder pages.
 
 ## Страницы
@@ -39,11 +43,45 @@ Foundation.
 - `/alarms`;
 - `/not-found`.
 
+## API client placeholder
+
+Добавлен frontend service layer:
+
+- `IDispatcherApiClient`;
+- `DispatcherApiClient`;
+- `DispatcherApiClientOptions`.
+
+На текущем этапе `DispatcherApiClient` возвращает mock-data.
+
+Причина:
+
+- backend API route/read endpoint foundation уже есть;
+- реального HTTP transport пока нет;
+- frontend должен получить стабильную точку расширения до появления настоящего API.
+
+Будущая замена:
+
+    mock DispatcherApiClient
+        -> real HTTP DispatcherApiClient
+        -> /api/system/health
+        -> /api/system/modules
+        -> /api/runtime/values
+        -> /api/events
+        -> /api/alarms/active
+
+## Models
+
+Добавлены frontend models:
+
+- `BackendModuleViewModel`;
+- `GatewaySummaryViewModel`;
+- `ApiRouteSummaryViewModel`.
+
 ## Что пока не реализовано
 
 Пока нет:
 
-- API client;
+- real HTTP API calls;
 - realtime client;
 - authentication;
 - authorization;
@@ -60,14 +98,14 @@ Frontend должен стать минимальным operator workspace.
 
 Планируемые направления:
 
-- system/modules page;
+- real system/modules page;
 - object tree page;
 - devices page;
 - tags page;
 - runtime values page;
 - event journal page;
 - active alarms page;
-- API client;
+- real API client;
 - realtime client;
 - MVP stabilization.
 
