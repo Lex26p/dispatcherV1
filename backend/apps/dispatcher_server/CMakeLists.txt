@@ -23,6 +23,7 @@ target_link_libraries(dispatcher_server
         scada_alarms
         scada_api
         scada_realtime
+        scada_app
 )
 
 set_target_properties(dispatcher_server
