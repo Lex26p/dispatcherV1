@@ -346,13 +346,13 @@ Sprint 006 закрыт.
 
 ## Статус
 
-Закрывается на шаге 55.
+Закрыт.
 
 ## Цель спринта
 
 Создать фундамент истории значений тегов.
 
-Sprint 007 должен был подготовить цепочку:
+Sprint 007 подготовил цепочку:
 
     RuntimeValueEvent / TagCurrentValue -> archive decision -> HistorianBuffer -> batch write -> future PostgreSQL / TimescaleDB
 
@@ -371,25 +371,6 @@ Sprint 007 должен был подготовить цепочку:
 - `make_history_sample_from_current_value()`;
 - `get_historian_module_info()`.
 
-`HistorySample` хранит snapshot значения тега для будущей истории:
-
-- `tag_id`;
-- `value_type`;
-- `raw_value`;
-- `engineering_value`;
-- `quality`;
-- `source`;
-- `timestamp`;
-- `source_timestamp`;
-- `server_timestamp`;
-- `change_counter`;
-- `engineering_unit`;
-- `message`.
-
-Модуль подключен к CMake и к `dispatcher_server`.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 51 — Archive decision foundation
 
 Добавлена основа принятия решения об архивировании.
@@ -401,13 +382,6 @@ Sprint 007 должен был подготовить цепочку:
 - `ArchiveDecision`;
 - `decide_archive()`.
 
-Решение строится на основе:
-
-- `TagArchivePolicy`;
-- текущего `TagCurrentValue`;
-- предыдущего `HistorySample`;
-- `ArchiveDecisionOptions`.
-
 Поддержаны политики:
 
 - `Disabled`;
@@ -418,28 +392,16 @@ Sprint 007 должен был подготовить цепочку:
 - `Periodic`;
 - `OnAlarm`.
 
-Сборка и запуск прошли успешно.
-
 ### Шаг 52 — Historian buffer and batch write contract
 
 Добавлен in-memory buffer и контракт будущей batch-записи.
 
 Добавлены:
 
-- `HistorianBufferOptions`;
-- `HistorianBufferStats`;
-- `HistorianBufferPushResult`;
 - `HistorianBuffer`;
 - `HistoryBatch`;
-- `HistoryBatchWriteStatus`;
 - `HistoryBatchWriteResult`;
 - `IHistoryBatchWriter`.
-
-Текущая внутренняя цепочка Historian:
-
-    HistorySample -> HistorianBuffer -> HistoryBatch -> IHistoryBatchWriter
-
-Сборка и запуск прошли успешно.
 
 ### Шаг 53 — History query model
 
@@ -451,79 +413,231 @@ Sprint 007 должен был подготовить цепочку:
 - `HistoryQueryFilter`;
 - `HistoryQueryOptions`;
 - `HistoryQuery`;
-- `HistoryQueryValidationIssue`;
-- `HistoryQueryValidationResult`;
 - `HistoryQueryResult`;
 - `validate_history_query()`.
 
-Модель описывает будущие запросы истории по времени, тегам, quality, value type, source, limit, offset и сортировке.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 54 — Historian DTO / repository / migration draft
 
-В `scada_contracts` добавлены DTO historian:
+Добавлены:
 
-- `HistorySampleDto`;
-- `ArchiveDecisionDto`;
-- `HistoryBatchDto`;
-- `HistoryBatchWriteResultDto`;
-- `HistoryQueryDto`;
-- `HistoryQueryResultDto`;
-- `HistoryValidationIssueDto`;
-- `HistoryValidationResultDto`.
+- DTO historian;
+- `IHistorySampleRepository`;
+- миграция `0006_tag_history.sql`.
 
-В `scada_historian` добавлен repository-интерфейс:
+### Шаг 55 — Sprint 007 docs update and close
 
-- `IHistorySampleRepository`.
-
-Добавлена черновая SQL-миграция:
-
-- `database/migrations/0006_tag_history.sql`.
-
-Миграция описывает будущую таблицу:
-
-- `tag_history_samples`.
-
-Сборка и запуск прошли успешно.
+Sprint 007 закрыт.
 
 ## Итог Sprint 007
 
-В Sprint 007 создан foundation Historian.
+Создан foundation Historian.
+
+---
+
+# Sprint 008 — Events and Alarms Foundation
+
+## Статус
+
+Закрывается на шаге 61.
+
+## Цель спринта
+
+Создать фундамент событий и аварий Dispatcher.
+
+Sprint 008 должен был подготовить цепочку:
+
+    Runtime / Historian / Polling / Devices -> Events -> Alarms -> future Event Manager / Alarm Manager / UI
+
+## Выполнено
+
+### Шаг 56 — scada_events module and EventRecord foundation
+
+Добавлен модуль:
+
+- `scada_events`.
+
+Добавлены:
+
+- `EventId`;
+- `EventTimestamp`;
+- `EventCategory`;
+- `EventSeverity`;
+- `EventSourceType`;
+- `EventRecord`;
+- `make_event_record()`;
+- `get_event_module_info()`.
+
+`scada_events` подключен к CMake и к `dispatcher_server`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 57 — scada_alarms module and Alarm model foundation
+
+Добавлен модуль:
+
+- `scada_alarms`.
+
+Добавлены:
+
+- `AlarmId`;
+- `AlarmTimestamp`;
+- `AlarmSourceType`;
+- `AlarmSeverity`;
+- `AlarmPriority`;
+- `AlarmState`;
+- `AlarmRecord`;
+- `make_alarm_record()`;
+- `to_event_severity()`;
+- `get_alarm_module_info()`.
+
+`scada_alarms` подключен к CMake и к `dispatcher_server`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 58 — Alarm lifecycle and transitions
+
+Добавлен lifecycle foundation аварий.
+
+Добавлены:
+
+- `AlarmTransitionType`;
+- `AlarmTransitionValidationCode`;
+- `AlarmTransitionRequest`;
+- `AlarmTransitionRecord`;
+- `AlarmTransitionResult`;
+- `can_apply_alarm_transition()`;
+- `apply_alarm_transition()`.
+
+Поддержаны базовые переходы:
+
+- `New -> Active`;
+- `New -> Acknowledged`;
+- `Active -> Acknowledged`;
+- `New -> Cleared`;
+- `Active -> Cleared`;
+- `Acknowledged -> Cleared`;
+- `Cleared -> Closed`;
+- `New -> Shelved`;
+- `Active -> Shelved`;
+- `Acknowledged -> Shelved`;
+- `Shelved -> Active`;
+- `New -> Suppressed`;
+- `Active -> Suppressed`;
+- `Acknowledged -> Suppressed`;
+- `Suppressed -> Active`;
+- `Cleared -> Active`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 59 — Alarm rules foundation
+
+Добавлен foundation alarm rules.
+
+Добавлены:
+
+- `AlarmRuleId`;
+- `AlarmRuleType`;
+- `AlarmRuleState`;
+- `AlarmRuleComparison`;
+- `AlarmRuleEvaluationStatus`;
+- `AlarmRule`;
+- `AlarmRuleEvaluationResult`;
+- `evaluate_alarm_rule()`.
+
+Поддержаны типы правил:
+
+- `NumericThreshold`;
+- `QualityEquals`;
+- `QualityNotGood`;
+- `QualityBad`.
+
+`scada_alarms` получил зависимость от `scada_tags`, потому что alarm rules проверяют `TagCurrentValue`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 60 — Events/Alarms DTO / repository / migration draft
+
+В `scada_contracts` добавлены DTO events:
+
+- `EventRecordDto`;
+- `EventListDto`;
+- `EventValidationIssueDto`;
+- `EventValidationResultDto`.
+
+В `scada_contracts` добавлены DTO alarms:
+
+- `AlarmRecordDto`;
+- `AlarmTransitionDto`;
+- `AlarmRuleDto`;
+- `AlarmRuleEvaluationResultDto`;
+- `AlarmListDto`;
+- `AlarmValidationIssueDto`;
+- `AlarmValidationResultDto`.
+
+В `scada_events` добавлен repository-интерфейс:
+
+- `IEventRecordRepository`.
+
+В `scada_alarms` добавлены repository-интерфейсы:
+
+- `IAlarmRepository`;
+- `IAlarmTransitionRepository`;
+- `IAlarmRuleRepository`.
+
+Добавлена черновая SQL-миграция:
+
+- `database/migrations/0007_events_alarms.sql`.
+
+Миграция описывает таблицы:
+
+- `event_records`;
+- `alarm_records`;
+- `alarm_transitions`;
+- `alarm_rules`.
+
+Сборка и запуск прошли успешно.
+
+## Итог Sprint 008
+
+В Sprint 008 создан foundation событий и аварий.
 
 Сейчас в проекте есть:
 
-- модуль `scada_historian`;
-- модель `HistorySample`;
-- archive decision foundation;
-- historian buffer;
-- history batch model;
-- batch write contract;
-- history query model;
-- historian DTO;
-- repository-интерфейс history samples;
-- черновая SQL-миграция tag history.
+- модуль `scada_events`;
+- модель `EventRecord`;
+- базовая классификация событий;
+- модуль `scada_alarms`;
+- модель `AlarmRecord`;
+- severity и priority аварий;
+- lifecycle transitions аварий;
+- foundation alarm rules;
+- DTO events;
+- DTO alarms;
+- repository-интерфейсы events;
+- repository-интерфейсы alarms;
+- черновая SQL-миграция events/alarms.
 
-## Что сознательно не делали в Sprint 007
+## Что сознательно не делали в Sprint 008
 
-В Sprint 007 не добавлялись:
+В Sprint 008 не добавлялись:
 
-- PostgreSQL writer;
-- TimescaleDB hypertable;
-- migration runner;
-- Runtime -> Historian integration;
-- EventBus integration;
-- Alarm integration;
-- History API;
-- charts API;
-- frontend;
+- Event Manager;
+- Alarm Manager;
+- PostgreSQL repository implementation;
+- Runtime -> Events integration;
+- Runtime -> Alarms integration;
+- EventBus publish;
+- WebSocket delivery;
+- HTTP API;
+- frontend alarm journal;
+- frontend active alarm panel;
 - unit-тесты.
 
 Эти задачи будут выполняться в следующих спринтах.
 
 ---
 
-# Текущее состояние после Sprint 007
+# Текущее состояние после Sprint 008
 
 Проект находится в состоянии:
 
@@ -540,36 +654,36 @@ Sprint 007 должен был подготовить цепочку:
     Runtime Values foundation
         +
     Historian foundation
+        +
+    Events and Alarms foundation
 
 Текущий технический фокус завершен.
 
 Следующий логический фокус:
 
-    Events and Alarms Foundation
+    API and Realtime Gateway
 
 ---
 
 # Следующий спринт
 
-## Sprint 008 — Events and Alarms Foundation
+## Sprint 009 — API and Realtime Gateway
 
-Цель Sprint 008:
+Цель Sprint 009:
 
-Создать фундамент событий и аварий.
+Создать минимальный backend API и realtime gateway foundation.
 
 Предварительные направления:
 
-- `scada_events`;
-- `scada_alarms`;
-- event model;
-- alarm model;
-- alarm severity and priority;
-- alarm lifecycle;
-- alarm transition model;
-- alarm rules foundation;
-- event/alarm DTO;
-- repository interfaces;
-- database migration draft.
+- HTTP API foundation;
+- runtime values API;
+- objects/devices/tags read API;
+- history query API draft;
+- events/alarms read API draft;
+- WebSocket/SSE realtime gateway foundation;
+- DTO mapper foundation;
+- application composition;
+- server startup flow.
 
 ---
 
@@ -584,7 +698,8 @@ Sprint 007 должен был подготовить цепочку:
 - Sprint 005 — Communication and Polling Foundation.
 - Sprint 006 — Runtime Values and Data Engine.
 - Sprint 007 — Historian Foundation.
+- Sprint 008 — Events and Alarms Foundation.
 
 ## Следующий
 
-- Sprint 008 — Events and Alarms Foundation.
+- Sprint 009 — API and Realtime Gateway.

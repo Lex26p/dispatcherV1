@@ -39,7 +39,7 @@ Dispatcher пока находится на этапе формирования 
 - WebSocket;
 - авторизацию;
 - архивирование в БД;
-- обработку аварий;
+- обработку аварий через Alarm Manager;
 - управление командами.
 
 ---
@@ -100,6 +100,16 @@ SQL-миграции уже существуют как черновики.
 Для historian:
 
 - `IHistorySampleRepository`.
+
+Для events:
+
+- `IEventRecordRepository`.
+
+Для alarms:
+
+- `IAlarmRepository`;
+- `IAlarmTransitionRepository`;
+- `IAlarmRuleRepository`.
 
 Но пока нет реализаций:
 
@@ -216,7 +226,7 @@ SQL-миграции уже существуют как черновики.
 
 Но пока нет:
 
-- alarm rules;
+- полноценного alarm rule management через API;
 - command execution;
 - API;
 - UI;
@@ -449,12 +459,6 @@ Runtime сравнивает:
         -> IHistoryBatchWriter
         -> PostgreSQL / TimescaleDB
 
-## HistorySample не сохраняется автоматически
-
-`HistorySample` является доменной моделью.
-
-Пока нет слоя, который автоматически берет runtime value и сохраняет его как history sample.
-
 ## HistoryQuery пока не выполняется
 
 `HistoryQuery` описывает параметры будущего запроса.
@@ -467,30 +471,185 @@ Runtime сравнивает:
 - pagination на уровне БД;
 - History API.
 
-## Tag history migration является черновой
+---
 
-Миграция `0006_tag_history.sql` описывает таблицу:
+# Ограничения events
 
-- `tag_history_samples`.
+## Events является foundation
 
-Но приложение пока ее не применяет.
+Модуль `scada_events` уже содержит:
 
-## TimescaleDB пока не подключен
+- `EventId`;
+- `EventTimestamp`;
+- `EventCategory`;
+- `EventSeverity`;
+- `EventSourceType`;
+- `EventRecord`;
+- `make_event_record()`;
+- `IEventRecordRepository`;
+- DTO events;
+- SQL-черновик `0007_events_alarms.sql`.
 
-Миграция написана как обычная PostgreSQL-таблица.
+Но пока нет:
 
-Позже таблицу можно будет преобразовать в TimescaleDB hypertable.
+- Event Manager;
+- EventBus publish;
+- PostgreSQL repository implementation;
+- автоматической записи событий;
+- подписчиков событий;
+- event filtering service;
+- event API;
+- WebSocket delivery;
+- UI event journal.
 
-## Retention и compression пока отсутствуют
+## EventRecord пока не создается автоматически
+
+Модель события есть, но runtime, historian, polling, alarms и другие модули пока не создают события автоматически.
+
+Будущая цепочка:
+
+    Module -> EventRecord -> Event Manager -> Repository / EventBus / WebSocket
+
+## EventBus пока отсутствует
+
+В `scada_core` есть foundation `IEventBus`, но пока нет полноценной интеграции с доменными events.
+
+Нет:
+
+- InMemoryEventBus implementation для domain events;
+- подписчиков;
+- routing;
+- persistence;
+- delivery guarantees;
+- external event bus.
+
+## События пока не связаны с аудитом
+
+Пока нет audit subsystem.
+
+Не реализованы:
+
+- события входа пользователя;
+- события изменения конфигурации;
+- события команд;
+- события подтверждения аварий;
+- события изменения прав.
+
+---
+
+# Ограничения alarms
+
+## Alarms является foundation
+
+Модуль `scada_alarms` уже содержит:
+
+- `AlarmId`;
+- `AlarmRuleId`;
+- `AlarmSourceType`;
+- `AlarmSeverity`;
+- `AlarmPriority`;
+- `AlarmState`;
+- `AlarmRecord`;
+- `AlarmTransitionType`;
+- `AlarmTransitionRequest`;
+- `AlarmTransitionRecord`;
+- `AlarmTransitionResult`;
+- `AlarmRule`;
+- `AlarmRuleEvaluationResult`;
+- `evaluate_alarm_rule()`;
+- repository-интерфейсы alarms;
+- DTO alarms;
+- SQL-черновик `0007_events_alarms.sql`.
+
+Но пока нет:
+
+- Alarm Manager;
+- active alarm index;
+- PostgreSQL repository implementation;
+- автоматической интеграции runtime -> alarms;
+- deduplication;
+- automatic reactivation;
+- automatic close policy;
+- shelving policy;
+- suppression policy;
+- escalation;
+- notifications;
+- alarm API;
+- WebSocket delivery;
+- UI active alarm panel.
+
+## Alarm lifecycle пока доменный
+
+`apply_alarm_transition()` применяет transition к копии `AlarmRecord`.
+
+Но пока нет:
+
+- сохранения transition в БД;
+- обновления alarm repository;
+- создания linked EventRecord;
+- публикации в EventBus;
+- audit trail;
+- проверки прав пользователя.
+
+## Alarm rules пока проверяются вручную
+
+`evaluate_alarm_rule()` проверяет одно правило и одно текущее значение.
+
+Пока нет слоя, который:
+
+- загружает все rules;
+- подписывается на runtime changes;
+- проверяет rules автоматически;
+- ищет существующие активные alarms;
+- предотвращает дубли;
+- создает transition history;
+- закрывает аварии при нормализации.
+
+## Alarm rules пока базовые
+
+Поддержаны только:
+
+- `NumericThreshold`;
+- `QualityEquals`;
+- `QualityNotGood`;
+- `QualityBad`.
 
 Пока нет:
 
-- retention policies;
-- compression policies;
-- downsampling;
-- continuous aggregates;
-- rollups;
-- materialized views.
+- hysteresis;
+- debounce;
+- delay before activation;
+- delay before clear;
+- rate of change;
+- expression rules;
+- script rules;
+- composite rules;
+- schedule-aware rules;
+- maintenance-aware rules.
+
+## Severity и priority пока не используются UI
+
+Severity и priority уже есть в модели.
+
+Но пока нет UI и Alarm Manager, которые используют их для:
+
+- сортировки активных аварий;
+- цветовой индикации;
+- escalation;
+- уведомлений;
+- фильтрации.
+
+## Shelve и suppress пока только состояния
+
+Состояния `Shelved` и `Suppressed` есть.
+
+Но пока нет:
+
+- политики shelving;
+- срока shelving;
+- причины suppression;
+- автоматического возврата;
+- UI для управления этими режимами.
 
 ---
 
@@ -510,16 +669,20 @@ Runtime сравнивает:
 - polling;
 - runtime values;
 - runtime events;
-- historian.
+- historian;
+- events;
+- alarms.
 
 Но пока нет DTO для:
 
-- аварий;
-- Event Manager;
 - команд;
 - пользователей;
+- ролей;
+- рабочих мест;
+- панелей;
 - дашбордов;
-- protocol diagnostics.
+- protocol diagnostics;
+- уведомлений.
 
 ## Нет mapper-слоя
 
@@ -540,7 +703,8 @@ Runtime сравнивает:
 - `database/migrations/0003_tag_model.sql`;
 - `database/migrations/0004_polling_model.sql`;
 - `database/migrations/0005_runtime_values.sql`;
-- `database/migrations/0006_tag_history.sql`.
+- `database/migrations/0006_tag_history.sql`;
+- `database/migrations/0007_events_alarms.sql`.
 
 Они не выполняются автоматически.
 
@@ -572,25 +736,13 @@ Runtime сравнивает:
 - мнемосхем;
 - дашбордов;
 - графиков истории;
+- журнала событий;
+- журнала аварий;
+- панели активных аварий;
 - карточки объекта;
 - карточки устройства;
 - карточки тега;
 - runtime value widgets.
-
----
-
-# Ограничения аварий и событий
-
-Пока нет:
-
-- Event Manager;
-- Alarm Manager;
-- жизненного цикла аварий;
-- квитирования;
-- истории событий;
-- уведомлений;
-- аварий связи;
-- аварий по значениям тегов.
 
 ---
 
@@ -604,7 +756,9 @@ Runtime сравнивает:
 - токенов;
 - прав доступа;
 - аудита действий;
-- политик команд.
+- политик команд;
+- проверки прав на acknowledgement;
+- проверки прав на command execution.
 
 ---
 
@@ -620,10 +774,10 @@ Runtime сравнивает:
 
 # Итог
 
-После Sprint 007 проект имеет хороший фундамент объектной модели, модели устройств, модели тегов, протокольного слоя, polling foundation, runtime values foundation и historian foundation.
+После Sprint 008 проект имеет хороший фундамент объектной модели, модели устройств, модели тегов, протокольного слоя, polling foundation, runtime values foundation, historian foundation и events/alarms foundation.
 
 Но Dispatcher еще не является рабочей диспетчерской системой.
 
 Следующий важный этап:
 
-    Sprint 008 — Events and Alarms Foundation
+    Sprint 009 — API and Realtime Gateway
