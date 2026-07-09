@@ -15,4 +15,16 @@ public interface IDispatcherApiClient
     Task<ApiRouteSummaryViewModel> GetApiRouteSummaryAsync(
         CancellationToken cancellationToken = default
     );
+
+    Task<IReadOnlyList<RuntimeValueViewModel>> GetRuntimeValuesAsync(
+        CancellationToken cancellationToken = default
+    );
+
+    Task<IReadOnlyList<EventRecordViewModel>> GetEventsAsync(
+        CancellationToken cancellationToken = default
+    );
+
+    Task<IReadOnlyList<ActiveAlarmViewModel>> GetActiveAlarmsAsync(
+        CancellationToken cancellationToken = default
+    );
 }

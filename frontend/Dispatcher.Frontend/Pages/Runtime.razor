@@ -1,21 +1,159 @@
 @page "/runtime"
 
+@inject IDispatcherApiClient ApiClient
+
 <PageTitle>Runtime - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Runtime</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Runtime values placeholder.
-    </MudText>
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h4" HtmlTag="h1">Runtime</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Current tag values placeholder.
+                </MudText>
+            </div>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Planned content</MudText>
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">
+                Mock values
+            </MudChip>
+        </MudStack>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Current tag values" Icon="@Icons.Material.Filled.Speed" />
-            <MudListItem Text="Quality state" Icon="@Icons.Material.Filled.Verified" />
-            <MudListItem Text="Last good value" Icon="@Icons.Material.Filled.CheckCircle" />
-            <MudListItem Text="Realtime updates" Icon="@Icons.Material.Filled.Sync" />
-        </MudList>
-    </MudPaper>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            Runtime values are loaded from the frontend placeholder API client.
+            Real `/api/runtime/values` integration will be added later.
+        </MudAlert>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Values
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_values.Count
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Runtime values in current placeholder snapshot.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Good quality
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @GoodQualityCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Values with Good quality.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Bad or uncertain
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @BadOrUncertainCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Values requiring operator attention.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="dispatcher-card">
+            <MudText Typo="Typo.h6">Current values</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                This table models the future runtime value screen.
+            </MudText>
+
+            <MudTable T="RuntimeValueViewModel"
+                      Items="_values"
+                      Dense="true"
+                      Hover="true"
+                      Elevation="0"
+                      Class="dispatcher-table">
+                <HeaderContent>
+                    <MudTh>Tag</MudTh>
+                    <MudTh>Object</MudTh>
+                    <MudTh>Device</MudTh>
+                    <MudTh>Value</MudTh>
+                    <MudTh>Quality</MudTh>
+                    <MudTh>Timestamp</MudTh>
+                </HeaderContent>
+
+                <RowTemplate Context="value">
+                    <MudTd DataLabel="Tag">
+                        <MudText Typo="Typo.body2">@value.TagCode</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@value.TagName</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Object">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@value.ObjectPath</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Device">
+                        <MudText Typo="Typo.body2">@value.DeviceName</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Value">
+                        <MudText Typo="Typo.body2">
+                            @value.Value @value.Unit
+                        </MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Quality">
+                        <MudChip T="string"
+                                 Color="@GetQualityColor(value.Quality)"
+                                 Variant="Variant.Outlined"
+                                 Size="Size.Small">
+                            @value.Quality
+                        </MudChip>
+                    </MudTd>
+
+                    <MudTd DataLabel="Timestamp">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @value.Timestamp.ToString("HH:mm:ss")
+                        </MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudStack>
 </div>
+
+@code {
+    private IReadOnlyList<RuntimeValueViewModel> _values = [];
+
+    private int GoodQualityCount =>
+        _values.Count(value => string.Equals(value.Quality, "Good", StringComparison.OrdinalIgnoreCase));
+
+    private int BadOrUncertainCount =>
+        _values.Count(value => !string.Equals(value.Quality, "Good", StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        _values = await ApiClient.GetRuntimeValuesAsync();
+    }
+
+    private static Color GetQualityColor(
+        string quality
+    )
+    {
+        return quality switch
+        {
+            "Good" => Color.Success,
+            "Uncertain" => Color.Warning,
+            "CommunicationError" => Color.Error,
+            "Bad" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

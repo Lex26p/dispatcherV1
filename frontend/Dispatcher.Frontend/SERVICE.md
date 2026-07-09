@@ -24,9 +24,15 @@ Foundation.
 - Drawer;
 - overview page;
 - System page;
+- Runtime page;
+- Events page;
+- Alarms page;
 - backend modules placeholder;
 - gateway summary placeholder;
 - API client placeholder;
+- runtime values placeholder;
+- event journal placeholder;
+- active alarms placeholder;
 - placeholder pages.
 
 ## Страницы
@@ -53,6 +59,15 @@ Foundation.
 
 На текущем этапе `DispatcherApiClient` возвращает mock-data.
 
+Mock methods:
+
+- `GetBackendModulesAsync()`;
+- `GetGatewaySummaryAsync()`;
+- `GetApiRouteSummaryAsync()`;
+- `GetRuntimeValuesAsync()`;
+- `GetEventsAsync()`;
+- `GetActiveAlarmsAsync()`.
+
 Причина:
 
 - backend API route/read endpoint foundation уже есть;
@@ -75,7 +90,10 @@ Foundation.
 
 - `BackendModuleViewModel`;
 - `GatewaySummaryViewModel`;
-- `ApiRouteSummaryViewModel`.
+- `ApiRouteSummaryViewModel`;
+- `RuntimeValueViewModel`;
+- `EventRecordViewModel`;
+- `ActiveAlarmViewModel`.
 
 ## Что пока не реализовано
 
@@ -89,7 +107,7 @@ Foundation.
 - charts;
 - mimic diagrams;
 - dashboards;
-- alarm acknowledgement;
+- alarm acknowledgement action;
 - command execution.
 
 ## Будущая цель

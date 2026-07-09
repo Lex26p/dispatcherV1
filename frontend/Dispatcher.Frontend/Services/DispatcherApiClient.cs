@@ -172,4 +172,171 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
 
         return Task.FromResult(summary);
     }
+
+    public Task<IReadOnlyList<RuntimeValueViewModel>> GetRuntimeValuesAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = DateTimeOffset.Now;
+
+        IReadOnlyList<RuntimeValueViewModel> values =
+        [
+            new()
+            {
+                TagCode = "PUMP_01_STATUS",
+                TagName = "Pump 01 Status",
+                ObjectPath = "/Demo/Pump Station/Pump 01",
+                DeviceName = "Simulator Device",
+                Value = "Running",
+                Unit = "",
+                Quality = "Good",
+                Source = "Mock runtime",
+                Timestamp = now.AddSeconds(-4)
+            },
+            new()
+            {
+                TagCode = "PUMP_01_PRESSURE",
+                TagName = "Pump 01 Pressure",
+                ObjectPath = "/Demo/Pump Station/Pump 01",
+                DeviceName = "Simulator Device",
+                Value = "4.20",
+                Unit = "bar",
+                Quality = "Good",
+                Source = "Mock runtime",
+                Timestamp = now.AddSeconds(-6)
+            },
+            new()
+            {
+                TagCode = "TANK_01_LEVEL",
+                TagName = "Tank 01 Level",
+                ObjectPath = "/Demo/Tank Farm/Tank 01",
+                DeviceName = "Simulator Device",
+                Value = "72.5",
+                Unit = "%",
+                Quality = "Good",
+                Source = "Mock runtime",
+                Timestamp = now.AddSeconds(-8)
+            },
+            new()
+            {
+                TagCode = "LINE_01_FLOW",
+                TagName = "Line 01 Flow",
+                ObjectPath = "/Demo/Pipe Line/Line 01",
+                DeviceName = "Simulator Device",
+                Value = "18.7",
+                Unit = "m³/h",
+                Quality = "Uncertain",
+                Source = "Mock runtime",
+                Timestamp = now.AddSeconds(-12)
+            },
+            new()
+            {
+                TagCode = "REMOTE_DEVICE_SIGNAL",
+                TagName = "Remote Device Signal",
+                ObjectPath = "/Demo/Remote Site/Device 01",
+                DeviceName = "Remote Simulator",
+                Value = "N/A",
+                Unit = "",
+                Quality = "CommunicationError",
+                Source = "Mock runtime",
+                Timestamp = now.AddSeconds(-30)
+            }
+        ];
+
+        return Task.FromResult(values);
+    }
+
+    public Task<IReadOnlyList<EventRecordViewModel>> GetEventsAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = DateTimeOffset.Now;
+
+        IReadOnlyList<EventRecordViewModel> events =
+        [
+            new()
+            {
+                Id = "EVT-0001",
+                Timestamp = now.AddMinutes(-1),
+                Category = "Runtime",
+                Severity = "Info",
+                SourceType = "Tag",
+                SourceName = "PUMP_01_STATUS",
+                Message = "Pump 01 status changed to Running.",
+                CorrelationId = "mock-runtime-0001"
+            },
+            new()
+            {
+                Id = "EVT-0002",
+                Timestamp = now.AddMinutes(-2),
+                Category = "Polling",
+                Severity = "Warning",
+                SourceType = "Device",
+                SourceName = "Remote Simulator",
+                Message = "Remote simulator polling quality changed to CommunicationError.",
+                CorrelationId = "mock-polling-0002"
+            },
+            new()
+            {
+                Id = "EVT-0003",
+                Timestamp = now.AddMinutes(-4),
+                Category = "Historian",
+                Severity = "Info",
+                SourceType = "Tag",
+                SourceName = "TANK_01_LEVEL",
+                Message = "History sample accepted by historian buffer.",
+                CorrelationId = "mock-historian-0003"
+            },
+            new()
+            {
+                Id = "EVT-0004",
+                Timestamp = now.AddMinutes(-7),
+                Category = "Alarms",
+                Severity = "Critical",
+                SourceType = "Alarm",
+                SourceName = "TANK_01_HIGH_LEVEL",
+                Message = "High level alarm raised for Tank 01.",
+                CorrelationId = "mock-alarm-0004"
+            }
+        ];
+
+        return Task.FromResult(events);
+    }
+
+    public Task<IReadOnlyList<ActiveAlarmViewModel>> GetActiveAlarmsAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = DateTimeOffset.Now;
+
+        IReadOnlyList<ActiveAlarmViewModel> alarms =
+        [
+            new()
+            {
+                Id = "ALM-0001",
+                RaisedAt = now.AddMinutes(-7),
+                ObjectPath = "/Demo/Tank Farm/Tank 01",
+                SourceName = "TANK_01_HIGH_LEVEL",
+                Severity = "Critical",
+                Priority = "High",
+                State = "Active",
+                Message = "Tank 01 level is above high threshold.",
+                Acknowledged = false
+            },
+            new()
+            {
+                Id = "ALM-0002",
+                RaisedAt = now.AddMinutes(-2),
+                ObjectPath = "/Demo/Remote Site/Device 01",
+                SourceName = "REMOTE_DEVICE_SIGNAL",
+                Severity = "Warning",
+                Priority = "Medium",
+                State = "Active",
+                Message = "Remote device communication quality is bad.",
+                Acknowledged = true
+            }
+        ];
+
+        return Task.FromResult(alarms);
+    }
 }

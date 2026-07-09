@@ -1,21 +1,159 @@
 @page "/events"
 
+@inject IDispatcherApiClient ApiClient
+
 <PageTitle>Events - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Events</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Event journal placeholder.
-    </MudText>
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h4" HtmlTag="h1">Events</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Event journal placeholder.
+                </MudText>
+            </div>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Planned content</MudText>
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">
+                Mock events
+            </MudChip>
+        </MudStack>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Event records" Icon="@Icons.Material.Filled.Article" />
-            <MudListItem Text="Severity" Icon="@Icons.Material.Filled.PriorityHigh" />
-            <MudListItem Text="Source type" Icon="@Icons.Material.Filled.Input" />
-            <MudListItem Text="Correlation id" Icon="@Icons.Material.Filled.Tag" />
-        </MudList>
-    </MudPaper>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            Events are loaded from the frontend placeholder API client.
+            Real `/api/events` integration will be added later.
+        </MudAlert>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Events
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_events.Count
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Records in current placeholder journal.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Warnings
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @WarningCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Warning events in the current view.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Critical
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @CriticalCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Critical events in the current view.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="dispatcher-card">
+            <MudText Typo="Typo.h6">Event journal</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                This table models the future event journal.
+            </MudText>
+
+            <MudTable T="EventRecordViewModel"
+                      Items="_events"
+                      Dense="true"
+                      Hover="true"
+                      Elevation="0"
+                      Class="dispatcher-table">
+                <HeaderContent>
+                    <MudTh>Time</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Severity</MudTh>
+                    <MudTh>Source</MudTh>
+                    <MudTh>Message</MudTh>
+                    <MudTh>Correlation</MudTh>
+                </HeaderContent>
+
+                <RowTemplate Context="eventRecord">
+                    <MudTd DataLabel="Time">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @eventRecord.Timestamp.ToString("HH:mm:ss")
+                        </MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Category">
+                        <MudText Typo="Typo.body2">@eventRecord.Category</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Severity">
+                        <MudChip T="string"
+                                 Color="@GetSeverityColor(eventRecord.Severity)"
+                                 Variant="Variant.Outlined"
+                                 Size="Size.Small">
+                            @eventRecord.Severity
+                        </MudChip>
+                    </MudTd>
+
+                    <MudTd DataLabel="Source">
+                        <MudText Typo="Typo.body2">@eventRecord.SourceName</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@eventRecord.SourceType</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Message">
+                        <MudText Typo="Typo.body2">@eventRecord.Message</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Correlation">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @eventRecord.CorrelationId
+                        </MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudStack>
 </div>
+
+@code {
+    private IReadOnlyList<EventRecordViewModel> _events = [];
+
+    private int WarningCount =>
+        _events.Count(eventRecord => string.Equals(eventRecord.Severity, "Warning", StringComparison.OrdinalIgnoreCase));
+
+    private int CriticalCount =>
+        _events.Count(eventRecord => string.Equals(eventRecord.Severity, "Critical", StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        _events = await ApiClient.GetEventsAsync();
+    }
+
+    private static Color GetSeverityColor(
+        string severity
+    )
+    {
+        return severity switch
+        {
+            "Info" => Color.Info,
+            "Warning" => Color.Warning,
+            "Critical" => Color.Error,
+            "Error" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

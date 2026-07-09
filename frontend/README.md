@@ -38,6 +38,18 @@ Frontend использует:
 
 Реальные HTTP-запросы будут добавлены после реализации backend HTTP transport и API handlers.
 
+## Placeholder screens
+
+Сейчас frontend содержит operator placeholders:
+
+- System/modules;
+- Runtime values;
+- Event journal;
+- Active alarms;
+- Objects;
+- Devices;
+- Tags.
+
 ## Запуск
 
 Из корня репозитория:

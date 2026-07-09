@@ -1,22 +1,190 @@
 @page "/alarms"
 
+@inject IDispatcherApiClient ApiClient
+
 <PageTitle>Alarms - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Alarms</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Active alarms placeholder.
-    </MudText>
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h4" HtmlTag="h1">Alarms</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Active alarms placeholder.
+                </MudText>
+            </div>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Planned content</MudText>
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">
+                Mock alarms
+            </MudChip>
+        </MudStack>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Active alarms" Icon="@Icons.Material.Filled.Warning" />
-            <MudListItem Text="Severity" Icon="@Icons.Material.Filled.PriorityHigh" />
-            <MudListItem Text="Priority" Icon="@Icons.Material.Filled.Flag" />
-            <MudListItem Text="Lifecycle state" Icon="@Icons.Material.Filled.Timeline" />
-            <MudListItem Text="Acknowledgement state" Icon="@Icons.Material.Filled.HowToReg" />
-        </MudList>
-    </MudPaper>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            Active alarms are loaded from the frontend placeholder API client.
+            Real `/api/alarms/active` integration will be added later.
+        </MudAlert>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Active alarms
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @_alarms.Count
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Active alarms in placeholder snapshot.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Unacknowledged
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @UnacknowledgedCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Alarms requiring acknowledgement.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="0" Class="dispatcher-card">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        Critical
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mt-1">
+                        @CriticalCount
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                        Critical active alarms.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="dispatcher-card">
+            <MudText Typo="Typo.h6">Active alarms</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                This table models the future active alarm panel.
+            </MudText>
+
+            <MudTable T="ActiveAlarmViewModel"
+                      Items="_alarms"
+                      Dense="true"
+                      Hover="true"
+                      Elevation="0"
+                      Class="dispatcher-table">
+                <HeaderContent>
+                    <MudTh>Raised</MudTh>
+                    <MudTh>Object</MudTh>
+                    <MudTh>Source</MudTh>
+                    <MudTh>Severity</MudTh>
+                    <MudTh>Priority</MudTh>
+                    <MudTh>State</MudTh>
+                    <MudTh>Ack</MudTh>
+                    <MudTh>Message</MudTh>
+                </HeaderContent>
+
+                <RowTemplate Context="alarm">
+                    <MudTd DataLabel="Raised">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @alarm.RaisedAt.ToString("HH:mm:ss")
+                        </MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Object">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @alarm.ObjectPath
+                        </MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Source">
+                        <MudText Typo="Typo.body2">@alarm.SourceName</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Severity">
+                        <MudChip T="string"
+                                 Color="@GetSeverityColor(alarm.Severity)"
+                                 Variant="Variant.Filled"
+                                 Size="Size.Small">
+                            @alarm.Severity
+                        </MudChip>
+                    </MudTd>
+
+                    <MudTd DataLabel="Priority">
+                        <MudChip T="string"
+                                 Color="@GetPriorityColor(alarm.Priority)"
+                                 Variant="Variant.Outlined"
+                                 Size="Size.Small">
+                            @alarm.Priority
+                        </MudChip>
+                    </MudTd>
+
+                    <MudTd DataLabel="State">
+                        <MudText Typo="Typo.body2">@alarm.State</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Ack">
+                        <MudChip T="string"
+                                 Color="@(alarm.Acknowledged ? Color.Success : Color.Warning)"
+                                 Variant="Variant.Outlined"
+                                 Size="Size.Small">
+                            @(alarm.Acknowledged ? "Acked" : "Required")
+                        </MudChip>
+                    </MudTd>
+
+                    <MudTd DataLabel="Message">
+                        <MudText Typo="Typo.body2">@alarm.Message</MudText>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudStack>
 </div>
+
+@code {
+    private IReadOnlyList<ActiveAlarmViewModel> _alarms = [];
+
+    private int UnacknowledgedCount =>
+        _alarms.Count(alarm => !alarm.Acknowledged);
+
+    private int CriticalCount =>
+        _alarms.Count(alarm => string.Equals(alarm.Severity, "Critical", StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        _alarms = await ApiClient.GetActiveAlarmsAsync();
+    }
+
+    private static Color GetSeverityColor(
+        string severity
+    )
+    {
+        return severity switch
+        {
+            "Critical" => Color.Error,
+            "Warning" => Color.Warning,
+            "Info" => Color.Info,
+            _ => Color.Default
+        };
+    }
+
+    private static Color GetPriorityColor(
+        string priority
+    )
+    {
+        return priority switch
+        {
+            "High" => Color.Error,
+            "Medium" => Color.Warning,
+            "Low" => Color.Info,
+            _ => Color.Default
+        };
+    }
+}
