@@ -10,7 +10,17 @@
 
 Foundation.
 
-На текущем шаге модуль только создан и подключен к сборке.
+На текущем этапе модуль содержит:
+
+- module info;
+- HTTP server options;
+- HTTP method model;
+- HTTP status code model;
+- HTTP header model;
+- HTTP request model;
+- HTTP response model;
+- HTTP endpoint model;
+- helper-функции для response и method/status formatting.
 
 HTTP server еще не реализован.
 
@@ -65,14 +75,26 @@ HTTP server еще не реализован.
 
     8080
 
+## Текущие модели
+
+Добавлены:
+
+- `HttpMethod`;
+- `HttpStatusCode`;
+- `HttpServerOptions`;
+- `HttpHeader`;
+- `HttpRequest`;
+- `HttpResponse`;
+- `HttpEndpoint`.
+
 ## Ограничения
 
 Пока нет:
 
 - HTTP server;
 - TCP acceptor;
-- request parser;
-- response writer;
+- request parser на основе Boost.Beast;
+- response writer на основе Boost.Beast;
 - route dispatcher;
 - endpoints;
 - HTTPS;

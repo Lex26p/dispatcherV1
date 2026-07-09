@@ -1,5 +1,6 @@
 ﻿add_library(scada_http STATIC
     src/http_module.cpp
+    src/http_types.cpp
 )
 
 target_include_directories(scada_http
