@@ -16,83 +16,79 @@
 #include "scada_alarms/alarm_module.h"
 #include "scada_api/api_module.h"
 #include "scada_http/http_module.h"
+#include "scada_http/drogon_http_server.h"
+#include "scada_http/system_endpoint_registry.h"
+#include "scada_http/system_health_endpoint.h"
+#include "scada_http/system_modules_endpoint.h"
 #include "scada_realtime/realtime_module.h"
 #include "scada_app/app_module.h"
 
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <utility>
 
-namespace
-{
-    dispatcher::common::Result<void> register_initial_modules(dispatcher::core::ApplicationContext& context)
+namespace {
+
+    dispatcher::common::Result<void> register_initial_modules(
+        dispatcher::core::ApplicationContext& context
+    )
     {
-        for (auto module : dispatcher::core::get_initial_module_list())
-        {
+        for (auto module : dispatcher::core::get_initial_module_list()) {
             auto result = context.register_module(std::move(module));
-            if (result.is_failure())
-            {
+
+            if (result.is_failure()) {
                 return result;
             }
         }
 
         auto objects_result = context.register_module(dispatcher::objects::get_object_module_info());
-        if (objects_result.is_failure())
-        {
+        if (objects_result.is_failure()) {
             return objects_result;
         }
 
         auto devices_result = context.register_module(dispatcher::devices::get_device_module_info());
-        if (devices_result.is_failure())
-        {
+        if (devices_result.is_failure()) {
             return devices_result;
         }
 
         auto tags_result = context.register_module(dispatcher::tags::get_tag_module_info());
-        if (tags_result.is_failure())
-        {
+        if (tags_result.is_failure()) {
             return tags_result;
         }
 
         auto protocols_result = context.register_module(dispatcher::protocols::get_protocol_module_info());
-        if (protocols_result.is_failure())
-        {
+        if (protocols_result.is_failure()) {
             return protocols_result;
         }
 
         auto polling_result = context.register_module(dispatcher::polling::get_polling_module_info());
-        if (polling_result.is_failure())
-        {
+        if (polling_result.is_failure()) {
             return polling_result;
         }
 
         auto runtime_result = context.register_module(dispatcher::runtime::get_runtime_module_info());
-        if (runtime_result.is_failure())
-        {
+        if (runtime_result.is_failure()) {
             return runtime_result;
         }
 
         auto historian_result = context.register_module(dispatcher::historian::get_historian_module_info());
-        if (historian_result.is_failure())
-        {
+        if (historian_result.is_failure()) {
             return historian_result;
         }
 
         auto events_result = context.register_module(dispatcher::events::get_event_module_info());
-        if (events_result.is_failure())
-        {
+        if (events_result.is_failure()) {
             return events_result;
         }
 
         auto alarms_result = context.register_module(dispatcher::alarms::get_alarm_module_info());
-        if (alarms_result.is_failure())
-        {
+        if (alarms_result.is_failure()) {
             return alarms_result;
         }
 
         auto api_result = context.register_module(dispatcher::api::get_api_module_info());
-        if (api_result.is_failure())
-        {
+        if (api_result.is_failure()) {
             return api_result;
         }
 
@@ -114,15 +110,19 @@ namespace
         return dispatcher::common::Result<void>::success();
     }
 
-    void print_startup_error(const dispatcher::common::Error& error)
+    void print_startup_error(
+        const dispatcher::common::Error& error
+    )
     {
-        std::cerr << "Startup failed: "
+        std::cerr
+            << "Startup failed: "
             << dispatcher::common::to_string(error.code)
             << " | "
             << error.message
             << '\n';
     }
-}
+
+} // namespace
 
 int main()
 {
@@ -134,24 +134,53 @@ int main()
     };
 
     const auto register_result = register_initial_modules(context);
-    if (register_result.is_failure())
-    {
+
+    if (register_result.is_failure()) {
         print_startup_error(register_result.error());
         return EXIT_FAILURE;
     }
 
     const auto start_result = context.start();
-    if (start_result.is_failure())
-    {
+
+    if (start_result.is_failure()) {
         print_startup_error(start_result.error());
         return EXIT_FAILURE;
     }
 
+    auto http_route_dispatcher = dispatcher::http::make_system_route_dispatcher(
+        context.modules()
+    );
+
+    dispatcher::http::HttpServerOptions http_options;
+    http_options.bind_address = "127.0.0.1";
+    http_options.port = 8080;
+    http_options.worker_threads = 1;
+    http_options.start_on_launch = true;
+    http_options.server_name = "Dispatcher";
+
+    dispatcher::http::DrogonHttpServer http_server{
+        http_options,
+        std::move(http_route_dispatcher)
+    };
+
+    if (!http_server.start()) {
+        std::cerr
+            << "HTTP server failed to start at http://"
+            << http_options.bind_address
+            << ":"
+            << http_options.port
+            << '\n';
+
+        return EXIT_FAILURE;
+    }
+
     const auto startup_time = dispatcher::common::now_utc();
+
     const auto startup_envelope = dispatcher::contracts::make_success_envelope(
         context.startup_correlation_id().str(),
         "Dispatcher application context started"
     );
+
     const auto startup_event = dispatcher::core::make_core_event(
         "ApplicationStarted",
         "Dispatcher server application context started",
@@ -167,15 +196,47 @@ int main()
     std::cout << "Startup time UTC: " << dispatcher::common::to_iso8601_utc(startup_time) << '\n';
     std::cout << "Startup message: " << startup_envelope.message << '\n';
     std::cout << "Startup event: " << startup_event.type << " | " << startup_event.message << '\n';
+
+    std::cout
+        << "HTTP API: http://"
+        << http_options.bind_address
+        << ":"
+        << http_options.port
+        << '\n';
+
+    std::cout
+        << "HTTP health: http://"
+        << http_options.bind_address
+        << ":"
+        << http_options.port
+        << dispatcher::http::system_health_endpoint_path()
+        << '\n';
+
+    std::cout
+        << "HTTP modules: http://"
+        << http_options.bind_address
+        << ":"
+        << http_options.port
+        << dispatcher::http::system_modules_endpoint_path()
+        << '\n';
+
     std::cout << "Modules:" << '\n';
 
-    for (const auto& module : context.modules())
-    {
-        std::cout << "  - " << module.code
-            << " | " << module.name
-            << " | " << dispatcher::core::to_string(module.status)
+    for (const auto& module : context.modules()) {
+        std::cout
+            << " - "
+            << module.code
+            << " | "
+            << module.name
+            << " | "
+            << dispatcher::core::to_string(module.status)
             << '\n';
     }
+
+    std::cout << "Press Enter to stop dispatcher_server..." << '\n';
+    std::cin.get();
+
+    http_server.stop();
 
     return EXIT_SUCCESS;
 }
