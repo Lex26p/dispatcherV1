@@ -1,5 +1,6 @@
 add_library(scada_runtime STATIC
     src/runtime_module.cpp
+    src/runtime_value_applier.cpp
     src/tag_value_store.cpp
 )
 
@@ -18,4 +19,5 @@ target_link_libraries(scada_runtime
         scada_common
         scada_core
         scada_tags
+        scada_protocols
 )
