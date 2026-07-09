@@ -15,6 +15,7 @@
 #include "scada_events/event_module.h"
 #include "scada_alarms/alarm_module.h"
 #include "scada_api/api_module.h"
+#include "scada_realtime/realtime_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -91,6 +92,12 @@ namespace
         if (api_result.is_failure())
         {
             return api_result;
+        }
+
+        auto realtime_result = context.register_module(dispatcher::realtime::get_realtime_module_info());
+        if (realtime_result.is_failure())
+        {
+            return realtime_result;
         }
 
         return dispatcher::common::Result<void>::success();
