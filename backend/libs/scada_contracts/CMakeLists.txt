@@ -1,6 +1,8 @@
 add_library(scada_contracts STATIC
+    src/alarm_dto.cpp
     src/api_envelope.cpp
     src/device_dto.cpp
+    src/event_dto.cpp
     src/historian_dto.cpp
     src/object_dto.cpp
     src/polling_dto.cpp
