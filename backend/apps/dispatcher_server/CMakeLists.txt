@@ -18,6 +18,7 @@ target_link_libraries(dispatcher_server
         scada_protocols
         scada_polling
         scada_runtime
+        scada_historian
 )
 
 set_target_properties(dispatcher_server
