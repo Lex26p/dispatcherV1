@@ -55,12 +55,15 @@
 - `ProtocolWriteRequest`;
 - `ProtocolWriteResult`;
 - `SimulatorProtocolDriver`;
+- `ProtocolDriverRegistry`;
+- `create_default_protocol_driver_registry()`;
 - общий контракт read;
 - общий контракт batch read;
 - общий контракт write;
 - общий контракт проверки соединения;
 - общий контракт проверки адреса;
 - базовый simulator driver;
+- registry протокольных драйверов;
 - подготовку к future protocol drivers.
 
 ## Что модуль не должен делать
@@ -252,6 +255,51 @@
 - `read_batch()`;
 - `write()`.
 
+### ProtocolDriverRegistry
+
+Registry протокольных драйверов.
+
+Он хранит драйверы по `DeviceProtocol`.
+
+Методы:
+
+- `register_driver()`;
+- `replace_driver()`;
+- `unregister_driver()`;
+- `has_driver()`;
+- `find_driver()`;
+- `protocols()`;
+- `drivers()`;
+- `size()`;
+- `empty()`;
+- `clear()`.
+
+Registry нужен для будущего polling layer.
+
+Polling layer не должен создавать драйверы напрямую.
+
+Он должен запросить нужный драйвер по протоколу устройства.
+
+Пример будущей логики:
+
+    DeviceProtocol::Simulator -> SimulatorProtocolDriver
+    DeviceProtocol::ModbusTcp -> future ModbusTcpDriver
+    DeviceProtocol::Snmp -> future SnmpDriver
+
+### create_default_protocol_driver_registry
+
+Функция создает registry с драйверами по умолчанию.
+
+На текущем этапе туда добавляется:
+
+- `SimulatorProtocolDriver`.
+
+Позже туда можно будет добавить:
+
+- Modbus TCP driver;
+- SNMP driver;
+- другие built-in drivers.
+
 ## SimulatorProtocolDriver
 
 `SimulatorProtocolDriver` — базовый локальный драйвер симулятора.
@@ -293,23 +341,17 @@
 
 Если адрес неизвестен, драйвер возвращает числовое значение на основе внутреннего счетчика чтений.
 
-## Почему Simulator driver находится в scada_protocols
+## Почему registry нужен до polling scheduler
 
-Simulator driver нужен как первая реальная реализация `IProtocolDriver`.
+Polling scheduler не должен знать конкретные классы драйверов.
 
-Он не требует отдельного модуля на этом этапе, потому что:
+Он должен работать через `IProtocolDriver`.
 
-- он маленький;
-- он нужен для проверки протокольного контракта;
-- он пригодится в следующих шагах Sprint 005;
-- он не выполняет сетевой обмен;
-- он не зависит от внешних библиотек.
+Registry дает единый способ получить драйвер:
 
-Позже можно будет вынести concrete drivers в отдельные модули, например:
+    protocol -> driver
 
-- `scada_protocol_modbus`;
-- `scada_protocol_snmp`;
-- `scada_protocol_simulator`.
+Это позволит позже добавить новые протоколы без переписывания polling scheduler.
 
 ## Почему batch read обязателен в контракте
 
@@ -407,9 +449,11 @@ Protocol result использует `TagQuality`.
 - `include/scada_protocols/protocol_requests.h`
 - `include/scada_protocols/protocol_results.h`
 - `include/scada_protocols/protocol_driver.h`
+- `include/scada_protocols/protocol_driver_registry.h`
 - `include/scada_protocols/protocol_module.h`
 - `include/scada_protocols/drivers/simulator_protocol_driver.h`
 - `src/protocol_capabilities.cpp`
+- `src/protocol_driver_registry.cpp`
 - `src/protocol_requests.cpp`
 - `src/protocol_results.cpp`
 - `src/protocol_module.cpp`
@@ -426,6 +470,8 @@ Protocol result использует `TagQuality`.
 - Добавлен `IProtocolDriver`.
 - Добавлен `SimulatorProtocolDriver`.
 - Добавлены базовые правила simulator-адресов.
+- Добавлен `ProtocolDriverRegistry`.
+- Добавлен `create_default_protocol_driver_registry()`.
 - Добавлен `get_protocol_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -434,11 +480,11 @@ Protocol result использует `TagQuality`.
 
 - Формируем общий контракт протокольных драйверов Dispatcher.
 - Добавляем безопасный локальный simulator driver.
+- Добавляем registry драйверов.
 - Готовим основу для polling без реального оборудования.
 
 ### Нужно доделать
 
-- Добавить registry драйверов.
 - Добавить polling task model.
 - Добавить polling group model.
 - Добавить polling scheduler foundation.

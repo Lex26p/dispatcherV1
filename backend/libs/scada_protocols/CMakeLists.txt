@@ -1,5 +1,6 @@
 add_library(scada_protocols STATIC
     src/protocol_capabilities.cpp
+    src/protocol_driver_registry.cpp
     src/protocol_module.cpp
     src/protocol_requests.cpp
     src/protocol_results.cpp
