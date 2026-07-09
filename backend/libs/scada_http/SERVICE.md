@@ -20,6 +20,7 @@ Foundation.
 - HTTP request model;
 - HTTP response model;
 - HTTP endpoint model;
+- HTTP route dispatcher foundation;
 - helper-функции для response и method/status formatting.
 
 HTTP server еще не реализован.
@@ -85,7 +86,21 @@ HTTP server еще не реализован.
 - `HttpHeader`;
 - `HttpRequest`;
 - `HttpResponse`;
-- `HttpEndpoint`.
+- `HttpEndpoint`;
+- `HttpRoute`;
+- `HttpRouteDispatcher`.
+
+## Route dispatcher foundation
+
+`HttpRouteDispatcher` поддерживает:
+
+- регистрацию маршрута;
+- exact path matching;
+- method matching;
+- защиту от duplicate method/path route;
+- `400 Bad Request` для невалидного request;
+- `404 Not Found` для неизвестного path;
+- `405 Method Not Allowed` для известного path с неподдерживаемым method.
 
 ## Ограничения
 
@@ -95,8 +110,7 @@ HTTP server еще не реализован.
 - TCP acceptor;
 - request parser на основе Boost.Beast;
 - response writer на основе Boost.Beast;
-- route dispatcher;
-- endpoints;
+- real endpoints;
 - HTTPS;
 - CORS;
 - authentication;
