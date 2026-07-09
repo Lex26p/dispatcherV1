@@ -1,9 +1,10 @@
 #include "scada_runtime/runtime_value_applier.h"
 
+#include "scada_runtime/engineering_transform.h"
 #include "scada_runtime/runtime_quality.h"
+#include "scada_runtime/runtime_value_conversion.h"
 
 #include <chrono>
-#include <variant>
 
 namespace dispatcher::runtime
 {
@@ -47,6 +48,16 @@ namespace dispatcher::runtime
         return last_good_updated;
     }
 
+    bool RuntimeValueApplyResult::was_value_converted() const noexcept
+    {
+        return value_converted;
+    }
+
+    bool RuntimeValueApplyResult::was_engineering_transform_applied() const noexcept
+    {
+        return engineering_transform_applied;
+    }
+
     bool RuntimeValueApplyResult::has_message() const noexcept
     {
         return !message.empty();
@@ -63,6 +74,28 @@ namespace dispatcher::runtime
         const dispatcher::protocols::ProtocolReadResult& read_result
     )
     {
+        return apply_protocol_read_result_internal(
+            read_result,
+            nullptr
+        );
+    }
+
+    RuntimeValueApplyResult RuntimeValueApplier::apply_protocol_read_result(
+        const dispatcher::protocols::ProtocolReadResult& read_result,
+        const dispatcher::tags::Tag& tag
+    )
+    {
+        return apply_protocol_read_result_internal(
+            read_result,
+            &tag
+        );
+    }
+
+    RuntimeValueApplyResult RuntimeValueApplier::apply_protocol_read_result_internal(
+        const dispatcher::protocols::ProtocolReadResult& read_result,
+        const dispatcher::tags::Tag* tag
+    )
+    {
         RuntimeValueApplyResult result;
         result.tag_id = read_result.tag_id;
         result.quality = read_result.quality;
@@ -75,11 +108,24 @@ namespace dispatcher::runtime
             return result;
         }
 
+        if (tag != nullptr && tag->id != read_result.tag_id)
+        {
+            result.success = false;
+            result.message = "Protocol read result tag id does not match tag configuration.";
+            return result;
+        }
+
         const auto previous_value = store_.find_by_tag_id(read_result.tag_id);
+
+        bool value_converted = false;
+        bool engineering_transform_applied = false;
 
         const auto current_value = make_current_value(
             read_result,
-            previous_value
+            previous_value,
+            tag,
+            value_converted,
+            engineering_transform_applied
         );
 
         if (!store_.upsert(current_value))
@@ -100,6 +146,8 @@ namespace dispatcher::runtime
             previous_value,
             current_value
         );
+        result.value_converted = value_converted;
+        result.engineering_transform_applied = engineering_transform_applied;
 
         result.message = read_result.has_message()
             ? read_result.message
@@ -110,7 +158,10 @@ namespace dispatcher::runtime
 
     dispatcher::tags::TagCurrentValue RuntimeValueApplier::make_current_value(
         const dispatcher::protocols::ProtocolReadResult& read_result,
-        const std::optional<dispatcher::tags::TagCurrentValue>& previous_value
+        const std::optional<dispatcher::tags::TagCurrentValue>& previous_value,
+        const dispatcher::tags::Tag* tag,
+        bool& value_converted,
+        bool& engineering_transform_applied
     )
     {
         dispatcher::tags::TagCurrentValue current;
@@ -132,16 +183,56 @@ namespace dispatcher::runtime
             ? previous_value->value_type
             : dispatcher::tags::TagValueType::Double;
 
+        const auto target_value_type = tag != nullptr
+            ? tag->value_type
+            : infer_runtime_value_type(
+                read_result.raw_value,
+                fallback_value_type
+            );
+
+        auto raw_value = read_result.raw_value;
+
+        if (tag != nullptr)
+        {
+            const auto conversion = convert_runtime_value(
+                read_result.raw_value,
+                target_value_type
+            );
+
+            if (conversion.is_success())
+            {
+                raw_value = conversion.value;
+                value_converted = conversion.was_converted();
+            }
+        }
+
+        auto engineering_value = raw_value;
+
+        if (tag != nullptr)
+        {
+            const auto transform = apply_engineering_transform(
+                raw_value,
+                RuntimeEngineeringTransformOptions{
+                    .enabled = true,
+                    .scale = tag->scale,
+                    .offset = tag->offset
+                }
+            );
+
+            if (transform.is_success())
+            {
+                engineering_value = transform.engineering_value;
+                engineering_transform_applied = transform.was_transformed();
+            }
+        }
+
         current.tag_id = read_result.tag_id;
-        current.value_type = infer_value_type(
-            read_result.raw_value,
-            fallback_value_type
-        );
+        current.value_type = target_value_type;
         current.quality = read_result.quality;
         current.source = dispatcher::tags::TagValueSource::Device;
 
-        current.raw_value = read_result.raw_value;
-        current.engineering_value = read_result.raw_value;
+        current.raw_value = raw_value;
+        current.engineering_value = engineering_value;
 
         current.timestamp = timestamp;
         current.source_timestamp = source_timestamp;
@@ -159,44 +250,6 @@ namespace dispatcher::runtime
         current.mark_changed();
 
         return current;
-    }
-
-    dispatcher::tags::TagValueType RuntimeValueApplier::infer_value_type(
-        const dispatcher::tags::TagValuePayload& value,
-        dispatcher::tags::TagValueType fallback
-    ) noexcept
-    {
-        if (std::holds_alternative<bool>(value))
-        {
-            return dispatcher::tags::TagValueType::Boolean;
-        }
-
-        if (std::holds_alternative<std::int32_t>(value))
-        {
-            return dispatcher::tags::TagValueType::Int32;
-        }
-
-        if (std::holds_alternative<std::int64_t>(value))
-        {
-            return dispatcher::tags::TagValueType::Int64;
-        }
-
-        if (std::holds_alternative<float>(value))
-        {
-            return dispatcher::tags::TagValueType::Float;
-        }
-
-        if (std::holds_alternative<double>(value))
-        {
-            return dispatcher::tags::TagValueType::Double;
-        }
-
-        if (std::holds_alternative<std::string>(value))
-        {
-            return dispatcher::tags::TagValueType::String;
-        }
-
-        return fallback;
     }
 
     bool RuntimeValueApplier::did_update_last_good_value(

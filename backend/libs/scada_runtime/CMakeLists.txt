@@ -1,7 +1,9 @@
 add_library(scada_runtime STATIC
+    src/engineering_transform.cpp
     src/runtime_module.cpp
     src/runtime_quality.cpp
     src/runtime_value_applier.cpp
+    src/runtime_value_conversion.cpp
     src/tag_value_store.cpp
 )
 
