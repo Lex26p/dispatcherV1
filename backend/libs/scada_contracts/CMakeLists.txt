@@ -2,6 +2,7 @@ add_library(scada_contracts STATIC
     src/api_envelope.cpp
     src/device_dto.cpp
     src/object_dto.cpp
+    src/polling_dto.cpp
     src/tag_dto.cpp
 )
 
