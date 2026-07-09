@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+
+<div class="dispatcher-shell">
+    <aside class="dispatcher-sidebar">
+        <div class="dispatcher-logo">
+            <div class="dispatcher-logo__mark">D</div>
+            <div>
+                <div class="dispatcher-logo__title">Dispatcher</div>
+                <div class="dispatcher-logo__subtitle">SCADA foundation</div>
+            </div>
+        </div>
+
+        <NavMenu />
+    </aside>
+
+    <main class="dispatcher-main">
+        <header class="dispatcher-topbar">
+            <div>
+                <div class="dispatcher-topbar__title">Operator Workspace</div>
+                <div class="dispatcher-topbar__subtitle">Minimal UI foundation</div>
+            </div>
+
+            <div class="dispatcher-status">
+                <span class="dispatcher-status__dot"></span>
+                MVP foundation
+            </div>
+        </header>
+
+        <section class="dispatcher-content">
+            @Body
+        </section>
+    </main>
+</div>

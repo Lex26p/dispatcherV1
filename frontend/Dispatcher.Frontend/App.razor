@@ -1,0 +1,17 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+
+    <NotFound>
+        <PageTitle>Страница не найдена - Dispatcher</PageTitle>
+
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div class="dispatcher-page">
+                <h1>Страница не найдена</h1>
+                <p>Запрошенный раздел Dispatcher пока не существует.</p>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>
