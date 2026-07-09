@@ -3,6 +3,7 @@
     src/http_types.cpp
     src/http_router.cpp
     src/system_health_endpoint.cpp
+    src/system_modules_endpoint.cpp
 )
 
 target_include_directories(scada_http

@@ -22,6 +22,7 @@ Foundation.
 - HTTP endpoint model;
 - HTTP route dispatcher foundation;
 - `/api/system/health` endpoint foundation;
+- `/api/system/modules` endpoint foundation;
 - helper-функции для response и method/status formatting.
 
 HTTP server еще не реализован.
@@ -122,7 +123,27 @@ Endpoint возвращает JSON с базовым состоянием backen
       "endpoint": "/api/system/health"
     }
 
-На текущем этапе endpoint можно зарегистрировать в `HttpRouteDispatcher`, но нельзя открыть из браузера, потому что HTTP server еще не подключен.
+## System modules endpoint
+
+Добавлен foundation endpoint:
+
+    GET /api/system/modules
+
+Endpoint возвращает JSON со списком backend-модулей:
+
+    {
+      "modules": [
+        {
+          "code": "scada_core",
+          "name": "Core",
+          "description": "Core runtime services",
+          "status": "Running"
+        }
+      ],
+      "count": 1
+    }
+
+На текущем этапе endpoints можно зарегистрировать в `HttpRouteDispatcher`, но нельзя открыть из браузера, потому что HTTP server еще не подключен.
 
 ## Ограничения
 
@@ -132,7 +153,6 @@ Endpoint возвращает JSON с базовым состоянием backen
 - TCP acceptor;
 - request parser на основе Boost.Beast;
 - response writer на основе Boost.Beast;
-- `/api/system/modules`;
 - HTTPS;
 - CORS;
 - authentication;
