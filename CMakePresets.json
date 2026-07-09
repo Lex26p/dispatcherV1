@@ -12,6 +12,10 @@
       },
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -21,13 +25,13 @@
     {
       "name": "x64-debug",
       "displayName": "x64 Debug",
-      "description": "Dispatcher Debug build for Windows x64 using Visual Studio 2026 generator.",
+      "description": "Dispatcher Debug build for Windows x64 using Visual Studio 2026 generator and vcpkg manifest mode.",
       "inherits": "windows-vs2026-x64-base"
     },
     {
       "name": "x64-release",
       "displayName": "x64 Release",
-      "description": "Dispatcher Release build for Windows x64 using Visual Studio 2026 generator.",
+      "description": "Dispatcher Release build for Windows x64 using Visual Studio 2026 generator and vcpkg manifest mode.",
       "inherits": "windows-vs2026-x64-base"
     }
   ],
