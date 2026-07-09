@@ -1,4 +1,5 @@
 add_library(scada_alarms STATIC
+    src/alarm_lifecycle.cpp
     src/alarm_module.cpp
     src/alarm_record.cpp
 )

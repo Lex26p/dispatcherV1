@@ -6,9 +6,11 @@
 
 Модуль отвечает за базовую модель аварий и будущий Alarm Manager.
 
-На текущем шаге реализована только фундаментальная модель аварии.
+На текущем этапе реализованы:
 
-Полный lifecycle аварий и transitions будут добавлены следующим шагом.
+- базовая модель аварии;
+- базовые состояния аварии;
+- lifecycle transition foundation.
 
 ## Базовая цепочка
 
@@ -30,6 +32,10 @@ Alarms layer будет принимать причины аварий из ра
 
     AlarmRecord -> EventRecord -> future Event Manager
 
+Текущая lifecycle-цепочка:
+
+    AlarmRecord -> AlarmTransitionRequest -> AlarmTransitionResult -> AlarmTransitionRecord
+
 ## Границы ответственности
 
 `scada_alarms` отвечает за:
@@ -41,10 +47,16 @@ Alarms layer будет принимать причины аварий из ра
 - `AlarmPriority`;
 - `AlarmState`;
 - `AlarmRecord`;
+- `AlarmTransitionType`;
+- `AlarmTransitionValidationCode`;
+- `AlarmTransitionRequest`;
+- `AlarmTransitionRecord`;
+- `AlarmTransitionResult`;
 - создание базовой аварии;
+- проверку допустимости transition;
+- применение transition к аварии;
 - связь severity аварии с severity события;
-- подготовку к alarm lifecycle;
-- подготовку к alarm transitions;
+- подготовку к alarm transition history;
 - подготовку к alarm rules;
 - подготовку к future Alarm Manager;
 - подготовку к future Event Manager integration.
@@ -54,12 +66,10 @@ Alarms layer будет принимать причины аварий из ра
 На текущем шаге `scada_alarms` не должен выполнять:
 
 - вычисление alarm rules;
-- lifecycle transitions;
-- квитирование;
-- нормализацию;
-- закрытие аварий;
+- хранение transition history в БД;
 - хранение аварий в БД;
 - публикацию в EventBus;
+- автоматическое создание EventRecord;
 - доставку аварий в UI;
 - HTTP API;
 - WebSocket API;
@@ -140,11 +150,6 @@ Priority отвечает на вопрос:
 
 Severity и priority разделены намеренно.
 
-Например:
-
-- авария может быть технически `Critical`, но временно иметь priority `Medium`;
-- предупреждение может иметь priority `High`, если связано с важным объектом.
-
 ### AlarmState
 
 Базовое состояние аварии.
@@ -158,10 +163,6 @@ Severity и priority разделены намеренно.
 - `Closed`;
 - `Shelved`;
 - `Suppressed`.
-
-На текущем шаге state только хранится.
-
-Правила переходов будут добавлены следующим шагом.
 
 ### AlarmRecord
 
@@ -239,102 +240,235 @@ Severity и priority разделены намеренно.
 
     AlarmRecord -> EventRecord
 
-## Почему аварии отделены от событий
+## Alarm lifecycle
 
-Событие — это любой факт, который произошел в системе.
+Lifecycle описывает изменение состояния аварии.
 
-Авария — это особый тип события с состоянием и жизненным циклом.
+На текущем этапе lifecycle представлен через:
 
-Событие может быть одноразовым.
+- `AlarmTransitionType`;
+- `AlarmTransitionRequest`;
+- `AlarmTransitionRecord`;
+- `AlarmTransitionResult`;
+- `can_apply_alarm_transition()`;
+- `apply_alarm_transition()`.
 
-Авария может жить во времени.
+### AlarmTransitionType
 
-Пример события:
+Тип перехода аварии.
 
-    Пользователь вошел в систему.
+Поддерживаются значения:
 
-Пример аварии:
+- `Activate`;
+- `Acknowledge`;
+- `Clear`;
+- `Close`;
+- `Shelve`;
+- `Unshelve`;
+- `Suppress`;
+- `Unsuppress`;
+- `Reactivate`.
 
-    Температура выше порога и требует реакции оператора.
+### AlarmTransitionValidationCode
 
-Авария требует:
+Код результата проверки transition.
 
-- activation;
-- acknowledgement;
-- clearing;
-- closing;
-- shelving;
-- suppression;
-- transition history.
+Поддерживаются значения:
 
-Поэтому аварии вынесены в отдельный модуль.
+- `None`;
+- `InvalidTransition`;
+- `MissingActor`;
+- `AcknowledgementNotRequired`;
+- `AlarmAlreadyClosed`.
 
-## Почему AlarmState добавлен сейчас, а transitions позже
+### AlarmTransitionRequest
 
-State нужен уже в базовой модели аварии.
+Запрос на transition.
 
-Но правила переходов требуют отдельной модели:
+Поля:
 
-- transition type;
-- actor;
-- timestamp;
-- reason;
-- previous state;
-- new state;
-- validation.
+- `type`;
+- `actor`;
+- `reason`;
+- `timestamp`;
+- `require_actor`.
 
-Это будет добавлено следующим шагом.
+Методы:
 
-## Почему source ids пока строки
+- `has_actor()`;
+- `has_reason()`;
+- `has_timestamp()`.
 
-AlarmRecord должен уметь ссылаться на разные сущности:
+### AlarmTransitionRecord
 
-- объект;
-- устройство;
-- тег;
-- скрипт;
-- интеграцию;
-- внешний источник.
+Запись о выполненном transition.
 
-Чтобы не связывать `scada_alarms` со всеми доменными модулями сразу, source ids пока представлены строками.
+Поля:
 
-Позже mapper/repository/API слой сможет валидировать и связывать эти идентификаторы с конкретными доменными сущностями.
+- `type`;
+- `previous_state`;
+- `new_state`;
+- `timestamp`;
+- `actor`;
+- `reason`.
 
-## Почему `event_id` есть в AlarmRecord
+Методы:
 
-Авария должна быть связана с событийным журналом.
+- `has_actor()`;
+- `has_reason()`;
+- `has_timestamp()`.
 
-В будущем при создании аварии можно будет создавать связанный `EventRecord`.
+На текущем этапе transition record возвращается в результате, но еще не сохраняется в БД.
 
-`event_id` хранит эту связь.
+### AlarmTransitionResult
 
-На текущем шаге event еще не создается автоматически.
+Результат transition.
 
-## Почему severity и priority разделены
+Поля:
 
-Severity описывает серьезность технического состояния.
+- `success`;
+- `code`;
+- `alarm`;
+- `transition`;
+- `message`.
 
-Priority описывает срочность реакции.
+Методы:
 
-Это разные понятия.
+- `is_success()`;
+- `has_transition()`;
+- `has_message()`.
 
-Пример:
+## Поддержанные переходы
 
-    Severity = Critical
-    Priority = Medium
+### Activate
 
-Такое возможно, если объект в резерве или находится в maintenance.
+Разрешено:
 
-Пример:
+    New -> Active
 
-    Severity = Warning
-    Priority = High
+### Acknowledge
 
-Такое возможно, если предупреждение относится к критически важному объекту.
+Разрешено:
+
+    New -> Acknowledged
+    Active -> Acknowledged
+
+Если `requires_acknowledgement = false`, transition отклоняется.
+
+### Clear
+
+Разрешено:
+
+    New -> Cleared
+    Active -> Cleared
+    Acknowledged -> Cleared
+
+### Close
+
+Разрешено:
+
+    Cleared -> Closed
+
+### Shelve
+
+Разрешено:
+
+    New -> Shelved
+    Active -> Shelved
+    Acknowledged -> Shelved
+
+### Unshelve
+
+Разрешено:
+
+    Shelved -> Active
+
+### Suppress
+
+Разрешено:
+
+    New -> Suppressed
+    Active -> Suppressed
+    Acknowledged -> Suppressed
+
+### Unsuppress
+
+Разрешено:
+
+    Suppressed -> Active
+
+### Reactivate
+
+Разрешено:
+
+    Cleared -> Active
+
+При reactivation увеличивается `occurrence_count`.
+
+## Почему lifecycle отделен от AlarmRecord
+
+`AlarmRecord` хранит состояние.
+
+Lifecycle logic управляет переходами между состояниями.
+
+Это разделение нужно, чтобы:
+
+- не перегружать модель данными и правилами;
+- отдельно тестировать transition rules;
+- позже добавить Alarm Manager;
+- позже добавить transition history repository;
+- позже добавить audit и Event Manager integration.
+
+## Почему transition применяется к копии
+
+`apply_alarm_transition()` принимает `const AlarmRecord&` и возвращает обновленную копию в `AlarmTransitionResult`.
+
+Это безопаснее на раннем этапе.
+
+Будущий Alarm Manager сможет:
+
+- загрузить аварийную запись;
+- применить transition;
+- сохранить обновленную запись;
+- сохранить transition history;
+- создать EventRecord;
+- опубликовать событие.
+
+## Почему actor пока строка
+
+Actor может быть:
+
+- пользователем;
+- сервисным аккаунтом;
+- системой;
+- интеграцией;
+- скриптом.
+
+Пока auth/user model не реализована, actor хранится строкой.
+
+Позже он будет связан с пользователями, ролями и аудитом.
+
+## Почему close разрешен только после clear
+
+Закрытие означает, что аварийное состояние завершено.
+
+Поэтому базовое правило:
+
+    сначала clear, потом close
+
+Более сложные политики можно будет добавить позже через `AlarmLifecyclePolicy`.
+
+## Почему shelve и suppress не закрывают аварию
+
+Shelve и suppress — это временные режимы отображения или обработки.
+
+Они не означают, что аварийное условие исчезло.
+
+Поэтому после `Unshelve` или `Unsuppress` авария возвращается в `Active`.
 
 ## Почему пока нет Alarm Manager
 
-Сейчас мы создаем только доменную модель аварии.
+Сейчас мы создаем только доменную модель lifecycle.
 
 Alarm Manager будет отвечать за:
 
@@ -380,8 +514,10 @@ Alarm Manager будет отвечать за:
 
 - `include/scada_alarms/alarm_ids.h`
 - `include/scada_alarms/alarm_record.h`
+- `include/scada_alarms/alarm_lifecycle.h`
 - `include/scada_alarms/alarm_module.h`
 - `src/alarm_record.cpp`
+- `src/alarm_lifecycle.cpp`
 - `src/alarm_module.cpp`
 
 ## Статус реализации
@@ -399,6 +535,8 @@ Alarm Manager будет отвечать за:
 - Добавлена функция `make_alarm_record()`.
 - Добавлена функция `to_event_severity()`.
 - Добавлены функции `to_string()` для enum.
+- Добавлен alarm lifecycle foundation.
+- Добавлены alarm transitions.
 - Добавлен `get_alarm_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -407,13 +545,12 @@ Alarm Manager будет отвечать за:
 
 - Формируем foundation Alarms.
 - Готовим базовую модель аварии.
+- Готовим lifecycle transitions.
 - Готовим основу для Alarm Manager.
 - Готовим связь аварий с Events.
 
 ### Нужно доделать
 
-- Добавить alarm lifecycle transitions.
-- Добавить alarm transition history.
 - Добавить alarm rules foundation.
 - Добавить event/alarm DTO.
 - Добавить repository-интерфейсы.
@@ -425,8 +562,8 @@ Alarm Manager будет отвечать за:
 - Event Manager integration.
 - Alarm storage.
 - Active alarm index.
-- Alarm shelving.
-- Alarm suppression.
+- Alarm shelving policy.
+- Alarm suppression policy.
 - Alarm escalation.
 - Alarm notifications.
 - Alarm API.
@@ -436,7 +573,6 @@ Alarm Manager будет отвечать за:
 
 ### Не входит в этот шаг
 
-- Lifecycle transitions.
 - Alarm rules.
 - EventBus.
 - Alarm storage.
