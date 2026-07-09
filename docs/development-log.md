@@ -1283,3 +1283,44 @@ Sprint 012 закрыл первый реальный backend HTTP API foundatio
 - подключить frontend к реальному backend API;
 - заменить demo-data на System page;
 - добавить loading/error/no connection states.
+
+---
+
+## Sprint 013 — Frontend Real API Client Integration
+
+### Статус
+
+Started.
+
+### Цель
+
+Подключить frontend Dispatcher к реальному backend HTTP API, созданному в Sprint 012.
+
+### Начальный scope
+
+Первый real integration scope:
+
+    GET /api/system/health
+    GET /api/system/modules
+
+### Ожидаемый результат
+
+Страница frontend:
+
+    /system
+
+должна перейти от demo-only data к реальным backend данным.
+
+### Шаг 91
+
+Создан план Sprint 013:
+
+    docs/SPRINT_013_PLAN.md
+
+Зафиксированы правила:
+
+- frontend вызывает backend только через `IDispatcherApiClient`;
+- System page первой переходит на real API;
+- mock mode остается как fallback/development option;
+- нужен backend development CORS foundation;
+- production auth/CORS/WebSocket не входят в Sprint 013.
