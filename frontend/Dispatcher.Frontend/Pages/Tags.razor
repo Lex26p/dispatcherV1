@@ -1,21 +1,25 @@
 @page "/tags"
 
-<PageTitle>Tags - Dispatcher</PageTitle>
+<PageTitle>Теги - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Tags</MudText>
+    <MudText Typo="Typo.h4" HtmlTag="h1">Теги</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Tag model placeholder.
+        Основа модели тегов, адресации и качества значений.
     </MudText>
 
     <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Planned content</MudText>
+        <MudText Typo="Typo.h6">Планируемое содержимое</MudText>
 
         <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Tag list" Icon="@Icons.Material.Filled.Label" />
-            <MudListItem Text="Tag type" Icon="@Icons.Material.Filled.Category" />
-            <MudListItem Text="Archive policy" Icon="@Icons.Material.Filled.Inventory" />
-            <MudListItem Text="Quality" Icon="@Icons.Material.Filled.Verified" />
+            <MudListItem Text="Список тегов" Icon="@Icons.Material.Filled.Label" />
+            <MudListItem Text="Тип тега" Icon="@Icons.Material.Filled.Category" />
+            <MudListItem Text="Политика архивирования" Icon="@Icons.Material.Filled.Inventory" />
+            <MudListItem Text="Качество значения" Icon="@Icons.Material.Filled.Verified" />
         </MudList>
     </MudPaper>
+
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">
+        Реальные теги и текущие значения будут подключены через backend API на следующих этапах.
+    </MudAlert>
 </div>

@@ -25,111 +25,21 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
     {
         IReadOnlyList<BackendModuleViewModel> modules =
         [
-            new()
-            {
-                Code = "scada_common",
-                Name = "Common",
-                Description = "Shared common types and primitives.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_contracts",
-                Name = "Contracts",
-                Description = "Shared DTO and API-facing contracts.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_core",
-                Name = "Core",
-                Description = "Core application context and module contracts.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_objects",
-                Name = "Objects",
-                Description = "Object hierarchy foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_devices",
-                Name = "Devices",
-                Description = "Device model foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_tags",
-                Name = "Tags",
-                Description = "Tag model foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_protocols",
-                Name = "Protocols",
-                Description = "Protocol driver contracts and simulator driver.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_polling",
-                Name = "Polling",
-                Description = "Polling task, group and scheduler foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_runtime",
-                Name = "Runtime",
-                Description = "Current values and runtime event foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_historian",
-                Name = "Historian",
-                Description = "History sample, archive decision and buffer foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_events",
-                Name = "Events",
-                Description = "Event record foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_alarms",
-                Name = "Alarms",
-                Description = "Alarm lifecycle and rule foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_api",
-                Name = "API",
-                Description = "API route, response, mapper and read endpoint foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_realtime",
-                Name = "Realtime",
-                Description = "Realtime message and subscription foundation.",
-                Status = "Running"
-            },
-            new()
-            {
-                Code = "scada_app",
-                Name = "Application",
-                Description = "Application composition and gateway startup foundation.",
-                Status = "Running"
-            }
+            new() { Code = "scada_common", Name = "Общие типы", Description = "Общие типы, ошибки, результаты, идентификаторы и временные метки.", Status = "Running" },
+            new() { Code = "scada_contracts", Name = "Контракты", Description = "DTO и контракты для обмена данными между слоями системы.", Status = "Running" },
+            new() { Code = "scada_core", Name = "Ядро", Description = "Application context, module contracts и базовые интерфейсы ядра.", Status = "Running" },
+            new() { Code = "scada_objects", Name = "Объекты", Description = "Основа дерева объектов, типов объектов и зон ответственности.", Status = "Running" },
+            new() { Code = "scada_devices", Name = "Устройства", Description = "Модель устройств, подключений и диагностической информации.", Status = "Running" },
+            new() { Code = "scada_tags", Name = "Теги", Description = "Модель тегов, адресации, качества и текущего значения.", Status = "Running" },
+            new() { Code = "scada_protocols", Name = "Протоколы", Description = "Контракты драйверов протоколов, capabilities и драйвер симулятора.", Status = "Running" },
+            new() { Code = "scada_polling", Name = "Опрос", Description = "Основа задач опроса, групп опроса и scheduler foundation.", Status = "Running" },
+            new() { Code = "scada_runtime", Name = "Текущие значения", Description = "Хранилище текущих значений и применение результатов чтения.", Status = "Running" },
+            new() { Code = "scada_historian", Name = "История", Description = "Исторические значения, политика архивирования и буфер записи.", Status = "Running" },
+            new() { Code = "scada_events", Name = "События", Description = "Основа записей событий, категорий, важности и источников.", Status = "Running" },
+            new() { Code = "scada_alarms", Name = "Аварии", Description = "Основа аварий, жизненного цикла, правил и переходов состояния.", Status = "Running" },
+            new() { Code = "scada_api", Name = "API-слой", Description = "Маршруты API, response model, mapper foundation и каталог endpoints чтения.", Status = "Running" },
+            new() { Code = "scada_realtime", Name = "Реальное время", Description = "Модели сообщений, подписок и каналов обновлений в реальном времени.", Status = "Running" },
+            new() { Code = "scada_app", Name = "Приложение", Description = "Application composition и план запуска gateway foundation.", Status = "Running" }
         ];
 
         return Task.FromResult(modules);
@@ -151,7 +61,7 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
             ApiEnabled = true,
             RealtimeEnabled = true,
             RealTransportAvailable = false,
-            Message = "Gateway startup plan is prepared, but real HTTP/WebSocket transport is not implemented yet."
+            Message = "План запуска шлюза подготовлен, но реальный HTTP/WebSocket transport пока не реализован."
         };
 
         return Task.FromResult(summary);
@@ -167,7 +77,7 @@ public sealed class DispatcherApiClient : IDispatcherApiClient
             ReadEndpointCount = 11,
             RealtimeChannelCount = 6,
             UsesMockData = _options.UseMockData,
-            Notes = "Route/read endpoint counts are based on Sprint 009 foundation catalogs."
+            Notes = "Количество маршрутов и endpoints чтения основано на foundation-каталогах Sprint 009."
         };
 
         return Task.FromResult(summary);

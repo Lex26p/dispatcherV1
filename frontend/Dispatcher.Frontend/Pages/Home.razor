@@ -8,12 +8,12 @@
             <div>
                 <MudText Typo="Typo.h3" HtmlTag="h1">Dispatcher</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    Minimal operator UI foundation for the Dispatcher SCADA platform.
+                    Минимальная основа операторского интерфейса для SCADA-платформы Dispatcher.
                 </MudText>
             </div>
 
             <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">
-                Sprint 010
+                Post-MVP
             </MudChip>
         </MudStack>
     </MudPaper>
@@ -21,55 +21,55 @@
     <MudGrid Spacing="3">
         <MudItem xs="12" md="4">
             <MudPaper Elevation="0" Class="dispatcher-card">
-                <MudText Typo="Typo.h6">Backend foundation</MudText>
+                <MudText Typo="Typo.h6">Backend-основа</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                    Backend modules are already split into domain-oriented libraries.
+                    Backend уже разделен на доменные модули с явными границами ответственности.
                 </MudText>
 
                 <MudList T="string" Dense="true" Class="mt-2">
-                    <MudListItem Text="Objects" />
-                    <MudListItem Text="Devices" />
-                    <MudListItem Text="Tags" />
-                    <MudListItem Text="Runtime" />
-                    <MudListItem Text="Historian" />
-                    <MudListItem Text="Events" />
-                    <MudListItem Text="Alarms" />
-                    <MudListItem Text="API" />
-                    <MudListItem Text="Realtime" />
+                    <MudListItem Text="Объекты" />
+                    <MudListItem Text="Устройства" />
+                    <MudListItem Text="Теги" />
+                    <MudListItem Text="Текущие значения" />
+                    <MudListItem Text="История" />
+                    <MudListItem Text="События" />
+                    <MudListItem Text="Аварии" />
+                    <MudListItem Text="API-слой" />
+                    <MudListItem Text="Обновления в реальном времени" />
                 </MudList>
             </MudPaper>
         </MudItem>
 
         <MudItem xs="12" md="4">
             <MudPaper Elevation="0" Class="dispatcher-card">
-                <MudText Typo="Typo.h6">Frontend foundation</MudText>
+                <MudText Typo="Typo.h6">Frontend-основа</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                    This Blazor WebAssembly app is the starting point for the future operator workspace.
+                    Blazor WebAssembly приложение является начальной основой будущего рабочего места оператора.
                 </MudText>
 
                 <MudList T="string" Dense="true" Class="mt-2">
                     <MudListItem Text="MudBlazor foundation" />
-                    <MudListItem Text="Operator layout" />
-                    <MudListItem Text="Sidebar navigation" />
-                    <MudListItem Text="API client placeholder" />
-                    <MudListItem Text="Future realtime client" />
+                    <MudListItem Text="Операторская компоновка" />
+                    <MudListItem Text="Боковая навигация" />
+                    <MudListItem Text="API-клиент placeholder" />
+                    <MudListItem Text="Будущий клиент реального времени" />
                 </MudList>
             </MudPaper>
         </MudItem>
 
         <MudItem xs="12" md="4">
             <MudPaper Elevation="0" Class="dispatcher-card">
-                <MudText Typo="Typo.h6">MVP focus</MudText>
+                <MudText Typo="Typo.h6">Фокус post-MVP</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                    The current sprint prepares a minimal operator interface and documents remaining MVP limitations.
+                    Следующий этап переводит проект от mock/foundation к реальному API, данным и интеграции.
                 </MudText>
 
                 <MudList T="string" Dense="true" Class="mt-2">
-                    <MudListItem Text="System/modules page" />
-                    <MudListItem Text="Runtime placeholder" />
-                    <MudListItem Text="Events placeholder" />
-                    <MudListItem Text="Alarms placeholder" />
-                    <MudListItem Text="MVP stabilization" />
+                    <MudListItem Text="Русский интерфейс" />
+                    <MudListItem Text="HTTP API transport" />
+                    <MudListItem Text="Реальный API-клиент" />
+                    <MudListItem Text="Интеграция текущих значений" />
+                    <MudListItem Text="Переход от демо-данных к backend" />
                 </MudList>
             </MudPaper>
         </MudItem>

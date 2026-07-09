@@ -2,39 +2,39 @@
 
 @inject IDispatcherApiClient ApiClient
 
-<PageTitle>System - Dispatcher</PageTitle>
+<PageTitle>Система - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
     <MudStack Spacing="3">
         <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
             <div>
-                <MudText Typo="Typo.h4" HtmlTag="h1">System</MudText>
+                <MudText Typo="Typo.h4" HtmlTag="h1">Система</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    System overview and backend module foundation.
+                    Обзор состояния backend foundation и системных модулей.
                 </MudText>
             </div>
 
             <MudChip T="string"
                      Color="Color.Warning"
                      Variant="Variant.Outlined">
-                Mock data
+                Демо-данные
             </MudChip>
         </MudStack>
 
         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            Frontend API client is registered, but it currently returns mock data.
-            Real HTTP transport will be connected after backend API handlers are implemented.
+            На этой странице пока отображаются демо-данные.
+            Реальное подключение к backend API будет добавлено после реализации HTTP transport.
         </MudAlert>
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Gateway mode
+                        Режим шлюза
                     </MudText>
 
                     <MudText Typo="Typo.h5" Class="mt-1">
-                        @_gatewaySummary.Mode
+                        @FormatGatewayMode(_gatewaySummary.Mode)
                     </MudText>
 
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
@@ -46,15 +46,15 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        API foundation
+                        API-слой
                     </MudText>
 
                     <MudText Typo="Typo.h5" Class="mt-1">
-                        @_apiSummary.RouteCount routes
+                        @_apiSummary.RouteCount маршрутов
                     </MudText>
 
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        @_apiSummary.ReadEndpointCount read endpoints
+                        @_apiSummary.ReadEndpointCount endpoints чтения
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -62,15 +62,15 @@
             <MudItem xs="12" md="4">
                 <MudPaper Elevation="0" Class="dispatcher-card">
                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Realtime foundation
+                        Реальное время
                     </MudText>
 
                     <MudText Typo="Typo.h5" Class="mt-1">
-                        @_apiSummary.RealtimeChannelCount channels
+                        @_apiSummary.RealtimeChannelCount каналов
                     </MudText>
 
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        WebSocket/SSE transport is planned.
+                        WebSocket/SSE transport будет добавлен позже.
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -79,9 +79,9 @@
         <MudPaper Elevation="0" Class="dispatcher-card">
             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
                 <div>
-                    <MudText Typo="Typo.h6">Backend modules</MudText>
+                    <MudText Typo="Typo.h6">Backend-модули</MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Modules registered by dispatcher_server foundation.
+                        Модули, зарегистрированные в foundation-контуре dispatcher_server.
                     </MudText>
                 </div>
 
@@ -89,7 +89,7 @@
                          Color="Color.Success"
                          Variant="Variant.Filled"
                          Size="Size.Small">
-                    @_modules.Count running
+                    @_modules.Count работает
                 </MudChip>
             </MudStack>
 
@@ -100,33 +100,33 @@
                       Elevation="0"
                       Class="dispatcher-table">
                 <HeaderContent>
-                    <MudTh>Code</MudTh>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Status</MudTh>
+                    <MudTh>Код</MudTh>
+                    <MudTh>Название</MudTh>
+                    <MudTh>Описание</MudTh>
+                    <MudTh>Статус</MudTh>
                 </HeaderContent>
 
                 <RowTemplate Context="module">
-                    <MudTd DataLabel="Code">
+                    <MudTd DataLabel="Код">
                         <MudText Typo="Typo.body2">@module.Code</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Name">
+                    <MudTd DataLabel="Название">
                         <MudText Typo="Typo.body2">@module.Name</MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Description">
+                    <MudTd DataLabel="Описание">
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @module.Description
                         </MudText>
                     </MudTd>
 
-                    <MudTd DataLabel="Status">
+                    <MudTd DataLabel="Статус">
                         <MudChip T="string"
                                  Color="@GetModuleStatusColor(module.Status)"
                                  Variant="Variant.Outlined"
                                  Size="Size.Small">
-                            @module.Status
+                            @FormatModuleStatus(module.Status)
                         </MudChip>
                     </MudTd>
                 </RowTemplate>
@@ -154,5 +154,33 @@
         return string.Equals(status, "Running", StringComparison.OrdinalIgnoreCase)
             ? Color.Success
             : Color.Warning;
+    }
+
+    private static string FormatModuleStatus(
+        string status
+    )
+    {
+        return status switch
+        {
+            "Running" => "Работает",
+            "Stopped" => "Остановлен",
+            "Starting" => "Запускается",
+            "Stopping" => "Останавливается",
+            "Failed" => "Ошибка",
+            _ => "Неизвестно"
+        };
+    }
+
+    private static string FormatGatewayMode(
+        string mode
+    )
+    {
+        return mode switch
+        {
+            "ApiAndRealtime" => "API и реальное время",
+            "ApiOnly" => "Только API",
+            "RealtimeOnly" => "Только реальное время",
+            _ => mode
+        };
     }
 }
