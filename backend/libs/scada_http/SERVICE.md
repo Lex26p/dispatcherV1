@@ -21,6 +21,7 @@ Foundation.
 - HTTP response model;
 - HTTP endpoint model;
 - HTTP route dispatcher foundation;
+- `/api/system/health` endpoint foundation;
 - helper-функции для response и method/status formatting.
 
 HTTP server еще не реализован.
@@ -102,6 +103,27 @@ HTTP server еще не реализован.
 - `404 Not Found` для неизвестного path;
 - `405 Method Not Allowed` для известного path с неподдерживаемым method.
 
+## System health endpoint
+
+Добавлен foundation endpoint:
+
+    GET /api/system/health
+
+Endpoint возвращает JSON с базовым состоянием backend:
+
+    {
+      "status": "ok",
+      "product": "Dispatcher",
+      "executable": "dispatcher_server",
+      "version": "0.1.0-dev",
+      "mode": "Development",
+      "api": "available",
+      "transport": "http",
+      "endpoint": "/api/system/health"
+    }
+
+На текущем этапе endpoint можно зарегистрировать в `HttpRouteDispatcher`, но нельзя открыть из браузера, потому что HTTP server еще не подключен.
+
 ## Ограничения
 
 Пока нет:
@@ -110,7 +132,7 @@ HTTP server еще не реализован.
 - TCP acceptor;
 - request parser на основе Boost.Beast;
 - response writer на основе Boost.Beast;
-- real endpoints;
+- `/api/system/modules`;
 - HTTPS;
 - CORS;
 - authentication;
