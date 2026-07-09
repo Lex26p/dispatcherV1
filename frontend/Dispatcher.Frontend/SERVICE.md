@@ -4,13 +4,25 @@
 
 `Dispatcher.Frontend` — frontend-приложение Dispatcher.
 
-На текущем этапе это Blazor WebAssembly foundation для будущего operator UI.
+На текущем этапе это Blazor WebAssembly foundation для будущего операторского интерфейса Dispatcher.
 
 ## Статус
 
-Foundation.
+Post-MVP foundation.
 
 Приложение пока не подключено к реальному backend HTTP API.
+
+## Язык интерфейса
+
+Основной язык пользовательского интерфейса:
+
+    русский
+
+Английский язык рассматривается как будущая локализация.
+
+Правило для дальнейшей разработки:
+
+    новый пользовательский текст во frontend пишем на русском языке
 
 ## Текущие возможности
 
@@ -22,6 +34,7 @@ Foundation.
 - AppBar;
 - sidebar navigation;
 - Drawer;
+- улучшенный стартовый экран загрузки;
 - overview page;
 - System page;
 - Runtime page;
@@ -33,6 +46,8 @@ Foundation.
 - runtime values placeholder;
 - event journal placeholder;
 - active alarms placeholder;
+- общий UI state panel;
+- русские UI state тексты;
 - placeholder pages.
 
 ## Страницы
@@ -49,6 +64,26 @@ Foundation.
 - `/alarms`;
 - `/not-found`.
 
+URL routes пока остаются техническими и не переводятся на русский язык.
+
+## UI state foundation
+
+Добавлен общий компонент:
+
+- `UiStatePanel`.
+
+Добавлены состояния:
+
+- demo data;
+- loading;
+- empty;
+- warning;
+- error;
+- not implemented;
+- no connection.
+
+Пользовательские подписи отображаются на русском языке.
+
 ## API client placeholder
 
 Добавлен frontend service layer:
@@ -57,7 +92,7 @@ Foundation.
 - `DispatcherApiClient`;
 - `DispatcherApiClientOptions`.
 
-На текущем этапе `DispatcherApiClient` возвращает mock-data.
+На текущем этапе `DispatcherApiClient` возвращает demo-data.
 
 Mock methods:
 
@@ -76,7 +111,7 @@ Mock methods:
 
 Будущая замена:
 
-    mock DispatcherApiClient
+    demo DispatcherApiClient
         -> real HTTP DispatcherApiClient
         -> /api/system/health
         -> /api/system/modules
@@ -93,7 +128,14 @@ Mock methods:
 - `ApiRouteSummaryViewModel`;
 - `RuntimeValueViewModel`;
 - `EventRecordViewModel`;
-- `ActiveAlarmViewModel`.
+- `ActiveAlarmViewModel`;
+- `UiStateKind`.
+
+## Components
+
+Добавлены frontend components:
+
+- `UiStatePanel`.
 
 ## Что пока не реализовано
 
@@ -108,7 +150,8 @@ Mock methods:
 - mimic diagrams;
 - dashboards;
 - alarm acknowledgement action;
-- command execution.
+- command execution;
+- localization engine.
 
 ## Будущая цель
 
@@ -125,7 +168,7 @@ Frontend должен стать минимальным operator workspace.
 - active alarms page;
 - real API client;
 - realtime client;
-- MVP stabilization.
+- localization layer.
 
 ## Зависимости
 
@@ -143,3 +186,7 @@ Frontend использует:
 После запуска приложение будет доступно по адресу, который выведет dotnet CLI.
 
 Фактический адрес нужно смотреть в выводе команды `dotnet run`.
+
+Пример локального адреса:
+
+    http://localhost:5030

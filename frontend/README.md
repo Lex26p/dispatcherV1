@@ -10,9 +10,19 @@
 
 ## Текущий статус
 
-Frontend находится на этапе foundation.
+Frontend находится на этапе post-MVP foundation.
 
-Создано Blazor WebAssembly приложение с минимальным operator UI shell.
+Создано Blazor WebAssembly приложение с минимальным операторским UI shell.
+
+## Язык интерфейса
+
+Основной язык интерфейса:
+
+    русский
+
+Английский язык будет добавлен позже как локализация.
+
+На текущем этапе полноценный localization engine не используется.
 
 ## Структура
 
@@ -26,6 +36,17 @@ Frontend использует:
 - Blazor WebAssembly;
 - MudBlazor.
 
+Реализовано:
+
+- AppBar;
+- Drawer/sidebar;
+- navigation;
+- improved loading screen;
+- русскоязычные страницы;
+- UI state panel;
+- demo-data предупреждения;
+- not implemented состояния.
+
 ## API client foundation
 
 Добавлен placeholder API client:
@@ -34,7 +55,7 @@ Frontend использует:
 - `DispatcherApiClient`;
 - `DispatcherApiClientOptions`.
 
-На текущем этапе API client возвращает mock-data.
+На текущем этапе API client возвращает demo-data.
 
 Реальные HTTP-запросы будут добавлены после реализации backend HTTP transport и API handlers.
 
@@ -50,11 +71,19 @@ Frontend использует:
 - Devices;
 - Tags.
 
+Пользовательские тексты интерфейса отображаются на русском языке.
+
 ## Запуск
 
 Из корня репозитория:
 
     dotnet run --project frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+
+Фактический адрес нужно смотреть в выводе команды `dotnet run`.
+
+Пример:
+
+    http://localhost:5030
 
 ## Сборка
 
@@ -79,4 +108,5 @@ Frontend использует:
 - dashboards;
 - mimic diagrams;
 - alarm operations;
-- command execution.
+- command execution;
+- localization engine.

@@ -12,9 +12,36 @@
 
 <body>
     <div id="app">
-        <div class="dispatcher-loading">
-            Загрузка Dispatcher...
-        </div>
+        <section class="dispatcher-loading">
+            <div class="dispatcher-loading__panel">
+                <div class="dispatcher-loading__brand">
+                    <div class="dispatcher-loading__mark">D</div>
+
+                    <div>
+                        <div class="dispatcher-loading__title">Dispatcher</div>
+                        <div class="dispatcher-loading__subtitle">Операторский интерфейс SCADA</div>
+                    </div>
+                </div>
+
+                <div class="dispatcher-loading__status">
+                    <div class="dispatcher-loading__spinner" aria-hidden="true"></div>
+
+                    <div>
+                        <div class="dispatcher-loading__message">Загрузка интерфейса</div>
+                        <div class="dispatcher-loading__hint">Подготовка рабочей области оператора...</div>
+                    </div>
+                </div>
+
+                <div class="dispatcher-loading__bar">
+                    <div class="dispatcher-loading__bar-fill"></div>
+                </div>
+
+                <div class="dispatcher-loading__footer">
+                    <span>Frontend foundation</span>
+                    <span>Post-MVP</span>
+                </div>
+            </div>
+        </section>
     </div>
 
     <div id="blazor-error-ui">
