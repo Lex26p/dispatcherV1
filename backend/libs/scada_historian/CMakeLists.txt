@@ -1,6 +1,8 @@
 add_library(scada_historian STATIC
     src/archive_decision.cpp
+    src/historian_buffer.cpp
     src/historian_module.cpp
+    src/history_batch.cpp
     src/history_sample.cpp
 )
 
