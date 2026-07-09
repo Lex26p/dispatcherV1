@@ -38,7 +38,7 @@ Dispatcher пока находится на этапе формирования 
 - HTTP API;
 - WebSocket;
 - авторизацию;
-- архивирование;
+- архивирование в БД;
 - обработку аварий;
 - управление командами.
 
@@ -97,10 +97,15 @@ SQL-миграции уже существуют как черновики.
 - `IRuntimeValueSnapshotRepository`;
 - `IRuntimeEventRepository`.
 
+Для historian:
+
+- `IHistorySampleRepository`.
+
 Но пока нет реализаций:
 
 - in-memory repository;
 - PostgreSQL repository;
+- TimescaleDB repository;
 - mock repository;
 - file-based repository.
 
@@ -139,20 +144,6 @@ SQL-миграции уже существуют как черновики.
 - аудита изменений;
 - управления через конфигуратор.
 
-## Правила иерархии пока статические
-
-Допустимые связи parent/child пока зашиты в C++-коде.
-
-В будущем возможны:
-
-- пользовательские типы объектов;
-- конфигурируемые правила иерархии;
-- разные шаблоны объектов для разных отраслей.
-
----
-
-# Ограничения зон ответственности
-
 ## ResponsibilityZone пока не является системой прав доступа
 
 `ResponsibilityZone` только хранит связи:
@@ -164,7 +155,6 @@ SQL-миграции уже существуют как черновики.
 Она пока не выполняет:
 
 - проверку прав;
-- проверку доступа к объектам;
 - наследование прав;
 - разграничение команд;
 - разграничение просмотра;
@@ -226,8 +216,6 @@ SQL-миграции уже существуют как черновики.
 
 Но пока нет:
 
-- Historian;
-- tag history;
 - alarm rules;
 - command execution;
 - API;
@@ -235,38 +223,18 @@ SQL-миграции уже существуют как черновики.
 - PostgreSQL-реализации;
 - unit-тестов.
 
-## TagCurrentValue уже используется, но не является постоянным хранилищем
+## Политики архивирования частично используются только доменно
 
-`TagCurrentValue` используется runtime-слоем как модель текущего значения.
-
-Но пока нет:
-
-- восстановления snapshots при старте;
-- PostgreSQL snapshot repository;
-- потокобезопасного доступа;
-- API для чтения текущих значений;
-- WebSocket рассылки изменений.
-
-## Политики архивирования пока не исполняются
-
-В `TagArchivePolicy` уже заложены значения:
-
-- `Disabled`;
-- `OnChange`;
-- `Periodic`;
-- `OnChangeWithDeadband`;
-- `OnQualityChange`;
-- `OnAlarm`;
-- `AlwaysButThrottled`.
+`TagArchivePolicy` уже используется в `scada_historian` для archive decision.
 
 Но пока нет:
 
-- Historian;
-- deadband logic;
-- periodic archive scheduler;
-- archive buffer;
-- batch writer;
-- TimescaleDB-интеграции.
+- автоматической интеграции runtime -> historian;
+- периодического scheduler;
+- batch writer в БД;
+- TimescaleDB-интеграции;
+- deadband diagnostics;
+- per-tag archive configuration repository.
 
 ---
 
@@ -299,26 +267,7 @@ SQL-миграции уже существуют как черновики.
 
 `SimulatorProtocolDriver` используется только для проверки архитектуры.
 
-Он:
-
-- не открывает сетевые соединения;
-- не проверяет IP/port;
-- не читает реальные регистры;
-- не читает реальные OID;
-- не гарантирует поведение реального оборудования.
-
-## Batch read пока базовый
-
-Batch read уже есть в контракте и simulator driver.
-
-Но пока нет:
-
-- оптимизации Modbus registers;
-- группировки contiguous ranges;
-- SNMP OID grouping;
-- driver-specific batch optimizer;
-- ограничения по PDU;
-- retry отдельных элементов batch.
+Он не открывает сетевые соединения и не читает реальные устройства.
 
 ---
 
@@ -352,19 +301,6 @@ Batch read уже есть в контракте и simulator driver.
 - retry policy;
 - backoff policy;
 - device diagnostics update.
-
-## PollingScheduler пока синхронный
-
-`PollingScheduler` умеет выполнить одну polling group один раз.
-
-Он пока не:
-
-- запускается сам;
-- работает в фоне;
-- планирует следующие опросы;
-- обновляет состояние задач в repository;
-- автоматически пишет значения в `TagValueStore`;
-- отправляет события в EventBus.
 
 ## Polling пока не интегрирован с runtime
 
@@ -413,30 +349,6 @@ Runtime-слой уже умеет применять `ProtocolReadResult`.
 
 Постоянное snapshot-хранилище пока описано только интерфейсами и SQL-черновиком.
 
-## Runtime snapshots не являются Historian
-
-`runtime_value_snapshots` хранит только последнее известное состояние тега.
-
-Это не временной ряд.
-
-История значений тегов будет реализована в Historian sprint.
-
-## Runtime events не являются полным Event Manager
-
-`runtime_value_events` хранит только базовые события изменения runtime value.
-
-Это не заменяет будущий Event Manager.
-
-Полный Event Manager будет отвечать за:
-
-- lifecycle events;
-- alarms;
-- acknowledgements;
-- operator actions;
-- audit trail;
-- system events;
-- integrations.
-
 ## Runtime events пока не публикуются
 
 `RuntimeValueEvent` формируется и возвращается в `RuntimeValueApplyResult`.
@@ -467,38 +379,118 @@ Runtime сравнивает:
 - rate limit;
 - stale timeout.
 
-## Engineering transform базовый
+---
 
-Engineering transform поддерживает формулу:
+# Ограничения historian
 
-    engineering_value = raw_value * scale + offset
+## Historian является foundation
+
+Модуль `scada_historian` уже содержит:
+
+- `HistorySampleId`;
+- `HistorySample`;
+- `ArchiveDecisionReason`;
+- `ArchiveDecisionOptions`;
+- `ArchiveDecision`;
+- `HistorianBuffer`;
+- `HistoryBatch`;
+- `HistoryBatchWriteResult`;
+- `IHistoryBatchWriter`;
+- `HistoryQuery`;
+- `HistoryQueryResult`;
+- `IHistorySampleRepository`;
+- DTO historian;
+- SQL-черновик `0006_tag_history.sql`.
+
+Но пока нет:
+
+- PostgreSQL writer;
+- TimescaleDB hypertable;
+- реальной записи истории;
+- реального чтения истории;
+- repository implementation;
+- Runtime -> Historian integration;
+- History API;
+- chart data API.
+
+## HistorianBuffer является in-memory buffer
+
+`HistorianBuffer` хранит samples только в памяти процесса.
+
+После остановки приложения buffer теряется.
 
 Пока нет:
 
-- сложных формул;
-- enum mapping;
-- lookup tables;
-- script-based transforms;
-- unit conversion catalog;
-- calibration curves.
+- disk spool;
+- retry queue;
+- durable queue;
+- backpressure;
+- flush scheduler;
+- write worker.
 
-## Runtime value conversion базовый
+## Archive decision не пишет историю
 
-Поддерживаются простые преобразования между:
+`decide_archive()` только принимает решение.
 
-- boolean;
-- numeric;
-- string;
-- enum string;
-- json string.
+Она не выполняет:
+
+- создание sample;
+- запись в buffer;
+- запись в БД;
+- публикацию события.
+
+Будущая цепочка должна быть отдельной:
+
+    RuntimeValueEvent / TagCurrentValue
+        -> ArchiveDecision
+        -> HistorySample
+        -> HistorianBuffer
+        -> HistoryBatch
+        -> IHistoryBatchWriter
+        -> PostgreSQL / TimescaleDB
+
+## HistorySample не сохраняется автоматически
+
+`HistorySample` является доменной моделью.
+
+Пока нет слоя, который автоматически берет runtime value и сохраняет его как history sample.
+
+## HistoryQuery пока не выполняется
+
+`HistoryQuery` описывает параметры будущего запроса.
+
+Но пока нет реализации:
+
+- SQL SELECT;
+- фильтрации в repository;
+- чтения из PostgreSQL;
+- pagination на уровне БД;
+- History API.
+
+## Tag history migration является черновой
+
+Миграция `0006_tag_history.sql` описывает таблицу:
+
+- `tag_history_samples`.
+
+Но приложение пока ее не применяет.
+
+## TimescaleDB пока не подключен
+
+Миграция написана как обычная PostgreSQL-таблица.
+
+Позже таблицу можно будет преобразовать в TimescaleDB hypertable.
+
+## Retention и compression пока отсутствуют
 
 Пока нет:
 
-- строгой валидации диапазонов;
-- защиты от overflow;
-- культуры форматирования;
-- сложного JSON parsing;
-- enum dictionary.
+- retention policies;
+- compression policies;
+- downsampling;
+- continuous aggregates;
+- rollups;
+- materialized views.
 
 ---
 
@@ -517,18 +509,17 @@ Engineering transform поддерживает формулу:
 - текущих значений тегов;
 - polling;
 - runtime values;
-- runtime events.
+- runtime events;
+- historian.
 
 Но пока нет DTO для:
 
 - аварий;
-- событий Event Manager;
-- истории;
+- Event Manager;
 - команд;
 - пользователей;
 - дашбордов;
-- protocol diagnostics;
-- historian queries.
+- protocol diagnostics.
 
 ## Нет mapper-слоя
 
@@ -548,7 +539,8 @@ Engineering transform поддерживает формулу:
 - `database/migrations/0002_device_model.sql`;
 - `database/migrations/0003_tag_model.sql`;
 - `database/migrations/0004_polling_model.sql`;
-- `database/migrations/0005_runtime_values.sql`.
+- `database/migrations/0005_runtime_values.sql`;
+- `database/migrations/0006_tag_history.sql`.
 
 Они не выполняются автоматически.
 
@@ -561,12 +553,6 @@ Engineering transform поддерживает формулу:
 - rollback;
 - seed-данные;
 - проверка совместимости схемы.
-
-## Нет истории тегов
-
-Таблицы runtime values не являются историей тегов.
-
-История тегов будет реализована позже в Historian sprint.
 
 ---
 
@@ -585,6 +571,7 @@ Engineering transform поддерживает формулу:
 - API-клиента;
 - мнемосхем;
 - дашбордов;
+- графиков истории;
 - карточки объекта;
 - карточки устройства;
 - карточки тега;
@@ -604,19 +591,6 @@ Engineering transform поддерживает формулу:
 - уведомлений;
 - аварий связи;
 - аварий по значениям тегов.
-
----
-
-# Ограничения истории
-
-Пока нет:
-
-- Historian;
-- буфера записи;
-- batch writer;
-- политик архивирования;
-- TimescaleDB-интеграции;
-- History API.
 
 ---
 
@@ -646,10 +620,10 @@ Engineering transform поддерживает формулу:
 
 # Итог
 
-После Sprint 006 проект имеет хороший фундамент объектной модели, модели устройств, модели тегов, протокольного слоя, polling foundation и runtime values foundation.
+После Sprint 007 проект имеет хороший фундамент объектной модели, модели устройств, модели тегов, протокольного слоя, polling foundation, runtime values foundation и historian foundation.
 
 Но Dispatcher еще не является рабочей диспетчерской системой.
 
 Следующий важный этап:
 
-    Sprint 007 — Historian Foundation
+    Sprint 008 — Events and Alarms Foundation

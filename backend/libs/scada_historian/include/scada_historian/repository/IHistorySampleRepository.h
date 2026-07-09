@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <optional>
 #include <vector>
+#include <cstdint>
 
 namespace dispatcher::historian::repository
 {

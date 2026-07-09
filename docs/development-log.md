@@ -26,76 +26,17 @@
 
 ## Выполнено
 
-### Шаг 1
+### Шаги 1–12
 
-Создана базовая проектная спецификация.
-
-### Шаг 2
-
-Создан план Sprint 001.
-
-### Шаг 3
-
-Создан список отложенных возможностей.
-
-### Шаг 4
-
-Создан roadmap первой версии.
-
-### Шаг 5
-
-Настроен CMakePresets под Visual Studio 2026.
-
-### Шаг 6
-
-Создана базовая структура репозитория.
-
-Основные каталоги:
-
-- `backend`;
-- `frontend`;
-- `database`;
-- `docs`;
-- `scripts`;
-- `tools`;
-- `tests`.
-
-### Шаг 7
-
-Создано приложение `dispatcher_server`.
-
-### Шаг 8
-
-Созданы базовые backend-библиотеки:
+Создана базовая проектная документация, структура репозитория, CMake-настройки, приложение `dispatcher_server` и базовые backend-модули:
 
 - `scada_common`;
 - `scada_contracts`;
 - `scada_core`.
 
-### Шаг 9
+Добавлены базовые общие типы, core-типы, модульная регистрация и начальная документация сервисов.
 
-В `scada_common` добавлены базовые общие типы.
-
-### Шаг 10
-
-В `scada_core` добавлены базовые core-типы.
-
-### Шаг 11
-
-Создана начальная документация сервисов.
-
-### Шаг 12
-
-Sprint 001 закрыт.
-
-Обновлены:
-
-- `development-log`;
-- `known-limitations`.
-
-Сборка и запуск прошли успешно.
-
-## Результат Sprint 001
+## Итог Sprint 001
 
 Создан минимальный технический фундамент Dispatcher.
 
@@ -115,107 +56,25 @@ Sprint 001 закрыт.
 
 ## Выполнено
 
-### Шаг 13 — scada_objects
+### Шаги 13–21
 
 Добавлен модуль:
 
-- `backend/libs/scada_objects`.
+- `scada_objects`.
 
-Добавлены основные элементы объектной модели:
+Реализованы:
 
+- `ObjectId`;
+- `ResponsibilityZoneId`;
 - `ObjectType`;
 - `ObjectNode`;
 - `ObjectPath`;
-- `get_object_module_info()`.
-
-Модуль подключен к CMake и к `dispatcher_server`.
-
-### Шаг 14 — ObjectTree
-
-Добавлен `ObjectTree`.
-
-Добавлена базовая валидация дерева объектов.
-
-Проверяются:
-
-- пустой `id`;
-- пустой `code`;
-- пустой `name`;
-- дублирующиеся `id`;
-- отсутствующий `parent_id`;
-- `parent_id == id`;
-- циклические ссылки.
-
-### Шаг 15 — ObjectHierarchyRules
-
-Добавлены правила допустимой иерархии объектов.
-
-Добавлены проверки:
-
-- недопустимый тип корневого объекта;
-- недопустимая связь parent/child.
-
-### Шаг 16 — ResponsibilityZone
-
-Добавлена сущность:
-
-- `ResponsibilityZone`.
-
-Зона ответственности связывает:
-
-- объекты;
-- пользователей;
-- роли.
-
-Добавлена базовая валидация зоны ответственности.
-
-### Шаг 17 — Typed object identifiers
-
-Добавлен общий шаблон:
-
-- `EntityId<Tag>`.
-
-Добавлены типизированные идентификаторы:
-
-- `ObjectId`;
-- `ResponsibilityZoneId`.
-
-### Шаг 18 — Object DTO contracts
-
-В модуль `scada_contracts` добавлены DTO-контракты объектной модели.
-
-Добавлены:
-
-- `ObjectNodeDto`;
-- `ObjectTreeDto`;
-- `ObjectTreeValidationIssueDto`;
-- `ObjectTreeValidationResultDto`;
-- `ResponsibilityZoneDto`;
-- `ResponsibilityZoneValidationIssueDto`;
-- `ResponsibilityZoneValidationResultDto`.
-
-### Шаг 19 — Object repository interfaces
-
-Добавлены repository-интерфейсы объектной модели:
-
-- `IObjectRepository`;
-- `IResponsibilityZoneRepository`.
-
-### Шаг 20 — Object database migration draft
-
-Добавлена черновая SQL-миграция:
-
-- `database/migrations/0001_object_model.sql`.
-
-Миграция описывает будущие таблицы объектной модели.
-
-### Шаг 21 — Sprint 002 docs update and close
-
-Обновлена документация и закрыт Sprint 002.
-
-Создан:
-
-- `docs/SPRINT_002_SUMMARY.md`.
+- `ObjectTree`;
+- `ObjectHierarchyRules`;
+- `ResponsibilityZone`;
+- DTO объектной модели;
+- repository-интерфейсы объектной модели;
+- миграция `0001_object_model.sql`.
 
 ## Итог Sprint 002
 
@@ -235,85 +94,27 @@ Sprint 001 закрыт.
 
 ## Выполнено
 
-### Шаг 22 — scada_devices
+### Шаги 22–28
 
 Добавлен модуль:
 
-- `backend/libs/scada_devices`.
+- `scada_devices`.
 
-Добавлены:
+Реализованы:
 
 - `DeviceId`;
+- `Device`;
 - `DeviceProtocol`;
 - `DeviceState`;
-- `IpMode`;
 - `DeviceConnection`;
-- `Device`;
-- `get_device_module_info()`.
-
-Модуль подключен к CMake и к `dispatcher_server`.
-
-### Шаг 23 — Device validation and connection rules
-
-Добавлена базовая валидация устройства.
-
-Добавлены:
-
-- `DeviceValidationCode`;
-- `DeviceValidationIssue`;
-- `DeviceValidationResult`;
-- `validate_device()`;
-- `requires_network_endpoint()`;
-- `is_runtime_enabled_state()`.
-
-### Шаг 24 — Device diagnostics model
-
-Добавлена модель диагностики устройства.
-
-Добавлены:
-
+- `IpMode`;
 - `DeviceDiagnostics`;
 - `DeviceCommunicationStatus`;
-- `DeviceHealthStatus`.
-
-### Шаг 25 — Device DTO contracts
-
-В `scada_contracts` добавлены DTO-контракты устройств.
-
-Добавлены:
-
-- `DeviceConnectionDto`;
-- `DeviceDto`;
-- `DeviceListDto`;
-- `DeviceValidationIssueDto`;
-- `DeviceValidationResultDto`;
-- `DeviceDiagnosticsDto`.
-
-### Шаг 26 — Device repository interfaces
-
-Добавлены repository-интерфейсы устройств:
-
-- `IDeviceRepository`;
-- `IDeviceDiagnosticsRepository`.
-
-### Шаг 27 — Device database migration draft
-
-Добавлена черновая SQL-миграция:
-
-- `database/migrations/0002_device_model.sql`.
-
-Миграция описывает будущие таблицы:
-
-- `devices`;
-- `device_diagnostics`.
-
-### Шаг 28 — Sprint 003 docs update and close
-
-Обновлена документация и закрыт Sprint 003.
-
-Создан:
-
-- `docs/SPRINT_003_SUMMARY.md`.
+- `DeviceHealthStatus`;
+- валидация устройств;
+- DTO устройств;
+- repository-интерфейсы устройств;
+- миграция `0002_device_model.sql`.
 
 ## Итог Sprint 003
 
@@ -333,89 +134,28 @@ Sprint 001 закрыт.
 
 ## Выполнено
 
-### Шаг 29 — scada_tags
+### Шаги 29–35
 
 Добавлен модуль:
 
-- `backend/libs/scada_tags`.
+- `scada_tags`.
 
-Добавлены:
+Реализованы:
 
 - `TagId`;
+- `Tag`;
 - `TagType`;
 - `TagValueType`;
 - `TagQuality`;
 - `TagArchivePolicy`;
 - `TagAddress`;
-- `Tag`;
-- `get_tag_module_info()`.
-
-Модуль подключен к CMake и к `dispatcher_server`.
-
-### Шаг 30 — Tag current value model
-
-Добавлена модель текущего значения тега.
-
-Добавлены:
-
+- `TagCurrentValue`;
 - `TagValueSource`;
 - `TagValuePayload`;
-- `TagCurrentValue`.
-
-### Шаг 31 — Tag validation and addressing rules
-
-Добавлена базовая валидация тегов.
-
-Добавлены:
-
-- `TagValidationCode`;
-- `TagValidationIssue`;
-- `TagValidationResult`;
-- `validate_tag()`;
-- `requires_object()`;
-- `requires_device()`;
-- `requires_address()`;
-- `supports_extraction()`;
-- `is_valid_engineering_transform()`.
-
-### Шаг 32 — Tag DTO contracts
-
-В `scada_contracts` добавлены DTO-контракты тегов.
-
-Добавлены:
-
-- `TagAddressDto`;
-- `TagDto`;
-- `TagListDto`;
-- `TagCurrentValueDto`;
-- `TagValidationIssueDto`;
-- `TagValidationResultDto`.
-
-### Шаг 33 — Tag repository interfaces
-
-Добавлены repository-интерфейсы тегов:
-
-- `ITagRepository`;
-- `ITagCurrentValueRepository`.
-
-### Шаг 34 — Tag database migration draft
-
-Добавлена черновая SQL-миграция:
-
-- `database/migrations/0003_tag_model.sql`.
-
-Миграция описывает будущие таблицы:
-
-- `tags`;
-- `tag_current_values`.
-
-### Шаг 35 — Sprint 004 docs update and close
-
-Обновлена документация и закрыт Sprint 004.
-
-Создан:
-
-- `docs/SPRINT_004_SUMMARY.md`.
+- валидация тегов;
+- DTO тегов;
+- repository-интерфейсы тегов;
+- миграция `0003_tag_model.sql`.
 
 ## Итог Sprint 004
 
@@ -439,73 +179,52 @@ Sprint 001 закрыт.
 
 Добавлен модуль:
 
-- `backend/libs/scada_protocols`.
+- `scada_protocols`.
 
-Добавлены базовые контракты протокольного слоя:
+Реализованы:
 
 - `ProtocolCapabilities`;
-- `ProtocolConnectionCheckRequest`;
-- `ProtocolConnectionCheckResult`;
-- `ProtocolAddressTestRequest`;
-- `ProtocolAddressTestResult`;
-- `ProtocolReadRequest`;
-- `ProtocolReadResult`;
-- `ProtocolBatchReadRequest`;
-- `ProtocolBatchReadResult`;
-- `ProtocolWriteRequest`;
-- `ProtocolWriteResult`;
+- request/result модели протокольного слоя;
 - `IProtocolDriver`;
 - `get_protocol_module_info()`.
 
 ### Шаг 37 — Simulator protocol driver foundation
 
-Добавлен первый драйвер протокольного слоя:
+Добавлен:
 
 - `SimulatorProtocolDriver`.
 
-Драйвер реализует:
-
-- `IProtocolDriver`;
-- `check_connection()`;
-- `test_address()`;
-- `read()`;
-- `read_batch()`;
-- `write()`.
-
-Simulator driver не выполняет сетевой обмен.
+Драйвер реализует `IProtocolDriver` и используется для безопасной проверки polling architecture без реального оборудования.
 
 ### Шаг 38 — Protocol driver registry
 
-Добавлен registry протокольных драйверов:
+Добавлен:
 
 - `ProtocolDriverRegistry`;
 - `create_default_protocol_driver_registry()`.
 
-Default registry содержит:
-
-- `SimulatorProtocolDriver`.
+Default registry содержит simulator driver.
 
 ### Шаг 39 — Polling task and group model
 
 Добавлен модуль:
 
-- `backend/libs/scada_polling`.
+- `scada_polling`.
 
-Добавлены базовые сущности polling:
+Реализованы:
 
 - `PollingTaskId`;
 - `PollingGroupId`;
 - `PollingTaskState`;
 - `PollingGroupMode`;
 - `PollingTask`;
-- `PollingGroup`;
-- `get_polling_module_info()`.
+- `PollingGroup`.
 
 ### Шаг 40 — Polling scheduler foundation
 
 Добавлена минимальная синхронная основа scheduler.
 
-Добавлены:
+Реализованы:
 
 - `PollingExecutionStatus`;
 - `PollingTaskExecutionResult`;
@@ -513,28 +232,18 @@ Default registry содержит:
 - `PollingSchedulerOptions`;
 - `PollingScheduler`.
 
-`PollingScheduler` умеет выполнить одну polling group один раз через `ProtocolDriverRegistry`.
-
 ### Шаг 41 — Polling DTO / repository / migration draft
 
-В `scada_contracts` добавлены DTO polling.
+Добавлены:
 
-В `scada_polling` добавлены repository-интерфейсы:
-
+- DTO polling;
 - `IPollingTaskRepository`;
-- `IPollingGroupRepository`.
-
-Добавлена черновая SQL-миграция:
-
-- `database/migrations/0004_polling_model.sql`.
+- `IPollingGroupRepository`;
+- миграция `0004_polling_model.sql`.
 
 ### Шаг 42 — Sprint 005 docs update and close
 
-Обновлена документация и закрыт Sprint 005.
-
-Создан:
-
-- `docs/SPRINT_005_SUMMARY.md`.
+Sprint 005 закрыт.
 
 ## Итог Sprint 005
 
@@ -546,15 +255,11 @@ Default registry содержит:
 
 ## Статус
 
-Закрывается на шаге 49.
+Закрыт.
 
 ## Цель спринта
 
 Создать runtime-слой текущих значений тегов.
-
-Sprint 006 должен был заложить фундамент для цепочки:
-
-    Polling -> ProtocolReadResult -> Runtime -> TagCurrentValue -> future EventBus / Historian / Alarms
 
 ## Выполнено
 
@@ -562,101 +267,50 @@ Sprint 006 должен был заложить фундамент для цеп
 
 Добавлен модуль:
 
-- `backend/libs/scada_runtime`.
+- `scada_runtime`.
 
-Добавлены:
+Реализованы:
 
 - `TagValueStore`;
 - `get_runtime_module_info()`.
 
-`TagValueStore` умеет:
-
-- хранить `TagCurrentValue` в памяти;
-- искать значение по `TagId`;
-- получать все текущие значения;
-- проверять наличие значения;
-- обновлять или добавлять значение;
-- удалять значение;
-- очищать store.
-
-Модуль подключен к CMake и к `dispatcher_server`.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 44 — Apply ProtocolReadResult to TagCurrentValue
 
-Добавлен первый runtime-processing слой:
+Добавлены:
 
 - `RuntimeValueApplyResult`;
 - `RuntimeValueApplier`.
 
-Добавлено применение:
+Реализована цепочка:
 
     ProtocolReadResult -> TagCurrentValue -> TagValueStore
-
-На этом шаге `RuntimeValueApplier` начал:
-
-- принимать `ProtocolReadResult`;
-- создавать или обновлять `TagCurrentValue`;
-- записывать значение в `TagValueStore`;
-- переносить `raw_value`;
-- временно делать `engineering_value = raw_value`;
-- переносить quality;
-- переносить timestamps;
-- увеличивать `change_counter`.
-
-Сборка и запуск прошли успешно.
 
 ### Шаг 45 — Runtime quality and last good value handling
 
 Добавлены runtime quality helpers.
 
-Добавлены правила good runtime quality:
+Реализовано обновление:
+
+- `last_good_value`;
+- `last_good_timestamp`.
+
+Good runtime quality:
 
 - `Good`;
 - `Manual`;
 - `Simulation`.
 
-Добавлено автоматическое обновление:
-
-- `last_good_value`;
-- `last_good_timestamp`.
-
-`last_good_value` обновляется только при хорошем качестве и непустом значении.
-
-При плохом качестве предыдущее последнее хорошее значение сохраняется.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 46 — Value conversion and engineering transform
 
 Добавлены:
 
-- `RuntimeValueConversionResult`;
-- `convert_runtime_value()`;
-- `infer_runtime_value_type()`;
-- `runtime_value_to_double()`;
-- `runtime_value_to_string()`;
-- `RuntimeEngineeringTransformOptions`;
-- `RuntimeEngineeringTransformResult`;
-- `apply_engineering_transform()`.
+- runtime value conversion;
+- engineering transform;
+- overload `apply_protocol_read_result(read_result, tag)`.
 
-`RuntimeValueApplier` получил overload:
+Реализована формула:
 
-- `apply_protocol_read_result(read_result)`;
-- `apply_protocol_read_result(read_result, tag)`.
-
-Метод с `Tag` использует:
-
-- `Tag.value_type`;
-- `Tag.scale`;
-- `Tag.offset`.
-
-Добавлено преобразование:
-
-    raw value -> typed raw value -> engineering value
-
-Сборка и запуск прошли успешно.
+    engineering_value = raw_value * scale + offset
 
 ### Шаг 47 — Runtime change detection and events foundation
 
@@ -664,90 +318,204 @@ Sprint 006 должен был заложить фундамент для цеп
 
 - `RuntimeValueChangeKind`;
 - `RuntimeValueChangeResult`;
-- `detect_runtime_value_change()`;
 - `RuntimeEventType`;
-- `RuntimeValueEvent`;
-- `make_runtime_value_event()`.
+- `RuntimeValueEvent`.
 
-Добавлена базовая логика change detection.
-
-Runtime сравнивает:
-
-- предыдущее `engineering_value`;
-- новое `engineering_value`;
-- предыдущее `quality`;
-- новое `quality`;
-- предыдущий `source`;
-- новый `source`.
-
-`change_counter` теперь увеличивается только при реальном изменении.
-
-При изменении формируется `RuntimeValueEvent`.
-
-Событие пока только возвращается в `RuntimeValueApplyResult` и не публикуется в EventBus.
-
-Сборка и запуск прошли успешно.
+`change_counter` увеличивается только при изменении значения, качества или источника.
 
 ### Шаг 48 — Runtime DTO / repository / migration draft
 
-В `scada_contracts` добавлены DTO runtime:
+Добавлены:
 
-- `RuntimeValueDto`;
-- `RuntimeValueEventDto`;
-- `RuntimeValueApplyResultDto`;
-- `RuntimeValueSnapshotDto`;
-- `RuntimeValueValidationIssueDto`;
-- `RuntimeValueValidationResultDto`.
-
-В `scada_runtime` добавлены repository-интерфейсы:
-
+- DTO runtime;
 - `IRuntimeValueSnapshotRepository`;
-- `IRuntimeEventRepository`.
+- `IRuntimeEventRepository`;
+- миграция `0005_runtime_values.sql`.
 
-Добавлена черновая SQL-миграция:
+### Шаг 49 — Sprint 006 docs update and close
 
-- `database/migrations/0005_runtime_values.sql`.
-
-Миграция описывает будущие таблицы:
-
-- `runtime_value_snapshots`;
-- `runtime_value_events`.
-
-Сборка и запуск прошли успешно.
+Sprint 006 закрыт.
 
 ## Итог Sprint 006
 
-В Sprint 006 создан foundation runtime-слоя текущих значений Dispatcher.
+Создан foundation runtime-слоя текущих значений Dispatcher.
+
+---
+
+# Sprint 007 — Historian Foundation
+
+## Статус
+
+Закрывается на шаге 55.
+
+## Цель спринта
+
+Создать фундамент истории значений тегов.
+
+Sprint 007 должен был подготовить цепочку:
+
+    RuntimeValueEvent / TagCurrentValue -> archive decision -> HistorianBuffer -> batch write -> future PostgreSQL / TimescaleDB
+
+## Выполнено
+
+### Шаг 50 — scada_historian module and HistorySample model
+
+Добавлен модуль:
+
+- `scada_historian`.
+
+Добавлены:
+
+- `HistorySampleId`;
+- `HistorySample`;
+- `make_history_sample_from_current_value()`;
+- `get_historian_module_info()`.
+
+`HistorySample` хранит snapshot значения тега для будущей истории:
+
+- `tag_id`;
+- `value_type`;
+- `raw_value`;
+- `engineering_value`;
+- `quality`;
+- `source`;
+- `timestamp`;
+- `source_timestamp`;
+- `server_timestamp`;
+- `change_counter`;
+- `engineering_unit`;
+- `message`.
+
+Модуль подключен к CMake и к `dispatcher_server`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 51 — Archive decision foundation
+
+Добавлена основа принятия решения об архивировании.
+
+Добавлены:
+
+- `ArchiveDecisionReason`;
+- `ArchiveDecisionOptions`;
+- `ArchiveDecision`;
+- `decide_archive()`.
+
+Решение строится на основе:
+
+- `TagArchivePolicy`;
+- текущего `TagCurrentValue`;
+- предыдущего `HistorySample`;
+- `ArchiveDecisionOptions`.
+
+Поддержаны политики:
+
+- `Disabled`;
+- `AlwaysButThrottled`;
+- `OnChange`;
+- `OnQualityChange`;
+- `OnChangeWithDeadband`;
+- `Periodic`;
+- `OnAlarm`.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 52 — Historian buffer and batch write contract
+
+Добавлен in-memory buffer и контракт будущей batch-записи.
+
+Добавлены:
+
+- `HistorianBufferOptions`;
+- `HistorianBufferStats`;
+- `HistorianBufferPushResult`;
+- `HistorianBuffer`;
+- `HistoryBatch`;
+- `HistoryBatchWriteStatus`;
+- `HistoryBatchWriteResult`;
+- `IHistoryBatchWriter`.
+
+Текущая внутренняя цепочка Historian:
+
+    HistorySample -> HistorianBuffer -> HistoryBatch -> IHistoryBatchWriter
+
+Сборка и запуск прошли успешно.
+
+### Шаг 53 — History query model
+
+Добавлена доменная модель запроса истории.
+
+Добавлены:
+
+- `HistoryQueryTimeRange`;
+- `HistoryQueryFilter`;
+- `HistoryQueryOptions`;
+- `HistoryQuery`;
+- `HistoryQueryValidationIssue`;
+- `HistoryQueryValidationResult`;
+- `HistoryQueryResult`;
+- `validate_history_query()`.
+
+Модель описывает будущие запросы истории по времени, тегам, quality, value type, source, limit, offset и сортировке.
+
+Сборка и запуск прошли успешно.
+
+### Шаг 54 — Historian DTO / repository / migration draft
+
+В `scada_contracts` добавлены DTO historian:
+
+- `HistorySampleDto`;
+- `ArchiveDecisionDto`;
+- `HistoryBatchDto`;
+- `HistoryBatchWriteResultDto`;
+- `HistoryQueryDto`;
+- `HistoryQueryResultDto`;
+- `HistoryValidationIssueDto`;
+- `HistoryValidationResultDto`.
+
+В `scada_historian` добавлен repository-интерфейс:
+
+- `IHistorySampleRepository`.
+
+Добавлена черновая SQL-миграция:
+
+- `database/migrations/0006_tag_history.sql`.
+
+Миграция описывает будущую таблицу:
+
+- `tag_history_samples`.
+
+Сборка и запуск прошли успешно.
+
+## Итог Sprint 007
+
+В Sprint 007 создан foundation Historian.
 
 Сейчас в проекте есть:
 
-- модуль `scada_runtime`;
-- in-memory `TagValueStore`;
-- применение `ProtocolReadResult` к `TagCurrentValue`;
-- runtime quality helpers;
-- last good value handling;
-- value conversion;
-- engineering transform;
-- change detection;
-- runtime event foundation;
-- runtime DTO;
-- runtime repository interfaces;
-- черновая SQL-миграция runtime snapshots/events.
+- модуль `scada_historian`;
+- модель `HistorySample`;
+- archive decision foundation;
+- historian buffer;
+- history batch model;
+- batch write contract;
+- history query model;
+- historian DTO;
+- repository-интерфейс history samples;
+- черновая SQL-миграция tag history.
 
-## Что сознательно не делали в Sprint 006
+## Что сознательно не делали в Sprint 007
 
-В Sprint 006 не добавлялись:
+В Sprint 007 не добавлялись:
 
-- потокобезопасность `TagValueStore`;
-- интеграция polling -> runtime;
-- EventBus publish;
-- Historian;
-- Alarm Engine;
-- deadband;
-- archive policy evaluation;
-- PostgreSQL repository implementation;
-- HTTP API;
-- WebSocket;
+- PostgreSQL writer;
+- TimescaleDB hypertable;
+- migration runner;
+- Runtime -> Historian integration;
+- EventBus integration;
+- Alarm integration;
+- History API;
+- charts API;
 - frontend;
 - unit-тесты.
 
@@ -755,7 +523,7 @@ Runtime сравнивает:
 
 ---
 
-# Текущее состояние после Sprint 006
+# Текущее состояние после Sprint 007
 
 Проект находится в состоянии:
 
@@ -770,34 +538,38 @@ Runtime сравнивает:
     Communication and Polling foundation
         +
     Runtime Values foundation
+        +
+    Historian foundation
 
 Текущий технический фокус завершен.
 
 Следующий логический фокус:
 
-    Historian Foundation
+    Events and Alarms Foundation
 
 ---
 
 # Следующий спринт
 
-## Sprint 007 — Historian Foundation
+## Sprint 008 — Events and Alarms Foundation
 
-Цель Sprint 007:
+Цель Sprint 008:
 
-Создать фундамент истории значений тегов.
+Создать фундамент событий и аварий.
 
 Предварительные направления:
 
-- `scada_historian`;
-- history sample model;
-- archive decision foundation;
-- historian buffer;
-- batch write contract;
-- history query contract;
-- historian DTO;
+- `scada_events`;
+- `scada_alarms`;
+- event model;
+- alarm model;
+- alarm severity and priority;
+- alarm lifecycle;
+- alarm transition model;
+- alarm rules foundation;
+- event/alarm DTO;
 - repository interfaces;
-- database migration draft for tag history.
+- database migration draft.
 
 ---
 
@@ -811,7 +583,8 @@ Runtime сравнивает:
 - Sprint 004 — Tag Model Foundation.
 - Sprint 005 — Communication and Polling Foundation.
 - Sprint 006 — Runtime Values and Data Engine.
+- Sprint 007 — Historian Foundation.
 
 ## Следующий
 
-- Sprint 007 — Historian Foundation.
+- Sprint 008 — Events and Alarms Foundation.
