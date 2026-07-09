@@ -2,6 +2,7 @@ add_library(scada_tags STATIC
     src/tag.cpp
     src/tag_address.cpp
     src/tag_archive_policy.cpp
+    src/tag_current_value.cpp
     src/tag_module.cpp
     src/tag_quality.cpp
     src/tag_type.cpp

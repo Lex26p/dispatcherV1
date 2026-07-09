@@ -23,11 +23,15 @@
 - `TagQuality`;
 - `TagArchivePolicy`;
 - `TagAddress`;
+- `TagCurrentValue`;
+- `TagValueSource`;
+- `TagValuePayload`;
 - связь тега с `ObjectId`;
 - связь тега с `DeviceId`;
 - базовую идентичность тега;
 - базовую модель адресации тега;
 - базовую модель инженерного преобразования;
+- базовую модель текущего значения тега;
 - подготовку к будущему polling, runtime values, historian и alarms.
 
 ## Что модуль не должен делать
@@ -38,7 +42,7 @@
 - Modbus TCP реализацию;
 - SNMP реализацию;
 - polling engine;
-- текущие значения тегов;
+- runtime-хранилище текущих значений;
 - запись истории;
 - аварийную логику;
 - команды управления;
@@ -121,6 +125,36 @@
 - `OnAlarm`;
 - `AlwaysButThrottled`.
 
+### TagValueSource
+
+Источник текущего значения тега.
+
+Поддерживаются значения:
+
+- `Unknown`;
+- `Device`;
+- `Manual`;
+- `Calculation`;
+- `System`;
+- `Simulation`;
+- `External`.
+
+### TagValuePayload
+
+Универсальный контейнер значения тега.
+
+Поддерживает:
+
+- пустое значение;
+- `bool`;
+- `int32`;
+- `int64`;
+- `float`;
+- `double`;
+- `string`.
+
+`Enum` и `Json` на текущем этапе хранятся как строковое значение.
+
 ### TagAddress
 
 Базовая модель адреса тега.
@@ -168,6 +202,83 @@
 - `offset`;
 - `address`;
 - `is_enabled`.
+
+### TagCurrentValue
+
+Модель текущего значения тега.
+
+Поля:
+
+- `tag_id`;
+- `value_type`;
+- `quality`;
+- `source`;
+- `raw_value`;
+- `engineering_value`;
+- `timestamp`;
+- `source_timestamp`;
+- `server_timestamp`;
+- `last_good_value`;
+- `last_good_timestamp`;
+- `change_counter`.
+
+`raw_value` — исходное значение, полученное из устройства, ручного ввода или внешнего источника.
+
+`engineering_value` — значение после инженерного преобразования.
+
+`last_good_value` — последнее значение с хорошим качеством.
+
+`change_counter` — счетчик изменений текущего значения.
+
+## Текущие значения тегов
+
+На текущем этапе добавлена только модель текущего значения.
+
+Runtime-хранилище текущих значений пока не реализовано.
+
+Позже появится отдельный слой, который будет хранить актуальные значения тегов в памяти:
+
+    TagValueStore
+
+Этот слой будет получать значения из:
+
+- Polling Engine;
+- ручного ввода;
+- расчетных тегов;
+- системных тегов;
+- симулятора;
+- внешних интеграций.
+
+## Качество и last good value
+
+`TagCurrentValue` хранит текущее качество значения.
+
+Хорошими качествами на текущем этапе считаются:
+
+- `Good`;
+- `Manual`;
+- `Simulation`.
+
+Если значение хорошего качества, будущий runtime-слой сможет обновлять:
+
+- `last_good_value`;
+- `last_good_timestamp`.
+
+На текущем этапе автоматического обновления `last_good_value` нет.
+
+## Временные метки
+
+`TagCurrentValue` содержит три временные метки:
+
+- `timestamp`;
+- `source_timestamp`;
+- `server_timestamp`.
+
+`timestamp` — основная временная метка значения.
+
+`source_timestamp` — время на стороне источника, если известно.
+
+`server_timestamp` — время получения или фиксации значения на сервере Dispatcher.
 
 ## Связь с объектной моделью
 
@@ -247,6 +358,7 @@
 - `include/scada_tags/tag_quality.h`
 - `include/scada_tags/tag_archive_policy.h`
 - `include/scada_tags/tag_address.h`
+- `include/scada_tags/tag_current_value.h`
 - `include/scada_tags/tag.h`
 - `include/scada_tags/tag_module.h`
 - `src/tag_type.cpp`
@@ -254,6 +366,7 @@
 - `src/tag_quality.cpp`
 - `src/tag_archive_policy.cpp`
 - `src/tag_address.cpp`
+- `src/tag_current_value.cpp`
 - `src/tag.cpp`
 - `src/tag_module.cpp`
 
@@ -276,6 +389,10 @@
 - Добавлен `TagArchivePolicy`.
 - Добавлен `TagAddress`.
 - Добавлен `Tag`.
+- Добавлен `TagValueSource`.
+- Добавлен `TagValuePayload`.
+- Добавлен `TagCurrentValue`.
+- Добавлены базовые методы проверки текущего значения.
 - Добавлен `get_tag_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -283,14 +400,15 @@
 ### Делаем сейчас
 
 - Формируем базовую модель тегов Dispatcher.
+- Закладываем модель текущего значения тега.
 
 ### Нужно доделать
 
-- Добавить модель текущего значения тега.
 - Добавить валидацию тегов.
 - Добавить DTO-контракты тегов.
 - Добавить repository-интерфейсы тегов.
 - Добавить черновую миграцию БД.
+- Добавить runtime-хранилище текущих значений позже.
 - Добавить API тегов позже.
 - Добавить UI карточки тега позже.
 
@@ -308,10 +426,14 @@
 - Tag calculation engine.
 - Command tags.
 - Manual value workflow.
+- TagValueStore.
+- EventBus integration.
+- Historian integration.
+- Alarm integration.
 
 ### Не входит в этот шаг
 
-- Текущие значения тегов.
+- Runtime-хранилище текущих значений.
 - Реальный polling.
 - Protocol drivers.
 - Historian.
