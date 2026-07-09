@@ -24,5 +24,6 @@ add_subdirectory(backend/libs/scada_devices)
 add_subdirectory(backend/libs/scada_tags)
 add_subdirectory(backend/libs/scada_protocols)
 add_subdirectory(backend/libs/scada_polling)
+add_subdirectory(backend/libs/scada_runtime)
 
 add_subdirectory(backend/apps/dispatcher_server)

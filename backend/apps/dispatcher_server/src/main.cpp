@@ -10,6 +10,7 @@
 #include "scada_tags/tag_module.h"
 #include "scada_protocols/protocol_module.h"
 #include "scada_polling/polling_module.h"
+#include "scada_runtime/runtime_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -56,6 +57,12 @@ namespace
         if (polling_result.is_failure())
         {
             return polling_result;
+        }
+
+        auto runtime_result = context.register_module(dispatcher::runtime::get_runtime_module_info());
+        if (runtime_result.is_failure())
+        {
+            return runtime_result;
         }
 
         return dispatcher::common::Result<void>::success();
