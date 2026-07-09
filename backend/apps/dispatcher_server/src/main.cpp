@@ -8,6 +8,7 @@
 #include "scada_objects/object_module.h"
 #include "scada_devices/device_module.h"
 #include "scada_tags/tag_module.h"
+#include "scada_protocols/protocol_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -42,6 +43,12 @@ namespace
         if (tags_result.is_failure())
         {
             return tags_result;
+        }
+
+        auto protocols_result = context.register_module(dispatcher::protocols::get_protocol_module_info());
+        if (protocols_result.is_failure())
+        {
+            return protocols_result;
         }
 
         return dispatcher::common::Result<void>::success();

@@ -15,6 +15,7 @@ target_link_libraries(dispatcher_server
         scada_objects
         scada_devices
         scada_tags
+        scada_protocols
 )
 
 set_target_properties(dispatcher_server
