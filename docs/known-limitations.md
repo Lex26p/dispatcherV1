@@ -1034,3 +1034,139 @@ URL routes остаются техническими:
     но данные все еще не приходят из backend.
 
 Следующий этап должен закрыть backend HTTP transport foundation.
+
+---
+
+## Ограничения после Sprint 012 — Backend HTTP API Transport Foundation
+
+### Общий статус
+
+После Sprint 012 backend имеет рабочий HTTP API foundation на базе:
+
+    vcpkg + Drogon
+
+Доступны первые системные endpoints:
+
+    GET /api/system/health
+    GET /api/system/modules
+
+Frontend пока продолжает использовать demo-data.
+
+Real frontend API integration будет выполняться в Sprint 013.
+
+### HTTP gateway
+
+Текущие ограничения HTTP gateway:
+
+- HTTP server является development foundation;
+- default bind address: `127.0.0.1`;
+- default port: `8080`;
+- HTTPS/TLS пока нет;
+- CORS policy пока нет;
+- authentication пока нет;
+- authorization пока нет;
+- OpenAPI/Swagger UI пока нет;
+- request logging пока нет;
+- rate limiting пока нет;
+- production hardening пока нет.
+
+### JSON error handling
+
+Для известных Dispatcher routes используются Dispatcher responses.
+
+Для неизвестных routes стандартный Drogon 404 response пока может возвращаться как plain text.
+
+Ограничение:
+
+    unified JSON error fallback для неизвестных API routes пока не реализован.
+
+Нужно добавить позже:
+
+- единый JSON формат ошибок;
+- fallback для unknown API routes;
+- 404 JSON response;
+- 405 JSON response на уровне Drogon routing;
+- correlation id в API errors.
+
+### vcpkg
+
+Проект теперь использует vcpkg manifest mode.
+
+Ограничения:
+
+- требуется установленный vcpkg;
+- требуется корректный `VCPKG_ROOT`;
+- standalone vcpkg предпочтительнее bundled Visual Studio vcpkg;
+- первая сборка может занимать больше времени из-за установки Drogon и зависимостей;
+- Linux triplet пока не проверялся;
+- CI/CD с vcpkg пока не настроен.
+
+### Drogon integration
+
+Drogon интегрирован только внутри:
+
+    backend/libs/scada_http
+
+Ограничения:
+
+- WebSocket/SSE пока не реализованы;
+- middleware/filter pipeline пока не настроен;
+- graceful full application shutdown пока минимальный;
+- production configuration пока отсутствует;
+- structured request logging пока отсутствует.
+
+Архитектурное правило:
+
+    Drogon types не должны попадать в доменные backend-модули.
+
+### API scope
+
+После Sprint 012 реализованы только system endpoints.
+
+Пока нет:
+
+- object API endpoints;
+- device API endpoints;
+- tag API endpoints;
+- runtime API endpoints;
+- history API endpoints;
+- events API endpoints;
+- alarms API endpoints;
+- command API endpoints;
+- auth API endpoints.
+
+### Frontend
+
+Frontend пока не подключен к реальному backend API.
+
+Ограничения:
+
+- System page все еще использует frontend-side mock/demo data;
+- runtime/events/alarms pages используют mock/demo data;
+- API base URL settings не реализованы;
+- no connection state для реального backend еще не подключен;
+- CORS не проверялся, потому что frontend integration еще не началась.
+
+### Deployment
+
+Deployment ограничения:
+
+- Linux-сборка пока не проверялась;
+- Docker пока не добавлен;
+- service/systemd deployment пока не добавлен;
+- production config files пока не добавлены;
+- secrets/configuration management пока отсутствует.
+
+### Следующее ожидаемое снятие ограничений
+
+Ближайший следующий этап:
+
+    Sprint 013 — Frontend Real API Client Integration
+
+Ожидаемые снятия ограничений:
+
+- frontend получит real API client settings;
+- `/api/system/health` будет использоваться frontend;
+- `/api/system/modules` будет использоваться frontend;
+- System page перестанет быть полностью demo-only;
+- появятся real loading/error/no connection states.

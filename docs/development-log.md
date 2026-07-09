@@ -1158,3 +1158,128 @@ Frontend стал русскоязычным по умолчанию.
 - `/api/system/health`;
 - `/api/system/modules`;
 - подготовка real frontend API integration.
+
+---
+
+## Sprint 012 — Backend HTTP API Transport Foundation
+
+### Статус
+
+Closed.
+
+### Цель
+
+Добавить foundation реального backend HTTP transport для Dispatcher.
+
+### Выполнено
+
+В Sprint 012 выполнены шаги 81–90.
+
+Создан backend-модуль:
+
+    backend/libs/scada_http
+
+Добавлены:
+
+- HTTP transport models;
+- HTTP route dispatcher foundation;
+- `/api/system/health` endpoint foundation;
+- `/api/system/modules` endpoint foundation;
+- vcpkg manifest;
+- Drogon dependency;
+- Drogon HTTP server wrapper;
+- system endpoint registry;
+- запуск Drogon HTTP server из `dispatcher_server`.
+
+### Transport decision
+
+Первоначально рассматривался вариант:
+
+    Boost.Asio + Boost.Beast
+
+После анализа решение было пересмотрено.
+
+Итоговое решение:
+
+    vcpkg + Drogon
+
+Причины:
+
+- Drogon является более подходящим постоянным HTTP/WebSocket gateway foundation;
+- меньше низкоуровневого infrastructure-кода;
+- быстрее переход к реальному API;
+- framework можно изолировать внутри `scada_http`;
+- vcpkg дает воспроизводимое dependency management.
+
+### vcpkg
+
+Добавлен:
+
+    vcpkg.json
+
+CMake presets обновлены для использования vcpkg toolchain.
+
+Важно:
+
+- используется `VCPKG_ROOT`;
+- рекомендованный локальный путь: `C:\vcpkg`;
+- `vcpkg.json` должен содержать `builtin-baseline`.
+
+### Реализованные endpoints
+
+Доступны:
+
+    GET /api/system/health
+    GET /api/system/modules
+
+Проверка:
+
+    Invoke-RestMethod http://127.0.0.1:8080/api/system/health
+    Invoke-RestMethod http://127.0.0.1:8080/api/system/modules
+
+### dispatcher_server
+
+`dispatcher_server` теперь:
+
+- регистрирует `scada_http`;
+- создает system route dispatcher;
+- запускает `DrogonHttpServer`;
+- выводит HTTP URLs в console output;
+- остается запущенным и ожидает Enter для остановки.
+
+### Проверки
+
+Проверено:
+
+- backend configure;
+- backend build;
+- backend run;
+- `/api/system/health`;
+- `/api/system/modules`;
+- frontend project build;
+- frontend solution build;
+- git commit and push.
+
+### Результат
+
+Sprint 012 закрыл первый реальный backend HTTP API foundation.
+
+После Sprint 012 backend имеет рабочую цепочку:
+
+    dispatcher_server
+        -> scada_http
+        -> DrogonHttpServer
+        -> HttpRouteDispatcher
+        -> system endpoints
+
+### Следующий этап
+
+Следующий рекомендуемый спринт:
+
+    Sprint 013 — Frontend Real API Client Integration
+
+Цель следующего спринта:
+
+- подключить frontend к реальному backend API;
+- заменить demo-data на System page;
+- добавить loading/error/no connection states.
