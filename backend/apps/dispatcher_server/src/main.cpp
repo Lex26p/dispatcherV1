@@ -7,6 +7,7 @@
 #include "scada_core/module_info.h"
 #include "scada_objects/object_module.h"
 #include "scada_devices/device_module.h"
+#include "scada_tags/tag_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -35,6 +36,12 @@ namespace
         if (devices_result.is_failure())
         {
             return devices_result;
+        }
+
+        auto tags_result = context.register_module(dispatcher::tags::get_tag_module_info());
+        if (tags_result.is_failure())
+        {
+            return tags_result;
         }
 
         return dispatcher::common::Result<void>::success();
