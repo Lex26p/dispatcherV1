@@ -3,15 +3,18 @@
 <PageTitle>Objects - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <h1>Objects</h1>
-    <p>Object model placeholder.</p>
+    <MudText Typo="Typo.h4" HtmlTag="h1">Objects</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        Object model placeholder.
+    </MudText>
 
-    <section class="dispatcher-card">
-        <h2>Planned content</h2>
-        <ul>
-            <li>Object tree</li>
-            <li>Object details</li>
-            <li>Responsibility zones</li>
-        </ul>
-    </section>
+    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
+        <MudText Typo="Typo.h6">Planned content</MudText>
+
+        <MudList T="string" Dense="true" Class="mt-2">
+            <MudListItem Text="Object tree" Icon="@Icons.Material.Filled.AccountTree" />
+            <MudListItem Text="Object details" Icon="@Icons.Material.Filled.Info" />
+            <MudListItem Text="Responsibility zones" Icon="@Icons.Material.Filled.Groups" />
+        </MudList>
+    </MudPaper>
 </div>

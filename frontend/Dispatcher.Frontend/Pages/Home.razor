@@ -3,64 +3,76 @@
 <PageTitle>Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <div class="dispatcher-hero">
-        <div>
-            <h1>Dispatcher</h1>
-            <p>
-                Minimal operator UI foundation for the Dispatcher SCADA platform.
-            </p>
-        </div>
+    <MudPaper Elevation="0" Class="dispatcher-hero">
+        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+            <div>
+                <MudText Typo="Typo.h3" HtmlTag="h1">Dispatcher</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Minimal operator UI foundation for the Dispatcher SCADA platform.
+                </MudText>
+            </div>
 
-        <div class="dispatcher-hero__badge">
-            Sprint 010
-        </div>
-    </div>
+            <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">
+                Sprint 010
+            </MudChip>
+        </MudStack>
+    </MudPaper>
 
-    <div class="dispatcher-grid">
-        <section class="dispatcher-card">
-            <h2>Backend foundation</h2>
-            <p>
-                Backend modules are already split into domain-oriented libraries.
-            </p>
-            <ul>
-                <li>Objects</li>
-                <li>Devices</li>
-                <li>Tags</li>
-                <li>Runtime</li>
-                <li>Historian</li>
-                <li>Events</li>
-                <li>Alarms</li>
-                <li>API</li>
-                <li>Realtime</li>
-            </ul>
-        </section>
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="0" Class="dispatcher-card">
+                <MudText Typo="Typo.h6">Backend foundation</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                    Backend modules are already split into domain-oriented libraries.
+                </MudText>
 
-        <section class="dispatcher-card">
-            <h2>Frontend foundation</h2>
-            <p>
-                This Blazor WebAssembly app is the starting point for the future operator workspace.
-            </p>
-            <ul>
-                <li>Minimal shell</li>
-                <li>Navigation</li>
-                <li>Placeholder pages</li>
-                <li>Future API client</li>
-                <li>Future realtime gateway client</li>
-            </ul>
-        </section>
+                <MudList T="string" Dense="true" Class="mt-2">
+                    <MudListItem Text="Objects" />
+                    <MudListItem Text="Devices" />
+                    <MudListItem Text="Tags" />
+                    <MudListItem Text="Runtime" />
+                    <MudListItem Text="Historian" />
+                    <MudListItem Text="Events" />
+                    <MudListItem Text="Alarms" />
+                    <MudListItem Text="API" />
+                    <MudListItem Text="Realtime" />
+                </MudList>
+            </MudPaper>
+        </MudItem>
 
-        <section class="dispatcher-card">
-            <h2>MVP focus</h2>
-            <p>
-                The current sprint prepares a minimal operator interface and documents remaining MVP limitations.
-            </p>
-            <ul>
-                <li>System overview</li>
-                <li>Runtime placeholder</li>
-                <li>Events placeholder</li>
-                <li>Alarms placeholder</li>
-                <li>MVP stabilization</li>
-            </ul>
-        </section>
-    </div>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="0" Class="dispatcher-card">
+                <MudText Typo="Typo.h6">Frontend foundation</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                    This Blazor WebAssembly app is the starting point for the future operator workspace.
+                </MudText>
+
+                <MudList T="string" Dense="true" Class="mt-2">
+                    <MudListItem Text="MudBlazor foundation" />
+                    <MudListItem Text="Operator layout" />
+                    <MudListItem Text="Sidebar navigation" />
+                    <MudListItem Text="Placeholder pages" />
+                    <MudListItem Text="Future API client" />
+                    <MudListItem Text="Future realtime client" />
+                </MudList>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="0" Class="dispatcher-card">
+                <MudText Typo="Typo.h6">MVP focus</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                    The current sprint prepares a minimal operator interface and documents remaining MVP limitations.
+                </MudText>
+
+                <MudList T="string" Dense="true" Class="mt-2">
+                    <MudListItem Text="System overview" />
+                    <MudListItem Text="Runtime placeholder" />
+                    <MudListItem Text="Events placeholder" />
+                    <MudListItem Text="Alarms placeholder" />
+                    <MudListItem Text="MVP stabilization" />
+                </MudList>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 </div>

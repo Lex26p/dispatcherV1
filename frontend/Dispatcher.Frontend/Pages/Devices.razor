@@ -3,15 +3,18 @@
 <PageTitle>Devices - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <h1>Devices</h1>
-    <p>Device model placeholder.</p>
+    <MudText Typo="Typo.h4" HtmlTag="h1">Devices</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        Device model placeholder.
+    </MudText>
 
-    <section class="dispatcher-card">
-        <h2>Planned content</h2>
-        <ul>
-            <li>Device list</li>
-            <li>Connection state</li>
-            <li>Diagnostics</li>
-        </ul>
-    </section>
+    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
+        <MudText Typo="Typo.h6">Planned content</MudText>
+
+        <MudList T="string" Dense="true" Class="mt-2">
+            <MudListItem Text="Device list" Icon="@Icons.Material.Filled.Memory" />
+            <MudListItem Text="Connection state" Icon="@Icons.Material.Filled.SettingsEthernet" />
+            <MudListItem Text="Diagnostics" Icon="@Icons.Material.Filled.MonitorHeart" />
+        </MudList>
+    </MudPaper>
 </div>

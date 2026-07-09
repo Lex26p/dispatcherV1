@@ -3,16 +3,19 @@
 <PageTitle>Runtime - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <h1>Runtime</h1>
-    <p>Runtime values placeholder.</p>
+    <MudText Typo="Typo.h4" HtmlTag="h1">Runtime</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        Runtime values placeholder.
+    </MudText>
 
-    <section class="dispatcher-card">
-        <h2>Planned content</h2>
-        <ul>
-            <li>Current tag values</li>
-            <li>Quality state</li>
-            <li>Last good value</li>
-            <li>Realtime updates</li>
-        </ul>
-    </section>
+    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
+        <MudText Typo="Typo.h6">Planned content</MudText>
+
+        <MudList T="string" Dense="true" Class="mt-2">
+            <MudListItem Text="Current tag values" Icon="@Icons.Material.Filled.Speed" />
+            <MudListItem Text="Quality state" Icon="@Icons.Material.Filled.Verified" />
+            <MudListItem Text="Last good value" Icon="@Icons.Material.Filled.CheckCircle" />
+            <MudListItem Text="Realtime updates" Icon="@Icons.Material.Filled.Sync" />
+        </MudList>
+    </MudPaper>
 </div>

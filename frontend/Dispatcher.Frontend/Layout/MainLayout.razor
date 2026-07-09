@@ -1,33 +1,105 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="dispatcher-shell">
-    <aside class="dispatcher-sidebar">
-        <div class="dispatcher-logo">
-            <div class="dispatcher-logo__mark">D</div>
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout Class="dispatcher-shell">
+    <MudAppBar Elevation="0" Dense="true" Class="dispatcher-appbar">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer" />
+
+        <MudText Typo="Typo.h6" Class="dispatcher-appbar__title">
+            Dispatcher
+        </MudText>
+
+        <MudSpacer />
+
+        <MudChip T="string"
+                 Color="Color.Info"
+                 Variant="Variant.Outlined"
+                 Size="Size.Small">
+            Sprint 010
+        </MudChip>
+
+        <MudChip T="string"
+                 Color="Color.Success"
+                 Variant="Variant.Filled"
+                 Size="Size.Small"
+                 Class="ml-2">
+            MVP foundation
+        </MudChip>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen"
+               Elevation="0"
+               Variant="DrawerVariant.Responsive"
+               ClipMode="DrawerClipMode.Always"
+               Class="dispatcher-drawer">
+        <div class="dispatcher-brand">
+            <div class="dispatcher-brand__mark">D</div>
             <div>
-                <div class="dispatcher-logo__title">Dispatcher</div>
-                <div class="dispatcher-logo__subtitle">SCADA foundation</div>
+                <div class="dispatcher-brand__title">Dispatcher</div>
+                <div class="dispatcher-brand__subtitle">SCADA operator UI</div>
             </div>
         </div>
 
         <NavMenu />
-    </aside>
 
-    <main class="dispatcher-main">
-        <header class="dispatcher-topbar">
-            <div>
-                <div class="dispatcher-topbar__title">Operator Workspace</div>
-                <div class="dispatcher-topbar__subtitle">Minimal UI foundation</div>
-            </div>
+        <MudDivider Class="my-4" />
 
-            <div class="dispatcher-status">
-                <span class="dispatcher-status__dot"></span>
-                MVP foundation
-            </div>
-        </header>
+        <div class="dispatcher-side-status">
+            <MudText Typo="Typo.subtitle2">Gateway</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                API/realtime transport is planned.
+            </MudText>
 
-        <section class="dispatcher-content">
+            <MudStack Row="true" Spacing="1" Class="mt-3">
+                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
+                    API foundation
+                </MudChip>
+                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">
+                    No transport
+                </MudChip>
+            </MudStack>
+        </div>
+    </MudDrawer>
+
+    <MudMainContent Class="dispatcher-main">
+        <MudContainer MaxWidth="MaxWidth.False" Class="dispatcher-content">
             @Body
-        </section>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = Colors.LightBlue.Default,
+            Secondary = "#94a3b8",
+            Background = "#0f172a",
+            Surface = "#111827",
+            AppbarBackground = "#111827",
+            DrawerBackground = "#0f172a",
+            DrawerText = "#cbd5e1",
+            TextPrimary = "#e5e7eb",
+            TextSecondary = "#94a3b8"
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px"
+        }
+    };
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

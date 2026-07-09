@@ -19,6 +19,13 @@ Frontend находится на этапе foundation.
 - `Dispatcher.Frontend` — Blazor WebAssembly приложение.
 - `Dispatcher.Frontend.slnx` — отдельная solution для frontend.
 
+## UI foundation
+
+Frontend использует:
+
+- Blazor WebAssembly;
+- MudBlazor.
+
 ## Запуск
 
 Из корня репозитория:
@@ -43,7 +50,6 @@ Frontend находится на этапе foundation.
 
 - backend API integration;
 - realtime integration;
-- MudBlazor;
 - authentication;
 - real data;
 - dashboards;

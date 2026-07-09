@@ -17,9 +17,11 @@ Foundation.
 Реализовано:
 
 - Blazor WebAssembly project foundation;
-- базовый shell;
+- MudBlazor foundation;
+- базовый operator shell;
+- AppBar;
 - sidebar navigation;
-- topbar;
+- Drawer;
 - overview page;
 - placeholder pages.
 
@@ -41,7 +43,6 @@ Foundation.
 
 Пока нет:
 
-- MudBlazor;
 - API client;
 - realtime client;
 - authentication;
@@ -68,14 +69,14 @@ Frontend должен стать минимальным operator workspace.
 - active alarms page;
 - API client;
 - realtime client;
-- MudBlazor layout;
 - MVP stabilization.
 
 ## Зависимости
 
-На текущем этапе frontend зависит только от стандартного Blazor WebAssembly шаблона.
+Frontend использует:
 
-MudBlazor будет добавлен отдельным шагом.
+- Blazor WebAssembly;
+- MudBlazor.
 
 ## Запуск
 

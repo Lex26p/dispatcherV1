@@ -3,17 +3,20 @@
 <PageTitle>Alarms - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <h1>Alarms</h1>
-    <p>Active alarms placeholder.</p>
+    <MudText Typo="Typo.h4" HtmlTag="h1">Alarms</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        Active alarms placeholder.
+    </MudText>
 
-    <section class="dispatcher-card">
-        <h2>Planned content</h2>
-        <ul>
-            <li>Active alarms</li>
-            <li>Severity</li>
-            <li>Priority</li>
-            <li>Lifecycle state</li>
-            <li>Acknowledgement state</li>
-        </ul>
-    </section>
+    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
+        <MudText Typo="Typo.h6">Planned content</MudText>
+
+        <MudList T="string" Dense="true" Class="mt-2">
+            <MudListItem Text="Active alarms" Icon="@Icons.Material.Filled.Warning" />
+            <MudListItem Text="Severity" Icon="@Icons.Material.Filled.PriorityHigh" />
+            <MudListItem Text="Priority" Icon="@Icons.Material.Filled.Flag" />
+            <MudListItem Text="Lifecycle state" Icon="@Icons.Material.Filled.Timeline" />
+            <MudListItem Text="Acknowledgement state" Icon="@Icons.Material.Filled.HowToReg" />
+        </MudList>
+    </MudPaper>
 </div>

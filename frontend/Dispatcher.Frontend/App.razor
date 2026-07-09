@@ -8,10 +8,12 @@
         <PageTitle>Страница не найдена - Dispatcher</PageTitle>
 
         <LayoutView Layout="@typeof(MainLayout)">
-            <div class="dispatcher-page">
-                <h1>Страница не найдена</h1>
-                <p>Запрошенный раздел Dispatcher пока не существует.</p>
-            </div>
+            <MudContainer MaxWidth="MaxWidth.False" Class="dispatcher-page">
+                <MudText Typo="Typo.h4" HtmlTag="h1">Страница не найдена</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Запрошенный раздел Dispatcher пока не существует.
+                </MudText>
+            </MudContainer>
         </LayoutView>
     </NotFound>
 </Router>
