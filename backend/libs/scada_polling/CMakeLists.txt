@@ -1,7 +1,9 @@
 add_library(scada_polling STATIC
+    src/polling_execution.cpp
     src/polling_group.cpp
     src/polling_group_mode.cpp
     src/polling_module.cpp
+    src/polling_scheduler.cpp
     src/polling_task.cpp
     src/polling_task_state.cpp
 )
