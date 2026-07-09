@@ -171,24 +171,6 @@ Sprint 001 закрыт.
 - недопустимый тип корневого объекта;
 - недопустимая связь parent/child.
 
-Примеры допустимых иерархий:
-
-    Site
-     └── Building
-          └── Floor
-               └── Room
-                    └── Cabinet
-                         └── Rack
-
-    Site
-     └── Zone
-          └── Line
-               └── EquipmentGroup
-
-    Building
-     └── Room
-          └── Cabinet
-
 Сборка и запуск прошли успешно.
 
 ### Шаг 16 — ResponsibilityZone
@@ -203,13 +185,7 @@ Sprint 001 закрыт.
 - пользователей;
 - роли.
 
-Добавлена базовая валидация зоны ответственности:
-
-- пустая идентичность;
-- пустой список объектов;
-- дублирующиеся объекты;
-- дублирующиеся пользователи;
-- дублирующиеся роли.
+Добавлена базовая валидация зоны ответственности.
 
 Сборка и запуск прошли успешно.
 
@@ -223,8 +199,6 @@ Sprint 001 закрыт.
 
 - `ObjectId`;
 - `ResponsibilityZoneId`.
-
-Объектная модель переведена с общего `Uuid` на доменные идентификаторы там, где это уже оправдано.
 
 Сборка и запуск прошли успешно.
 
@@ -242,11 +216,6 @@ Sprint 001 закрыт.
 - `ResponsibilityZoneValidationIssueDto`;
 - `ResponsibilityZoneValidationResultDto`.
 
-Зафиксировано разделение:
-
-- доменная модель остается внутри backend;
-- DTO используются на внешних границах системы.
-
 Сборка и запуск прошли успешно.
 
 ### Шаг 19 — Object repository interfaces
@@ -257,13 +226,6 @@ Sprint 001 закрыт.
 - `IResponsibilityZoneRepository`.
 
 Реализация PostgreSQL пока не добавлялась.
-
-Интерфейсы подготовлены для будущих реализаций:
-
-- in-memory;
-- PostgreSQL;
-- mock;
-- file-based.
 
 Сборка и запуск прошли успешно.
 
@@ -281,18 +243,11 @@ Sprint 001 закрыт.
 - `responsibility_zone_users`;
 - `responsibility_zone_roles`.
 
-PostgreSQL пока не подключался.
-
 Сборка и запуск прошли успешно.
 
 ### Шаг 21 — Sprint 002 docs update and close
 
 Обновлена документация и закрыт Sprint 002.
-
-Обновлены:
-
-- `docs/development-log.md`;
-- `docs/known-limitations.md`.
 
 Создан:
 
@@ -302,21 +257,7 @@ PostgreSQL пока не подключался.
 
 ## Итог Sprint 002
 
-В Sprint 002 создан фундамент объектной модели Dispatcher.
-
-Сейчас в проекте есть:
-
-- модуль объектной модели;
-- типы объектов;
-- узлы дерева объектов;
-- дерево объектов;
-- базовая валидация дерева;
-- правила допустимой иерархии;
-- зоны ответственности;
-- типизированные идентификаторы объектов;
-- DTO-контракты объектной модели;
-- repository-интерфейсы;
-- черновая SQL-миграция.
+Создан фундамент объектной модели Dispatcher.
 
 ---
 
@@ -324,7 +265,7 @@ PostgreSQL пока не подключался.
 
 ## Статус
 
-Закрывается на шаге 28.
+Закрыт.
 
 ## Цель спринта
 
@@ -342,8 +283,6 @@ PostgreSQL пока не подключался.
 - API;
 - UI карточек устройств.
 
----
-
 ## Выполнено
 
 ### Шаг 22 — scada_devices
@@ -352,7 +291,7 @@ PostgreSQL пока не подключался.
 
 - `backend/libs/scada_devices`.
 
-Добавлены базовые элементы модели устройств:
+Добавлены:
 
 - `DeviceId`;
 - `DeviceProtocol`;
@@ -364,13 +303,7 @@ PostgreSQL пока не подключался.
 
 Модуль подключен к CMake и к `dispatcher_server`.
 
-`dispatcher_server` теперь отображает модуль:
-
-- `scada_devices | Devices | Running`.
-
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 23 — Device validation and connection rules
 
@@ -385,18 +318,7 @@ PostgreSQL пока не подключался.
 - `requires_network_endpoint()`;
 - `is_runtime_enabled_state()`.
 
-Проверяются:
-
-- пустая идентичность устройства;
-- отсутствие привязки к объекту после выхода из `Draft`;
-- несовпадение `Device::protocol` и `DeviceConnection::protocol`;
-- отсутствие `host`;
-- некорректный `port`;
-- отсутствие endpoint для runtime-устройства.
-
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 24 — Device diagnostics model
 
@@ -408,21 +330,7 @@ PostgreSQL пока не подключался.
 - `DeviceCommunicationStatus`;
 - `DeviceHealthStatus`.
 
-Диагностика хранит:
-
-- идентификатор устройства;
-- статус связи;
-- статус здоровья;
-- счетчик успешных запросов;
-- счетчик ошибочных запросов;
-- счетчик таймаутов;
-- счетчик переподключений;
-- последнюю задержку;
-- последнюю ошибку.
-
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 25 — Device DTO contracts
 
@@ -437,37 +345,18 @@ PostgreSQL пока не подключался.
 - `DeviceValidationResultDto`;
 - `DeviceDiagnosticsDto`.
 
-Зафиксировано правило:
-
-- `scada_contracts` не зависит от `scada_devices`;
-- идентификаторы в DTO передаются строками;
-- enum-значения в DTO передаются строками.
-
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 26 — Device repository interfaces
 
-Добавлены repository-интерфейсы устройств.
-
-Добавлены:
+Добавлены repository-интерфейсы устройств:
 
 - `IDeviceRepository`;
 - `IDeviceDiagnosticsRepository`.
 
-Интерфейсы подготовлены для будущих реализаций:
-
-- in-memory;
-- PostgreSQL;
-- mock;
-- file-based.
-
 Реализация хранения пока не добавлялась.
 
 Сборка и запуск прошли успешно.
-
----
 
 ### Шаг 27 — Device database migration draft
 
@@ -480,47 +369,251 @@ PostgreSQL пока не подключался.
 - `devices`;
 - `device_diagnostics`.
 
-Миграция зависит от объектной модели, потому что `devices.object_id` ссылается на `object_nodes.id`.
+Сборка и запуск прошли успешно.
 
-PostgreSQL пока не подключался.
+### Шаг 28 — Sprint 003 docs update and close
+
+Обновлена документация и закрыт Sprint 003.
+
+Создан:
+
+- `docs/SPRINT_003_SUMMARY.md`.
+
+Сборка и запуск прошли успешно.
+
+## Итог Sprint 003
+
+Создан фундамент модели устройств Dispatcher.
+
+---
+
+# Sprint 004 — Tag Model Foundation
+
+## Статус
+
+Закрывается на шаге 35.
+
+## Цель спринта
+
+Создать базовую модель тегов Dispatcher.
+
+Модель тегов должна стать фундаментом для будущих модулей:
+
+- polling;
+- protocol drivers;
+- runtime values;
+- historian;
+- alarms;
+- dashboards;
+- mimic diagrams;
+- commands;
+- API;
+- UI карточек тегов.
+
+---
+
+## Выполнено
+
+### Шаг 29 — scada_tags
+
+Добавлен модуль:
+
+- `backend/libs/scada_tags`.
+
+Добавлены базовые элементы модели тегов:
+
+- `TagId`;
+- `TagType`;
+- `TagValueType`;
+- `TagQuality`;
+- `TagArchivePolicy`;
+- `TagAddress`;
+- `Tag`;
+- `get_tag_module_info()`.
+
+Модуль подключен к CMake и к `dispatcher_server`.
+
+`dispatcher_server` теперь отображает модуль:
+
+- `scada_tags | Tags | Running`.
 
 Сборка и запуск прошли успешно.
 
 ---
 
-## Итог Sprint 003
+### Шаг 30 — Tag current value model
 
-В Sprint 003 создан фундамент модели устройств Dispatcher.
+Добавлена модель текущего значения тега.
 
-Сейчас в проекте есть:
+Добавлены:
 
-- модуль устройств;
-- типизированный идентификатор устройства;
-- базовая сущность устройства;
-- модель подключения устройства;
-- поддержка IPv4/IPv6/Auto на уровне модели;
-- базовые протоколы `ModbusTcp`, `Snmp`, `Simulator`, `Custom`;
-- жизненные состояния устройства;
-- базовая валидация устройства;
-- модель диагностики устройства;
-- DTO-контракты устройств;
-- repository-интерфейсы устройств;
-- черновая SQL-миграция устройств.
+- `TagValueSource`;
+- `TagValuePayload`;
+- `TagCurrentValue`.
+
+Модель текущего значения содержит:
+
+- `tag_id`;
+- `value_type`;
+- `quality`;
+- `source`;
+- `raw_value`;
+- `engineering_value`;
+- `timestamp`;
+- `source_timestamp`;
+- `server_timestamp`;
+- `last_good_value`;
+- `last_good_timestamp`;
+- `change_counter`.
+
+Runtime-хранилище текущих значений пока не добавлялось.
+
+Сборка и запуск прошли успешно.
 
 ---
 
-## Что сознательно не делали в Sprint 003
+### Шаг 31 — Tag validation and addressing rules
 
-В Sprint 003 не добавлялись:
+Добавлена базовая валидация тегов.
 
+Добавлены:
+
+- `TagValidationCode`;
+- `TagValidationIssue`;
+- `TagValidationResult`;
+- `validate_tag()`;
+- `requires_object()`;
+- `requires_device()`;
+- `requires_address()`;
+- `supports_extraction()`;
+- `is_valid_engineering_transform()`.
+
+Проверяются:
+
+- идентичность тега;
+- привязка к объекту;
+- привязка к устройству;
+- необходимость адреса;
+- корректность `scale`;
+- корректность `offset`;
+- корректность `bit_index`;
+- корректность `bit_length`;
+- корректность `shift`;
+- совместимость extraction с типом значения.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 32 — Tag DTO contracts
+
+В `scada_contracts` добавлены DTO-контракты тегов.
+
+Добавлены:
+
+- `TagAddressDto`;
+- `TagDto`;
+- `TagListDto`;
+- `TagCurrentValueDto`;
+- `TagValidationIssueDto`;
+- `TagValidationResultDto`.
+
+Зафиксировано правило:
+
+- `scada_contracts` не зависит от `scada_tags`;
+- идентификаторы в DTO передаются строками;
+- enum-значения в DTO передаются строками;
+- значения тегов в DTO передаются строками;
+- timestamps в DTO передаются строками.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 33 — Tag repository interfaces
+
+Добавлены repository-интерфейсы тегов.
+
+Добавлены:
+
+- `ITagRepository`;
+- `ITagCurrentValueRepository`.
+
+Интерфейсы подготовлены для будущих реализаций:
+
+- in-memory;
+- PostgreSQL;
+- mock;
+- file-based;
+- runtime TagValueStore.
+
+Реализация хранения пока не добавлялась.
+
+Сборка и запуск прошли успешно.
+
+---
+
+### Шаг 34 — Tag database migration draft
+
+Добавлена черновая SQL-миграция:
+
+- `database/migrations/0003_tag_model.sql`.
+
+Миграция описывает будущие таблицы:
+
+- `tags`;
+- `tag_current_values`.
+
+Миграция зависит от:
+
+- `object_nodes`;
+- `devices`.
+
+Tag history и Historian пока не добавлялись.
+
+Сборка и запуск прошли успешно.
+
+---
+
+## Итог Sprint 004
+
+В Sprint 004 создан фундамент модели тегов Dispatcher.
+
+Сейчас в проекте есть:
+
+- модуль тегов;
+- типизированный идентификатор тега;
+- базовая сущность тега;
+- модель адресации тега;
+- модель типа тега;
+- модель типа значения;
+- модель качества;
+- модель политики архивирования;
+- модель текущего значения;
+- source-модель текущего значения;
+- value payload;
+- базовая валидация тегов;
+- правила адресации;
+- правила extraction;
+- DTO-контракты тегов;
+- repository-интерфейсы тегов;
+- черновая SQL-миграция тегов.
+
+---
+
+## Что сознательно не делали в Sprint 004
+
+В Sprint 004 не добавлялись:
+
+- Polling Engine;
 - Modbus TCP driver;
 - SNMP driver;
-- Polling Engine;
-- реальные сетевые подключения;
-- Boost.Asio;
-- теги;
-- текущие значения;
-- аварии связи;
+- runtime TagValueStore;
+- реальные текущие значения из устройств;
+- Historian;
+- tag history;
+- alarm rules;
+- command execution;
 - PostgreSQL-подключение;
 - реализация repository;
 - HTTP API;
@@ -531,7 +624,7 @@ PostgreSQL пока не подключался.
 
 ---
 
-# Текущее состояние после Sprint 003
+# Текущее состояние после Sprint 004
 
 Проект находится в состоянии:
 
@@ -540,39 +633,40 @@ PostgreSQL пока не подключался.
     Object Model foundation
         +
     Device Model foundation
+        +
+    Tag Model foundation
 
 Текущий технический фокус завершен.
 
 Следующий логический фокус:
 
-    Tag Model Foundation
+    Communication and Polling Foundation
 
 ---
 
 # Следующий спринт
 
-## Sprint 004 — Tag Model Foundation
+## Sprint 005 — Communication and Polling Foundation
 
-Цель Sprint 004:
+Цель Sprint 005:
 
-Создать базовую модель тегов Dispatcher.
+Создать базовую архитектуру коммуникаций и опроса.
 
 Планируемые направления:
 
-- модуль `scada_tags`;
-- `TagId`;
-- `TagType`;
-- `TagValueType`;
-- `TagQuality`;
-- `TagAddress`;
-- `TagArchivePolicy`;
-- `Tag`;
-- `TagCurrentValue`;
-- связь тега с устройством;
-- связь тега с объектом;
-- DTO-контракты тегов;
-- repository-интерфейсы тегов;
-- черновая SQL-миграция тегов.
+- модуль `scada_protocols`;
+- `IProtocolDriver`;
+- protocol capabilities;
+- read request / read result;
+- write request / write result;
+- batch read;
+- connection check;
+- test address;
+- simulator driver;
+- polling task model;
+- polling group model;
+- базовый polling scheduler;
+- подготовка к Modbus TCP и SNMP.
 
 ---
 
@@ -583,7 +677,8 @@ PostgreSQL пока не подключался.
 - Sprint 001 — Project Foundation.
 - Sprint 002 — Object Model Foundation.
 - Sprint 003 — Device Model Foundation.
+- Sprint 004 — Tag Model Foundation.
 
 ## Следующий
 
-- Sprint 004 — Tag Model Foundation.
+- Sprint 005 — Communication and Polling Foundation.
