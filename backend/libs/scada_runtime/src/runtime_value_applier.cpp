@@ -1,7 +1,9 @@
 #include "scada_runtime/runtime_value_applier.h"
 
 #include "scada_runtime/engineering_transform.h"
+#include "scada_runtime/runtime_event.h"
 #include "scada_runtime/runtime_quality.h"
+#include "scada_runtime/runtime_value_change.h"
 #include "scada_runtime/runtime_value_conversion.h"
 
 #include <chrono>
@@ -38,6 +40,11 @@ namespace dispatcher::runtime
         return updated;
     }
 
+    bool RuntimeValueApplyResult::has_changed() const noexcept
+    {
+        return changed;
+    }
+
     bool RuntimeValueApplyResult::has_good_quality() const noexcept
     {
         return good_quality;
@@ -56,6 +63,11 @@ namespace dispatcher::runtime
     bool RuntimeValueApplyResult::was_engineering_transform_applied() const noexcept
     {
         return engineering_transform_applied;
+    }
+
+    bool RuntimeValueApplyResult::has_event() const noexcept
+    {
+        return event.has_value();
     }
 
     bool RuntimeValueApplyResult::has_message() const noexcept
@@ -120,12 +132,28 @@ namespace dispatcher::runtime
         bool value_converted = false;
         bool engineering_transform_applied = false;
 
-        const auto current_value = make_current_value(
+        auto current_value = make_current_value(
             read_result,
             previous_value,
             tag,
             value_converted,
             engineering_transform_applied
+        );
+
+        const auto change_result = detect_runtime_value_change(
+            previous_value,
+            current_value
+        );
+
+        if (change_result.has_changed())
+        {
+            current_value.mark_changed();
+        }
+
+        const auto runtime_event = make_runtime_value_event(
+            previous_value,
+            current_value,
+            change_result
         );
 
         if (!store_.upsert(current_value))
@@ -138,6 +166,9 @@ namespace dispatcher::runtime
         result.success = true;
         result.inserted = !previous_value.has_value();
         result.updated = previous_value.has_value();
+        result.changed = change_result.has_changed();
+        result.change_kind = change_result.kind;
+        result.event = runtime_event;
         result.previous_change_counter = previous_value.has_value()
             ? previous_value->change_counter
             : 0;
@@ -149,9 +180,18 @@ namespace dispatcher::runtime
         result.value_converted = value_converted;
         result.engineering_transform_applied = engineering_transform_applied;
 
-        result.message = read_result.has_message()
-            ? read_result.message
-            : "Protocol read result applied to runtime store.";
+        if (change_result.has_changed())
+        {
+            result.message = change_result.message;
+        }
+        else if (read_result.has_message())
+        {
+            result.message = read_result.message;
+        }
+        else
+        {
+            result.message = "Protocol read result applied to runtime store without value change.";
+        }
 
         return result;
     }
@@ -246,8 +286,6 @@ namespace dispatcher::runtime
             current.last_good_value = current.engineering_value;
             current.last_good_timestamp = timestamp;
         }
-
-        current.mark_changed();
 
         return current;
     }
