@@ -17,7 +17,7 @@
 
 ## Проект находится на ранней стадии
 
-Dispatcher пока находится на этапе формирования backend-фундамента.
+Dispatcher пока находится на этапе формирования backend-фундамента и подготовки MVP-контуров.
 
 На текущем этапе система еще не является готовой SCADA-платформой.
 
@@ -25,7 +25,7 @@ Dispatcher пока находится на этапе формирования 
 
 Текущая версия не предназначена для промышленной эксплуатации.
 
-Пока реализуются базовые архитектурные модули и доменные модели.
+Пока реализуются базовые архитектурные модули, доменные модели, API foundation и realtime foundation.
 
 ## Нет полноценного запуска системы
 
@@ -35,27 +35,62 @@ Dispatcher пока находится на этапе формирования 
 
 - полноценный фоновый опрос оборудования;
 - подключение к PostgreSQL;
-- HTTP API;
-- WebSocket;
+- реальный HTTP API;
+- реальный WebSocket/SSE gateway;
 - авторизацию;
 - архивирование в БД;
 - обработку аварий через Alarm Manager;
-- управление командами.
+- управление командами;
+- frontend serving.
 
 ---
 
 # Ограничения backend
 
-## Нет HTTP API
+## Нет реального HTTP API
 
-На текущем этапе отсутствуют:
+В `scada_api` уже есть:
 
-- REST API;
-- WebSocket API;
-- OpenAPI;
-- контроллеры;
+- API route model;
+- API response model;
+- API mapper foundation;
+- API read endpoint model;
+- route registry;
+- read endpoint catalog.
+
+Но пока нет:
+
+- HTTP listener;
+- REST controllers;
+- request parser;
+- response serializer;
 - middleware;
-- авторизация запросов.
+- OpenAPI;
+- authorization;
+- real endpoint execution.
+
+## Нет реального realtime transport
+
+В `scada_realtime` уже есть:
+
+- realtime message model;
+- realtime subscription model;
+- channel types;
+- delivery modes;
+- subscription states.
+
+Но пока нет:
+
+- WebSocket server;
+- SSE server;
+- socket clients;
+- subscription registry;
+- topic router;
+- message dispatcher;
+- ping/pong;
+- reconnect;
+- backpressure;
+- delivery guarantees.
 
 ## Нет подключения к PostgreSQL
 
@@ -119,6 +154,25 @@ SQL-миграции уже существуют как черновики.
 - mock repository;
 - file-based repository.
 
+## Нет полноценного composition root
+
+Добавлен модуль `scada_app`, который умеет создавать:
+
+- `ApplicationComposition`;
+- `GatewayStartupOptions`;
+- `GatewayStartupPlan`.
+
+Но пока нет настоящего composition root, который создает:
+
+- repositories;
+- services;
+- background workers;
+- HTTP transport;
+- realtime transport;
+- database connections;
+- module lifecycle;
+- shutdown lifecycle.
+
 ## Нет dependency injection контейнера
 
 Модули пока подключаются статически через CMake и вручную регистрируются в `dispatcher_server`.
@@ -140,12 +194,15 @@ SQL-миграции уже существуют как черновики.
 - `ObjectTree`;
 - `ResponsibilityZone`;
 - правила иерархии;
-- базовую валидацию.
+- базовую валидацию;
+- DTO;
+- repository-интерфейсы;
+- SQL-черновик.
 
 Но пока нет:
 
 - хранения в БД через приложение;
-- API;
+- API handlers;
 - UI;
 - unit-тестов;
 - версионирования;
@@ -189,7 +246,9 @@ SQL-миграции уже существуют как черновики.
 - `DeviceCommunicationStatus`;
 - `DeviceHealthStatus`;
 - базовую валидацию устройства;
-- repository-интерфейсы.
+- DTO устройств;
+- repository-интерфейсы;
+- SQL-черновик.
 
 Но пока нет:
 
@@ -198,7 +257,7 @@ SQL-миграции уже существуют как черновики.
 - SNMP driver;
 - проверки связи через сеть;
 - test poll через реальное устройство;
-- API;
+- API handlers;
 - UI;
 - PostgreSQL-реализации;
 - unit-тестов.
@@ -222,29 +281,18 @@ SQL-миграции уже существуют как черновики.
 - `TagValueSource`;
 - `TagValuePayload`;
 - базовую валидацию тегов;
-- repository-интерфейсы тегов.
+- DTO тегов;
+- repository-интерфейсы;
+- SQL-черновик.
 
 Но пока нет:
 
 - полноценного alarm rule management через API;
 - command execution;
-- API;
+- API handlers;
 - UI;
 - PostgreSQL-реализации;
 - unit-тестов.
-
-## Политики архивирования частично используются только доменно
-
-`TagArchivePolicy` уже используется в `scada_historian` для archive decision.
-
-Но пока нет:
-
-- автоматической интеграции runtime -> historian;
-- периодического scheduler;
-- batch writer в БД;
-- TimescaleDB-интеграции;
-- deadband diagnostics;
-- per-tag archive configuration repository.
 
 ---
 
@@ -320,8 +368,6 @@ Runtime-слой уже умеет применять `ProtocolReadResult`.
 
     PollingScheduler -> RuntimeValueApplier -> TagValueStore
 
-Эта интеграция будет добавлена позже.
-
 ---
 
 # Ограничения runtime
@@ -348,16 +394,14 @@ Runtime-слой уже умеет применять `ProtocolReadResult`.
 - EventBus publish;
 - Historian integration;
 - Alarm integration;
-- WebSocket integration;
-- HTTP API.
+- realtime integration;
+- HTTP API handlers.
 
 ## TagValueStore является in-memory хранилищем
 
 `TagValueStore` хранит текущие значения только в памяти процесса.
 
 После остановки приложения runtime-state теряется.
-
-Постоянное snapshot-хранилище пока описано только интерфейсами и SQL-черновиком.
 
 ## Runtime events пока не публикуются
 
@@ -367,27 +411,9 @@ Runtime-слой уже умеет применять `ProtocolReadResult`.
 
 - публикации в EventBus;
 - подписчиков;
-- доставки в WebSocket;
+- доставки в realtime gateway;
 - записи в Historian;
 - alarm evaluation.
-
-## Change detection пока базовый
-
-Runtime сравнивает:
-
-- `engineering_value`;
-- `quality`;
-- `source`.
-
-Пока не учитываются:
-
-- deadband;
-- archive policy;
-- alarm thresholds;
-- hysteresis;
-- debounce;
-- rate limit;
-- stale timeout.
 
 ---
 
@@ -399,8 +425,6 @@ Runtime сравнивает:
 
 - `HistorySampleId`;
 - `HistorySample`;
-- `ArchiveDecisionReason`;
-- `ArchiveDecisionOptions`;
 - `ArchiveDecision`;
 - `HistorianBuffer`;
 - `HistoryBatch`;
@@ -420,7 +444,7 @@ Runtime сравнивает:
 - реального чтения истории;
 - repository implementation;
 - Runtime -> Historian integration;
-- History API;
+- History API handlers;
 - chart data API.
 
 ## HistorianBuffer является in-memory buffer
@@ -437,39 +461,6 @@ Runtime сравнивает:
 - backpressure;
 - flush scheduler;
 - write worker.
-
-## Archive decision не пишет историю
-
-`decide_archive()` только принимает решение.
-
-Она не выполняет:
-
-- создание sample;
-- запись в buffer;
-- запись в БД;
-- публикацию события.
-
-Будущая цепочка должна быть отдельной:
-
-    RuntimeValueEvent / TagCurrentValue
-        -> ArchiveDecision
-        -> HistorySample
-        -> HistorianBuffer
-        -> HistoryBatch
-        -> IHistoryBatchWriter
-        -> PostgreSQL / TimescaleDB
-
-## HistoryQuery пока не выполняется
-
-`HistoryQuery` описывает параметры будущего запроса.
-
-Но пока нет реализации:
-
-- SQL SELECT;
-- фильтрации в repository;
-- чтения из PostgreSQL;
-- pagination на уровне БД;
-- History API.
 
 ---
 
@@ -498,8 +489,8 @@ Runtime сравнивает:
 - автоматической записи событий;
 - подписчиков событий;
 - event filtering service;
-- event API;
-- WebSocket delivery;
+- event API handlers;
+- realtime delivery;
 - UI event journal.
 
 ## EventRecord пока не создается автоматически
@@ -508,32 +499,7 @@ Runtime сравнивает:
 
 Будущая цепочка:
 
-    Module -> EventRecord -> Event Manager -> Repository / EventBus / WebSocket
-
-## EventBus пока отсутствует
-
-В `scada_core` есть foundation `IEventBus`, но пока нет полноценной интеграции с доменными events.
-
-Нет:
-
-- InMemoryEventBus implementation для domain events;
-- подписчиков;
-- routing;
-- persistence;
-- delivery guarantees;
-- external event bus.
-
-## События пока не связаны с аудитом
-
-Пока нет audit subsystem.
-
-Не реализованы:
-
-- события входа пользователя;
-- события изменения конфигурации;
-- события команд;
-- события подтверждения аварий;
-- события изменения прав.
+    Module -> EventRecord -> Event Manager -> Repository / EventBus / Realtime Gateway
 
 ---
 
@@ -574,8 +540,8 @@ Runtime сравнивает:
 - suppression policy;
 - escalation;
 - notifications;
-- alarm API;
-- WebSocket delivery;
+- alarm API handlers;
+- realtime delivery;
 - UI active alarm panel.
 
 ## Alarm lifecycle пока доменный
@@ -605,51 +571,168 @@ Runtime сравнивает:
 - создает transition history;
 - закрывает аварии при нормализации.
 
-## Alarm rules пока базовые
+---
 
-Поддержаны только:
+# Ограничения API
 
-- `NumericThreshold`;
-- `QualityEquals`;
-- `QualityNotGood`;
-- `QualityBad`.
+## scada_api пока не является HTTP API
 
-Пока нет:
+`scada_api` содержит foundation:
 
-- hysteresis;
-- debounce;
-- delay before activation;
-- delay before clear;
-- rate of change;
-- expression rules;
-- script rules;
-- composite rules;
-- schedule-aware rules;
-- maintenance-aware rules.
-
-## Severity и priority пока не используются UI
-
-Severity и priority уже есть в модели.
-
-Но пока нет UI и Alarm Manager, которые используют их для:
-
-- сортировки активных аварий;
-- цветовой индикации;
-- escalation;
-- уведомлений;
-- фильтрации.
-
-## Shelve и suppress пока только состояния
-
-Состояния `Shelved` и `Suppressed` есть.
+- route model;
+- route registry;
+- response model;
+- mapper foundation;
+- read endpoint model.
 
 Но пока нет:
 
-- политики shelving;
-- срока shelving;
-- причины suppression;
-- автоматического возврата;
-- UI для управления этими режимами.
+- HTTP listener;
+- real routing;
+- controllers;
+- request parsing;
+- response serialization;
+- JSON;
+- OpenAPI;
+- middleware;
+- authentication;
+- authorization;
+- rate limiting.
+
+## API endpoint definitions не являются рабочими endpoint-ами
+
+В `ApiRouteRegistry` и `ApiReadEndpointCatalog` описаны будущие endpoint-ы.
+
+Но обращения по этим URL пока невозможны, потому что transport отсутствует.
+
+## ApiResponse body пока строка
+
+`ApiResponse.body` является placeholder.
+
+Пока нет:
+
+- typed response envelope;
+- JSON serialization;
+- content negotiation;
+- streaming response;
+- error response schema.
+
+## ApiReadFilter пока строковый
+
+Фильтры в `ApiReadFilter` представлены строками, потому что они моделируют будущие HTTP query string значения.
+
+Пока нет:
+
+- типизированного parsing;
+- validation;
+- conversion to domain query;
+- repository query execution.
+
+## Mapper foundation пока общий
+
+Добавлены только:
+
+- mapping status;
+- mapping result;
+- timestamp formatting;
+- primitive formatting.
+
+Пока нет конкретных mapper functions:
+
+- Object -> DTO;
+- Device -> DTO;
+- Tag -> DTO;
+- Runtime -> DTO;
+- Historian -> DTO;
+- Event -> DTO;
+- Alarm -> DTO.
+
+---
+
+# Ограничения realtime
+
+## scada_realtime пока не является gateway
+
+`scada_realtime` содержит foundation:
+
+- realtime message model;
+- subscription model;
+- channel types;
+- message types;
+- delivery modes.
+
+Но пока нет:
+
+- WebSocket server;
+- SSE server;
+- client registry;
+- subscription registry;
+- message dispatcher;
+- topic router;
+- retained message store;
+- authorization;
+- network transport.
+
+## RealtimeMessage payload пока строка
+
+Payload хранится строкой как transport-neutral placeholder.
+
+Пока нет:
+
+- JSON builder;
+- binary payload support;
+- schema validation;
+- compression;
+- serialization envelope.
+
+## RealtimeSubscription пока не связана с клиентом сети
+
+`RealtimeSubscription` содержит `client_id`, но реального сетевого клиента пока нет.
+
+Пока нет:
+
+- socket handle;
+- connection state;
+- remote address;
+- ping/pong state;
+- reconnect token;
+- send queue.
+
+---
+
+# Ограничения application composition
+
+## scada_app является foundation
+
+`scada_app` уже содержит:
+
+- `GatewayMode`;
+- `GatewayStartupStatus`;
+- `GatewayStartupOptions`;
+- `GatewayStartupPlan`;
+- `ApplicationComposition`;
+- `create_gateway_startup_plan()`;
+- `create_default_application_composition()`.
+
+Но пока нет:
+
+- настоящего service container;
+- repository wiring;
+- HTTP transport startup;
+- WebSocket/SSE startup;
+- settings loader;
+- environment profiles;
+- background worker lifecycle;
+- graceful shutdown;
+- health check execution.
+
+## GatewayStartupPlan не запускает сервер
+
+`GatewayStartupPlan` только описывает подготовку запуска.
+
+Статус `Prepared` означает, что конфигурация выглядит валидной.
+
+Реального перехода в `Running` пока нет.
 
 ---
 
@@ -682,13 +765,14 @@ Severity и priority уже есть в модели.
 - панелей;
 - дашбордов;
 - protocol diagnostics;
-- уведомлений.
+- уведомлений;
+- realtime messages.
 
-## Нет mapper-слоя
+## Нет mapper-слоя domain <-> DTO
 
 Преобразование domain <-> DTO пока не реализовано.
 
-Это будет сделано позже, когда появятся API и repository-реализации.
+Добавлен только нейтральный mapper foundation в `scada_api`.
 
 ---
 
@@ -758,7 +842,9 @@ Severity и priority уже есть в модели.
 - аудита действий;
 - политик команд;
 - проверки прав на acknowledgement;
-- проверки прав на command execution.
+- проверки прав на command execution;
+- authentication middleware;
+- authorization middleware.
 
 ---
 
@@ -774,10 +860,23 @@ Severity и priority уже есть в модели.
 
 # Итог
 
-После Sprint 008 проект имеет хороший фундамент объектной модели, модели устройств, модели тегов, протокольного слоя, polling foundation, runtime values foundation, historian foundation и events/alarms foundation.
+После Sprint 009 проект имеет хороший backend foundation:
+
+- object model;
+- device model;
+- tag model;
+- protocol foundation;
+- polling foundation;
+- runtime foundation;
+- historian foundation;
+- events foundation;
+- alarms foundation;
+- API foundation;
+- realtime foundation;
+- application composition foundation.
 
 Но Dispatcher еще не является рабочей диспетчерской системой.
 
 Следующий важный этап:
 
-    Sprint 009 — API and Realtime Gateway
+    Sprint 010 — Minimal Operator UI and MVP stabilization

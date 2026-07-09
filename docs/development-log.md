@@ -111,7 +111,6 @@
 - `DeviceDiagnostics`;
 - `DeviceCommunicationStatus`;
 - `DeviceHealthStatus`;
-- валидация устройств;
 - DTO устройств;
 - repository-интерфейсы устройств;
 - миграция `0002_device_model.sql`.
@@ -152,7 +151,6 @@
 - `TagCurrentValue`;
 - `TagValueSource`;
 - `TagValuePayload`;
-- валидация тегов;
 - DTO тегов;
 - repository-интерфейсы тегов;
 - миграция `0003_tag_model.sql`.
@@ -194,16 +192,12 @@
 
 - `SimulatorProtocolDriver`.
 
-Драйвер реализует `IProtocolDriver` и используется для безопасной проверки polling architecture без реального оборудования.
-
 ### Шаг 38 — Protocol driver registry
 
 Добавлен:
 
 - `ProtocolDriverRegistry`;
 - `create_default_protocol_driver_registry()`.
-
-Default registry содержит simulator driver.
 
 ### Шаг 39 — Polling task and group model
 
@@ -294,19 +288,12 @@ Sprint 005 закрыт.
 - `last_good_value`;
 - `last_good_timestamp`.
 
-Good runtime quality:
-
-- `Good`;
-- `Manual`;
-- `Simulation`.
-
 ### Шаг 46 — Value conversion and engineering transform
 
 Добавлены:
 
 - runtime value conversion;
-- engineering transform;
-- overload `apply_protocol_read_result(read_result, tag)`.
+- engineering transform.
 
 Реализована формула:
 
@@ -320,8 +307,6 @@ Good runtime quality:
 - `RuntimeValueChangeResult`;
 - `RuntimeEventType`;
 - `RuntimeValueEvent`.
-
-`change_counter` увеличивается только при изменении значения, качества или источника.
 
 ### Шаг 48 — Runtime DTO / repository / migration draft
 
@@ -382,16 +367,6 @@ Sprint 007 подготовил цепочку:
 - `ArchiveDecision`;
 - `decide_archive()`.
 
-Поддержаны политики:
-
-- `Disabled`;
-- `AlwaysButThrottled`;
-- `OnChange`;
-- `OnQualityChange`;
-- `OnChangeWithDeadband`;
-- `Periodic`;
-- `OnAlarm`.
-
 ### Шаг 52 — Historian buffer and batch write contract
 
 Добавлен in-memory buffer и контракт будущей batch-записи.
@@ -438,13 +413,13 @@ Sprint 007 закрыт.
 
 ## Статус
 
-Закрывается на шаге 61.
+Закрыт.
 
 ## Цель спринта
 
 Создать фундамент событий и аварий Dispatcher.
 
-Sprint 008 должен был подготовить цепочку:
+Sprint 008 подготовил цепочку:
 
     Runtime / Historian / Polling / Devices -> Events -> Alarms -> future Event Manager / Alarm Manager / UI
 
@@ -467,10 +442,6 @@ Sprint 008 должен был подготовить цепочку:
 - `make_event_record()`;
 - `get_event_module_info()`.
 
-`scada_events` подключен к CMake и к `dispatcher_server`.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 57 — scada_alarms module and Alarm model foundation
 
 Добавлен модуль:
@@ -490,10 +461,6 @@ Sprint 008 должен был подготовить цепочку:
 - `to_event_severity()`;
 - `get_alarm_module_info()`.
 
-`scada_alarms` подключен к CMake и к `dispatcher_server`.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 58 — Alarm lifecycle and transitions
 
 Добавлен lifecycle foundation аварий.
@@ -507,27 +474,6 @@ Sprint 008 должен был подготовить цепочку:
 - `AlarmTransitionResult`;
 - `can_apply_alarm_transition()`;
 - `apply_alarm_transition()`.
-
-Поддержаны базовые переходы:
-
-- `New -> Active`;
-- `New -> Acknowledged`;
-- `Active -> Acknowledged`;
-- `New -> Cleared`;
-- `Active -> Cleared`;
-- `Acknowledged -> Cleared`;
-- `Cleared -> Closed`;
-- `New -> Shelved`;
-- `Active -> Shelved`;
-- `Acknowledged -> Shelved`;
-- `Shelved -> Active`;
-- `New -> Suppressed`;
-- `Active -> Suppressed`;
-- `Acknowledged -> Suppressed`;
-- `Suppressed -> Active`;
-- `Cleared -> Active`.
-
-Сборка и запуск прошли успешно.
 
 ### Шаг 59 — Alarm rules foundation
 
@@ -544,100 +490,233 @@ Sprint 008 должен был подготовить цепочку:
 - `AlarmRuleEvaluationResult`;
 - `evaluate_alarm_rule()`.
 
-Поддержаны типы правил:
-
-- `NumericThreshold`;
-- `QualityEquals`;
-- `QualityNotGood`;
-- `QualityBad`.
-
-`scada_alarms` получил зависимость от `scada_tags`, потому что alarm rules проверяют `TagCurrentValue`.
-
-Сборка и запуск прошли успешно.
-
 ### Шаг 60 — Events/Alarms DTO / repository / migration draft
 
-В `scada_contracts` добавлены DTO events:
+В `scada_contracts` добавлены DTO events и alarms.
 
-- `EventRecordDto`;
-- `EventListDto`;
-- `EventValidationIssueDto`;
-- `EventValidationResultDto`.
-
-В `scada_contracts` добавлены DTO alarms:
-
-- `AlarmRecordDto`;
-- `AlarmTransitionDto`;
-- `AlarmRuleDto`;
-- `AlarmRuleEvaluationResultDto`;
-- `AlarmListDto`;
-- `AlarmValidationIssueDto`;
-- `AlarmValidationResultDto`.
-
-В `scada_events` добавлен repository-интерфейс:
+В `scada_events` добавлен:
 
 - `IEventRecordRepository`.
 
-В `scada_alarms` добавлены repository-интерфейсы:
+В `scada_alarms` добавлены:
 
 - `IAlarmRepository`;
 - `IAlarmTransitionRepository`;
 - `IAlarmRuleRepository`.
 
-Добавлена черновая SQL-миграция:
+Добавлена миграция:
 
 - `database/migrations/0007_events_alarms.sql`.
 
-Миграция описывает таблицы:
+### Шаг 61 — Sprint 008 docs update and close
 
-- `event_records`;
-- `alarm_records`;
-- `alarm_transitions`;
-- `alarm_rules`.
-
-Сборка и запуск прошли успешно.
+Sprint 008 закрыт.
 
 ## Итог Sprint 008
 
-В Sprint 008 создан foundation событий и аварий.
-
-Сейчас в проекте есть:
-
-- модуль `scada_events`;
-- модель `EventRecord`;
-- базовая классификация событий;
-- модуль `scada_alarms`;
-- модель `AlarmRecord`;
-- severity и priority аварий;
-- lifecycle transitions аварий;
-- foundation alarm rules;
-- DTO events;
-- DTO alarms;
-- repository-интерфейсы events;
-- repository-интерфейсы alarms;
-- черновая SQL-миграция events/alarms.
-
-## Что сознательно не делали в Sprint 008
-
-В Sprint 008 не добавлялись:
-
-- Event Manager;
-- Alarm Manager;
-- PostgreSQL repository implementation;
-- Runtime -> Events integration;
-- Runtime -> Alarms integration;
-- EventBus publish;
-- WebSocket delivery;
-- HTTP API;
-- frontend alarm journal;
-- frontend active alarm panel;
-- unit-тесты.
-
-Эти задачи будут выполняться в следующих спринтах.
+Создан foundation событий и аварий Dispatcher.
 
 ---
 
-# Текущее состояние после Sprint 008
+# Sprint 009 — API and Realtime Gateway
+
+## Статус
+
+Закрывается на шаге 67.
+
+## Цель спринта
+
+Создать foundation backend API и realtime gateway.
+
+Sprint 009 должен был подготовить цепочку:
+
+    Domain modules / DTO
+        -> API foundation
+        -> Read endpoint model
+        -> Realtime foundation
+        -> Application composition
+        -> future HTTP/WebSocket transport
+
+## Выполнено
+
+### Шаг 62 — scada_api module and API route/response foundation
+
+Добавлен модуль:
+
+- `scada_api`.
+
+Добавлены:
+
+- `ApiHttpMethod`;
+- `ApiEndpointArea`;
+- `ApiEndpoint`;
+- `ApiRouteRegistry`;
+- `ApiResponseStatus`;
+- `ApiResponse`;
+- `create_default_api_route_registry()`;
+- `get_api_module_info()`.
+
+Начальный route registry содержит будущие endpoint definitions:
+
+- `/api/system/health`;
+- `/api/system/modules`;
+- `/api/runtime/values`;
+- `/api/history/query`;
+- `/api/events`;
+- `/api/alarms/active`;
+- `/api/realtime`.
+
+На этом шаге реальный HTTP-сервер не добавлялся.
+
+### Шаг 63 — API mapper foundation
+
+В `scada_api` добавлен mapper foundation.
+
+Добавлены:
+
+- `ApiMappingStatus`;
+- `ApiTimestampFormat`;
+- `ApiMapperOptions`;
+- `ApiMappingIssue`;
+- `ApiMappingResult`;
+- `make_mapping_success()`;
+- `make_mapping_error()`;
+- `format_timestamp()`;
+- `format_bool()`;
+- `format_uint64()`.
+
+Конкретные domain-to-DTO мапперы не добавлялись, чтобы не превращать `scada_api` в God-module.
+
+### Шаг 64 — API read endpoints model foundation
+
+В `scada_api` добавлен read endpoint model foundation.
+
+Добавлены:
+
+- `ApiReadResourceType`;
+- `ApiReadEndpointKind`;
+- `ApiReadQueryOptions`;
+- `ApiReadFilter`;
+- `ApiReadEndpointDefinition`;
+- `ApiReadEndpointCatalog`;
+- `create_default_api_read_endpoint_catalog()`.
+
+Начальный read endpoint catalog содержит будущие read definitions:
+
+- `/api/system/health`;
+- `/api/system/modules`;
+- `/api/objects/tree`;
+- `/api/objects`;
+- `/api/devices`;
+- `/api/tags`;
+- `/api/runtime/values`;
+- `/api/history/query`;
+- `/api/events`;
+- `/api/alarms/active`;
+- `/api/alarms/rules`.
+
+На этом шаге реальные controllers, handlers и repository calls не добавлялись.
+
+### Шаг 65 — scada_realtime module and realtime message foundation
+
+Добавлен модуль:
+
+- `scada_realtime`.
+
+Добавлены:
+
+- `RealtimeMessageId`;
+- `RealtimeClientId`;
+- `RealtimeSubscriptionId`;
+- `RealtimeTimestamp`;
+- `RealtimeChannelType`;
+- `RealtimeMessageType`;
+- `RealtimePayloadFormat`;
+- `RealtimeDeliveryMode`;
+- `RealtimeSubscriptionState`;
+- `RealtimeMessage`;
+- `RealtimeSubscription`;
+- `make_realtime_message()`;
+- `make_realtime_subscription()`;
+- `get_realtime_module_info()`.
+
+На этом шаге реальный WebSocket/SSE transport не добавлялся.
+
+### Шаг 66 — Application composition and gateway startup foundation
+
+Добавлен модуль:
+
+- `scada_app`.
+
+Добавлены:
+
+- `GatewayMode`;
+- `GatewayStartupStatus`;
+- `GatewayStartupOptions`;
+- `GatewayStartupPlan`;
+- `ApplicationComposition`;
+- `create_gateway_startup_plan()`;
+- `create_default_application_composition()`;
+- `get_app_module_info()`.
+
+`scada_app` связывает:
+
+- API route registry;
+- API read endpoint catalog;
+- realtime foundation;
+- gateway startup plan.
+
+На этом шаге реальный запуск HTTP/WebSocket сервера не добавлялся.
+
+### Шаг 67 — Sprint 009 docs update and close
+
+Обновлена документация:
+
+- `docs/development-log.md`;
+- `docs/known-limitations.md`;
+- `docs/SPRINT_009_SUMMARY.md`.
+
+Sprint 009 закрывается.
+
+## Итог Sprint 009
+
+В Sprint 009 создан foundation API и realtime gateway.
+
+Сейчас в проекте есть:
+
+- модуль `scada_api`;
+- API route model;
+- API response model;
+- API mapper foundation;
+- API read endpoint model;
+- модуль `scada_realtime`;
+- realtime message model;
+- realtime subscription model;
+- модуль `scada_app`;
+- gateway startup options;
+- gateway startup plan;
+- application composition snapshot.
+
+## Что сознательно не делали в Sprint 009
+
+В Sprint 009 не добавлялись:
+
+- настоящий HTTP server;
+- настоящий WebSocket server;
+- SSE server;
+- JSON serialization;
+- REST controllers;
+- request handlers;
+- repository implementations;
+- authorization;
+- OpenAPI;
+- frontend.
+
+Эти задачи будут выполняться позже.
+
+---
+
+# Текущее состояние после Sprint 009
 
 Проект находится в состоянии:
 
@@ -656,34 +735,35 @@ Sprint 008 должен был подготовить цепочку:
     Historian foundation
         +
     Events and Alarms foundation
-
-Текущий технический фокус завершен.
+        +
+    API and Realtime Gateway foundation
 
 Следующий логический фокус:
 
-    API and Realtime Gateway
+    Minimal Operator UI and MVP stabilization
 
 ---
 
 # Следующий спринт
 
-## Sprint 009 — API and Realtime Gateway
+## Sprint 010 — Minimal Operator UI and MVP stabilization
 
-Цель Sprint 009:
+Цель Sprint 010:
 
-Создать минимальный backend API и realtime gateway foundation.
+Создать минимальный frontend/operator UI foundation и стабилизировать MVP-контур.
 
 Предварительные направления:
 
-- HTTP API foundation;
-- runtime values API;
-- objects/devices/tags read API;
-- history query API draft;
-- events/alarms read API draft;
-- WebSocket/SSE realtime gateway foundation;
-- DTO mapper foundation;
-- application composition;
-- server startup flow.
+- Blazor WebAssembly project foundation;
+- MudBlazor foundation;
+- minimal layout;
+- system/modules page;
+- object/device/tag placeholder pages;
+- runtime values placeholder page;
+- events/alarms placeholder pages;
+- frontend API client placeholder;
+- MVP stabilization docs;
+- final MVP limitations.
 
 ---
 
@@ -699,7 +779,8 @@ Sprint 008 должен был подготовить цепочку:
 - Sprint 006 — Runtime Values and Data Engine.
 - Sprint 007 — Historian Foundation.
 - Sprint 008 — Events and Alarms Foundation.
+- Sprint 009 — API and Realtime Gateway.
 
 ## Следующий
 
-- Sprint 009 — API and Realtime Gateway.
+- Sprint 010 — Minimal Operator UI and MVP stabilization.
