@@ -9,6 +9,7 @@
 #include "scada_devices/device_module.h"
 #include "scada_tags/tag_module.h"
 #include "scada_protocols/protocol_module.h"
+#include "scada_polling/polling_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -49,6 +50,12 @@ namespace
         if (protocols_result.is_failure())
         {
             return protocols_result;
+        }
+
+        auto polling_result = context.register_module(dispatcher::polling::get_polling_module_info());
+        if (polling_result.is_failure())
+        {
+            return polling_result;
         }
 
         return dispatcher::common::Result<void>::success();
