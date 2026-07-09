@@ -784,3 +784,211 @@ Sprint 009 закрывается.
 ## Следующий
 
 - Sprint 010 — Minimal Operator UI and MVP stabilization.
+---
+
+# Sprint 010 — Minimal Operator UI and MVP stabilization
+
+## Статус
+
+Закрыт.
+
+## Цель спринта
+
+Создать минимальный frontend/operator UI foundation и стабилизировать MVP-контур Dispatcher.
+
+Sprint 010 подготовил цепочку:
+
+    backend foundation
+        +
+    frontend operator UI foundation
+        +
+    MVP stabilization docs
+
+## Выполнено
+
+### Шаг 68 — Blazor WebAssembly frontend project foundation
+
+Создан frontend-проект:
+
+- `frontend/Dispatcher.Frontend`.
+
+Добавлены:
+
+- Blazor WebAssembly project foundation;
+- frontend solution `Dispatcher.Frontend.slnx`;
+- базовый frontend shell;
+- navigation;
+- placeholder pages;
+- `frontend/README.md`;
+- `frontend/Dispatcher.Frontend/SERVICE.md`.
+
+Особенность:
+
+- проект создан в классической структуре Blazor WebAssembly;
+- маршрутизация находится в `App.razor`;
+- HTML shell находится в `wwwroot/index.html`.
+
+Исправление:
+
+- страница `System.razor` переименована в `SystemPage.razor`, чтобы не конфликтовать с namespace `System`.
+
+### Шаг 69 — Minimal operator layout and navigation
+
+Подключен MudBlazor.
+
+Добавлены:
+
+- MudBlazor package;
+- MudBlazor services;
+- MudBlazor CSS/JS;
+- `MudThemeProvider`;
+- `MudLayout`;
+- `MudAppBar`;
+- `MudDrawer`;
+- sidebar navigation;
+- dark operator layout.
+
+Исправления:
+
+- заменены несовместимые enum/value names текущей версии MudBlazor;
+- включен dark mode;
+- усилены CSS-правила drawer/navigation.
+
+### Шаг 70 — System/modules and API client placeholder
+
+Добавлен frontend API client placeholder.
+
+Добавлены models:
+
+- `BackendModuleViewModel`;
+- `GatewaySummaryViewModel`;
+- `ApiRouteSummaryViewModel`.
+
+Добавлены services:
+
+- `DispatcherApiClientOptions`;
+- `IDispatcherApiClient`;
+- `DispatcherApiClient`.
+
+System page теперь показывает:
+
+- backend modules;
+- gateway summary;
+- API route summary;
+- realtime foundation summary.
+
+Данные пока mock.
+
+### Шаг 71 — Runtime/events/alarms placeholder pages
+
+Добавлены models:
+
+- `RuntimeValueViewModel`;
+- `EventRecordViewModel`;
+- `ActiveAlarmViewModel`.
+
+Расширен API client placeholder.
+
+Обновлены страницы:
+
+- Runtime;
+- Events;
+- Alarms.
+
+Runtime page показывает mock current values.
+
+Events page показывает mock event journal.
+
+Alarms page показывает mock active alarms.
+
+### Шаг 72 — MVP stabilization docs
+
+Созданы документы:
+
+- `docs/MVP_STATUS.md`;
+- `docs/MVP_STABILIZATION_CHECKLIST.md`;
+- `docs/MVP_SCOPE.md`.
+
+Документы фиксируют:
+
+- текущий MVP status;
+- MVP scope;
+- mock scope;
+- foundation scope;
+- stabilization checklist.
+
+### Шаг 73 — Sprint 010 docs update and MVP closure
+
+Создан:
+
+- `docs/SPRINT_010_SUMMARY.md`.
+
+Обновлены:
+
+- `docs/development-log.md`;
+- `docs/known-limitations.md`.
+
+Sprint 010 закрыт.
+
+MVP foundation stage закрыт.
+
+## Языковая политика frontend
+
+После Sprint 010 frontend-интерфейс должен разрабатываться на русском языке по умолчанию.
+
+Английский язык будет рассматриваться как будущая локализация.
+
+Текущие английские подписи в UI foundation являются временными.
+
+## Итог Sprint 010
+
+Создан минимальный operator UI foundation.
+
+MVP foundation достигнут.
+
+Текущий MVP не является production-ready SCADA, но показывает:
+
+- backend modular foundation;
+- frontend operator UI direction;
+- API/realtime foundation;
+- runtime/events/alarms UI placeholders;
+- documented MVP boundaries.
+
+---
+
+# MVP Foundation Closure
+
+## Статус
+
+Закрыт.
+
+## Завершенные спринты MVP foundation
+
+- Sprint 001 — Project Foundation.
+- Sprint 002 — Object Model Foundation.
+- Sprint 003 — Device Model Foundation.
+- Sprint 004 — Tag Model Foundation.
+- Sprint 005 — Communication and Polling Foundation.
+- Sprint 006 — Runtime Values and Data Engine.
+- Sprint 007 — Historian Foundation.
+- Sprint 008 — Events and Alarms Foundation.
+- Sprint 009 — API and Realtime Gateway.
+- Sprint 010 — Minimal Operator UI and MVP stabilization.
+
+## Итог
+
+MVP foundation stage завершен.
+
+Следующий этап:
+
+    Post-MVP development
+
+Основной фокус следующего этапа:
+
+- русский UI cleanup;
+- real HTTP API transport;
+- JSON serialization;
+- system/modules real API;
+- transition from mock frontend data to backend data;
+- frontend real API client;
+- real integration foundations.

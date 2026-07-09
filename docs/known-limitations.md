@@ -880,3 +880,68 @@ Payload хранится строкой как transport-neutral placeholder.
 Следующий важный этап:
 
     Sprint 010 — Minimal Operator UI and MVP stabilization
+---
+
+# Ограничения после закрытия MVP foundation
+
+## MVP foundation не является production-ready системой
+
+После Sprint 010 проект достиг MVP foundation, но не стал промышленной SCADA-системой.
+
+Остаются ограничения:
+
+- нет real HTTP API;
+- нет real WebSocket/SSE gateway;
+- нет PostgreSQL repository implementations;
+- нет Modbus TCP driver;
+- нет SNMP driver;
+- нет background polling loop;
+- нет Event Manager;
+- нет Alarm Manager;
+- нет authentication;
+- нет authorization;
+- нет dashboards;
+- нет mimic diagrams;
+- нет command execution.
+
+## Frontend данные пока mock
+
+Следующие frontend-экраны пока используют mock-data:
+
+- System;
+- Runtime;
+- Events;
+- Alarms.
+
+Mock-data не отражает реальное состояние backend.
+
+## Frontend API client пока placeholder
+
+`DispatcherApiClient` пока не делает реальные HTTP-запросы.
+
+Он нужен как стабильная точка расширения до реализации backend HTTP transport и API handlers.
+
+## Frontend язык
+
+После Sprint 010 принято правило:
+
+    новый пользовательский frontend-текст пишется на русском языке
+
+Текущие английские подписи, оставшиеся в UI foundation, считаются временным ограничением.
+
+Английский язык будет добавлен позже как локализация, а не как основной язык интерфейса.
+
+## Post-MVP ближайшие ограничения
+
+Перед переходом к real integration нужно решить:
+
+- русский UI cleanup;
+- терминологию интерфейса;
+- backend HTTP transport;
+- JSON serialization;
+- real system/modules API;
+- real frontend API client;
+- CORS/settings policy;
+- error handling policy;
+- loading states;
+- empty states.
