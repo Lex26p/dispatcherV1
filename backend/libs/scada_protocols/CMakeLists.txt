@@ -3,6 +3,7 @@ add_library(scada_protocols STATIC
     src/protocol_module.cpp
     src/protocol_requests.cpp
     src/protocol_results.cpp
+    src/simulator_protocol_driver.cpp
 )
 
 target_include_directories(scada_protocols

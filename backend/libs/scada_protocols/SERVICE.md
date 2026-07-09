@@ -54,11 +54,13 @@
 - `ProtocolBatchReadResult`;
 - `ProtocolWriteRequest`;
 - `ProtocolWriteResult`;
+- `SimulatorProtocolDriver`;
 - общий контракт read;
 - общий контракт batch read;
 - общий контракт write;
 - общий контракт проверки соединения;
 - общий контракт проверки адреса;
+- базовый simulator driver;
 - подготовку к future protocol drivers.
 
 ## Что модуль не должен делать
@@ -81,7 +83,6 @@
 
 - Modbus TCP driver;
 - SNMP driver;
-- Simulator driver;
 - реальные TCP/UDP подключения;
 - Boost.Asio;
 - retry policy;
@@ -251,6 +252,65 @@
 - `read_batch()`;
 - `write()`.
 
+## SimulatorProtocolDriver
+
+`SimulatorProtocolDriver` — базовый локальный драйвер симулятора.
+
+Он реализует `IProtocolDriver` и не выполняет сетевой обмен.
+
+Назначение:
+
+- проверять общий контракт `IProtocolDriver`;
+- проверять будущий polling без реального оборудования;
+- проверять batch read;
+- проверять dry run write;
+- проверять обработку качества и сообщений;
+- использоваться как безопасный тестовый источник значений.
+
+## Simulator address rules
+
+На текущем этапе simulator driver поддерживает простые адреса:
+
+- `constant.true`;
+- `constant.false`;
+- `constant.zero`;
+- `constant.one`;
+- `status`;
+- `counter`;
+- `temperature`;
+- `random`.
+
+Примеры:
+
+    constant.true -> bool true
+    constant.false -> bool false
+    constant.zero -> int32 0
+    constant.one -> int32 1
+    status -> string OK
+    counter -> int64 incrementing value
+    temperature -> double pseudo temperature
+    random -> double pseudo random value
+
+Если адрес неизвестен, драйвер возвращает числовое значение на основе внутреннего счетчика чтений.
+
+## Почему Simulator driver находится в scada_protocols
+
+Simulator driver нужен как первая реальная реализация `IProtocolDriver`.
+
+Он не требует отдельного модуля на этом этапе, потому что:
+
+- он маленький;
+- он нужен для проверки протокольного контракта;
+- он пригодится в следующих шагах Sprint 005;
+- он не выполняет сетевой обмен;
+- он не зависит от внешних библиотек.
+
+Позже можно будет вынести concrete drivers в отдельные модули, например:
+
+- `scada_protocol_modbus`;
+- `scada_protocol_snmp`;
+- `scada_protocol_simulator`.
+
 ## Почему batch read обязателен в контракте
 
 Для SCADA polling важно уметь читать группы тегов эффективно.
@@ -284,6 +344,8 @@
 - simulation mode;
 - проверка доступности записи;
 - безопасное подтверждение команды.
+
+Simulator driver уже поддерживает dry run.
 
 ## Correlation ID
 
@@ -346,10 +408,12 @@ Protocol result использует `TagQuality`.
 - `include/scada_protocols/protocol_results.h`
 - `include/scada_protocols/protocol_driver.h`
 - `include/scada_protocols/protocol_module.h`
+- `include/scada_protocols/drivers/simulator_protocol_driver.h`
 - `src/protocol_capabilities.cpp`
 - `src/protocol_requests.cpp`
 - `src/protocol_results.cpp`
 - `src/protocol_module.cpp`
+- `src/simulator_protocol_driver.cpp`
 
 ## Статус реализации
 
@@ -360,6 +424,8 @@ Protocol result использует `TagQuality`.
 - Добавлены request-модели.
 - Добавлены result-модели.
 - Добавлен `IProtocolDriver`.
+- Добавлен `SimulatorProtocolDriver`.
+- Добавлены базовые правила simulator-адресов.
 - Добавлен `get_protocol_module_info()`.
 - Модуль подключен к CMake.
 - Модуль подключен к `dispatcher_server`.
@@ -367,11 +433,11 @@ Protocol result использует `TagQuality`.
 ### Делаем сейчас
 
 - Формируем общий контракт протокольных драйверов Dispatcher.
-- Готовим основу для Simulator, Modbus TCP, SNMP и будущего polling.
+- Добавляем безопасный локальный simulator driver.
+- Готовим основу для polling без реального оборудования.
 
 ### Нужно доделать
 
-- Добавить Simulator driver.
 - Добавить registry драйверов.
 - Добавить polling task model.
 - Добавить polling group model.
