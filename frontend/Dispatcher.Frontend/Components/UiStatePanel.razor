@@ -1,0 +1,40 @@
+<MudAlert Severity="@AlertSeverity"
+          Variant="Variant.Outlined"
+          Class="@Class">
+    @if (!string.IsNullOrWhiteSpace(Title))
+    {
+        <MudText Typo="Typo.subtitle2">@Title</MudText>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <MudText Typo="Typo.body2">@Message</MudText>
+    }
+</MudAlert>
+
+@code {
+    [Parameter]
+    public UiStateKind Kind { get; set; } = UiStateKind.Info;
+
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Class { get; set; } = string.Empty;
+
+    private Severity AlertSeverity =>
+        Kind switch
+        {
+            UiStateKind.Error => Severity.Error,
+            UiStateKind.Warning => Severity.Warning,
+            UiStateKind.MockData => Severity.Warning,
+            UiStateKind.NotImplemented => Severity.Info,
+            UiStateKind.NoConnection => Severity.Error,
+            UiStateKind.Loading => Severity.Info,
+            UiStateKind.Empty => Severity.Info,
+            _ => Severity.Info
+        };
+}

@@ -21,10 +21,9 @@
             </MudChip>
         </MudStack>
 
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            На этой странице пока отображаются демо-данные.
-            Реальное подключение к backend API будет добавлено после реализации HTTP transport.
-        </MudAlert>
+        <UiStatePanel Kind="UiStateKind.MockData"
+                      Title="@UiText.DemoDataTitle"
+                      Message="@UiText.SystemDemoDataMessage" />
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">

@@ -19,10 +19,9 @@
             </MudChip>
         </MudStack>
 
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            На этой странице пока отображаются демо-данные.
-            Реальное подключение к `/api/runtime/values` будет добавлено позже.
-        </MudAlert>
+        <UiStatePanel Kind="UiStateKind.MockData"
+                      Title="@UiText.DemoDataTitle"
+                      Message="@UiText.RuntimeDemoDataMessage" />
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">

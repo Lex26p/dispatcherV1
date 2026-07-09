@@ -19,10 +19,9 @@
             </MudChip>
         </MudStack>
 
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            На этой странице пока отображаются демо-аварии.
-            Реальное подключение к `/api/alarms/active` будет добавлено позже.
-        </MudAlert>
+        <UiStatePanel Kind="UiStateKind.MockData"
+                      Title="@UiText.DemoDataTitle"
+                      Message="@UiText.AlarmsDemoDataMessage" />
 
         <MudGrid Spacing="3">
             <MudItem xs="12" md="4">
