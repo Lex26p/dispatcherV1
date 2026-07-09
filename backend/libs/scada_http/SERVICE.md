@@ -1,0 +1,82 @@
+﻿# scada_http
+
+## Назначение
+
+`scada_http` — backend-модуль transport foundation для HTTP API Dispatcher.
+
+Модуль отвечает за transport-level часть будущего API gateway.
+
+## Статус
+
+Foundation.
+
+На текущем шаге модуль только создан и подключен к сборке.
+
+HTTP server еще не реализован.
+
+## Зона ответственности
+
+`scada_http` отвечает за:
+
+- HTTP server options;
+- TCP/HTTP transport;
+- request parsing;
+- response writing;
+- route dispatch bridge;
+- development HTTP server lifecycle.
+
+## Не отвечает за
+
+`scada_http` не отвечает за:
+
+- доменную бизнес-логику;
+- object/device/tag/runtime models;
+- API contracts;
+- repository implementations;
+- authorization;
+- authentication;
+- frontend behavior.
+
+## Связь с другими модулями
+
+`scada_api`:
+
+- описывает API endpoints, response model и read catalog.
+
+`scada_http`:
+
+- будет доставлять HTTP-запросы до API handlers и возвращать HTTP-ответы.
+
+`scada_app`:
+
+- хранит application composition и startup plan.
+
+`dispatcher_server`:
+
+- запускает application и позже будет запускать HTTP server.
+
+## Default policy
+
+На этапе foundation будущий HTTP server должен слушать только localhost:
+
+    127.0.0.1
+
+Рекомендуемый development port:
+
+    8080
+
+## Ограничения
+
+Пока нет:
+
+- HTTP server;
+- TCP acceptor;
+- request parser;
+- response writer;
+- route dispatcher;
+- endpoints;
+- HTTPS;
+- CORS;
+- authentication;
+- authorization;
+- WebSocket/SSE.

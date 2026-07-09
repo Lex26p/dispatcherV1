@@ -9,7 +9,7 @@ project(
 
 if(POLICY CMP0141)
     cmake_policy(SET CMP0141 NEW)
-    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug,RelWithDebInfo>>:ProgramDatabase>")
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -29,6 +29,7 @@ add_subdirectory(backend/libs/scada_historian)
 add_subdirectory(backend/libs/scada_events)
 add_subdirectory(backend/libs/scada_alarms)
 add_subdirectory(backend/libs/scada_api)
+add_subdirectory(backend/libs/scada_http)
 add_subdirectory(backend/libs/scada_realtime)
 add_subdirectory(backend/libs/scada_app)
 

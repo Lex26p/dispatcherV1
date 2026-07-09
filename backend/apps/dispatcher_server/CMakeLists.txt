@@ -1,4 +1,4 @@
-add_executable(dispatcher_server
+﻿add_executable(dispatcher_server
     src/main.cpp
 )
 
@@ -22,6 +22,7 @@ target_link_libraries(dispatcher_server
         scada_events
         scada_alarms
         scada_api
+        scada_http
         scada_realtime
         scada_app
 )
