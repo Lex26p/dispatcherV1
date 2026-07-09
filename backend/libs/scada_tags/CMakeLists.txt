@@ -6,6 +6,7 @@ add_library(scada_tags STATIC
     src/tag_module.cpp
     src/tag_quality.cpp
     src/tag_type.cpp
+    src/tag_validation.cpp
     src/tag_value_type.cpp
 )
 
