@@ -3,6 +3,7 @@ add_library(scada_contracts STATIC
     src/device_dto.cpp
     src/object_dto.cpp
     src/polling_dto.cpp
+    src/runtime_dto.cpp
     src/tag_dto.cpp
 )
 
