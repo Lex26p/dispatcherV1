@@ -12,6 +12,7 @@
 #include "scada_polling/polling_module.h"
 #include "scada_runtime/runtime_module.h"
 #include "scada_historian/historian_module.h"
+#include "scada_events/event_module.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -70,6 +71,12 @@ namespace
         if (historian_result.is_failure())
         {
             return historian_result;
+        }
+
+        auto events_result = context.register_module(dispatcher::events::get_event_module_info());
+        if (events_result.is_failure())
+        {
+            return events_result;
         }
 
         return dispatcher::common::Result<void>::success();
