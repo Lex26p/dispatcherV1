@@ -1518,3 +1518,36 @@ Build system:
 Catch2 test cases регистрируются в CTest через:
 
     catch_discover_tests
+
+### Шаг 101
+
+Добавлены backend HTTP unit tests.
+
+Созданы:
+
+    tests/backend/scada_http/CMakeLists.txt
+    tests/backend/scada_http/http_types_tests.cpp
+    tests/backend/scada_http/http_router_tests.cpp
+
+Протестированы:
+
+- case-insensitive HTTP method parsing;
+- HTTP method and status names;
+- JSON, text и empty response factories;
+- default development CORS policy;
+- disabled CORS;
+- wildcard origin and credentials restriction;
+- обязательные CORS origins, methods и headers;
+- HTTP server option validation;
+- HTTP request validation;
+- HTTP endpoint and header validation;
+- route registration;
+- duplicate route rejection;
+- разные methods для одного path;
+- invalid route rejection;
+- route handler dispatch;
+- bad request response;
+- not found response;
+- method not allowed response.
+
+Тесты не запускают реальный Drogon listener и не требуют сети.
