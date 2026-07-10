@@ -5,6 +5,7 @@ add_library(scada_api STATIC
     src/api_read_endpoint.cpp
     src/api_response.cpp
     src/api_route_registry.cpp
+    src/configuration_read_models.cpp
 )
 
 target_include_directories(scada_api
@@ -22,4 +23,7 @@ target_link_libraries(scada_api
         scada_common
         scada_core
         scada_contracts
+        scada_objects
+        scada_devices
+        scada_tags
 )

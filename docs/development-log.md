@@ -1843,3 +1843,76 @@ Sprint status:
     114 — Real Objects page integration
     115 — Real Devices and Tags page integration
     116 — Integration checks, current status and closure
+
+### Шаг 109
+
+Добавлены configuration read contracts и development provider.
+
+В `scada_api` созданы:
+
+    ObjectReadModel
+    ObjectTreeNodeReadModel
+    DeviceConnectionReadModel
+    DeviceReadModel
+    TagReadModel
+    ReadCollection<T>
+    ObjectTreeReadResult
+
+Добавлены resource queries:
+
+    ObjectReadQuery
+    DeviceReadQuery
+    TagReadQuery
+
+Создан transport-neutral interface:
+
+    IConfigurationReadService
+
+Interface предоставляет:
+
+    read_objects
+    read_object_tree
+    read_devices
+    read_tags
+
+Domain entities преобразуются в отдельные read models.
+
+Drogon, JsonCpp и HTTP types не входят в read service contracts.
+
+В `scada_app` создан:
+
+    DevelopmentConfigurationReadService
+
+Development snapshot содержит:
+
+- 5 objects;
+- 4 devices;
+- 6 tags;
+- object hierarchy;
+- Modbus TCP;
+- SNMP IPv6;
+- Simulator;
+- enabled и disabled configuration;
+- разные tag и value types.
+
+Snapshot проходит:
+
+- ObjectTree validation;
+- Device validation;
+- Tag validation;
+- duplicate ID validation;
+- cross-reference validation.
+
+Реализованы:
+
+- deterministic ordering;
+- filtering;
+- includeChildren;
+- includeDisabled;
+- pagination;
+- object tree selection;
+- development service factory.
+
+Созданы `scada_api` и `scada_app` unit test targets.
+
+HTTP endpoints на шаге 109 не добавлялись.

@@ -1,6 +1,7 @@
 add_library(scada_app STATIC
     src/app_module.cpp
     src/application_composition.cpp
+    src/development_configuration_read_service.cpp
     src/gateway_startup.cpp
 )
 
@@ -20,4 +21,8 @@ target_link_libraries(scada_app
         scada_core
         scada_api
         scada_realtime
+    PRIVATE
+        scada_objects
+        scada_devices
+        scada_tags
 )
