@@ -2083,3 +2083,79 @@ Concrete development provider остается в composition root.
     GET /api/objects/tree
     GET /api/devices
     GET /api/tags
+
+### Шаг 113
+
+Добавлен typed frontend configuration API client.
+
+Созданы transport DTO:
+
+    ObjectCollectionApiResponse
+    ObjectApiDto
+    ObjectTreeApiResponse
+    ObjectTreeNodeApiDto
+    DeviceCollectionApiResponse
+    DeviceApiDto
+    DeviceConnectionApiDto
+    TagCollectionApiResponse
+    TagApiDto
+
+Созданы frontend view models:
+
+    ConfigurationPage<T>
+    ObjectViewModel
+    ObjectTreeViewModel
+    ObjectTreeNodeViewModel
+    DeviceViewModel
+    DeviceConnectionViewModel
+    TagViewModel
+
+Созданы typed query requests:
+
+    ObjectReadRequest
+    ObjectTreeReadRequest
+    DeviceReadRequest
+    TagReadRequest
+
+Query builder поддерживает:
+
+- deterministic parameter order;
+- URI escaping;
+- nullable parameters;
+- explicit Boolean values;
+- invariant integer formatting.
+
+Создан interface:
+
+    IConfigurationApiClient
+
+Создан HTTP implementation:
+
+    ConfigurationHttpApiClient
+
+Client предоставляет:
+
+    GetObjectsAsync
+    GetObjectTreeAsync
+    GetDevicesAsync
+    GetTagsAsync
+
+Переиспользованы frontend error conventions:
+
+- DispatcherApiException;
+- DispatcherApiErrorKind;
+- ApiErrorResponse;
+- backend error code;
+- correlation ID;
+- timeout;
+- connection failure;
+- invalid response;
+- caller cancellation.
+
+Configuration client зарегистрирован в DI.
+
+Frontend configuration mock-data не добавлялись.
+
+Добавлены DTO mapping и HTTP client xUnit tests.
+
+Razor pages на шаге 113 не изменялись.

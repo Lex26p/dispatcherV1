@@ -1,50 +1,58 @@
 using Dispatcher.Frontend;
 using Dispatcher.Frontend.Services;
-
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-
 using MudBlazor.Services;
 
-var builder = WebAssemblyHostBuilder.CreateDefault(args);
+var builder =
+    WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 
-var defaultApiOptions = new DispatcherApiClientOptions();
+var defaultApiOptions =
+    new DispatcherApiClientOptions();
 
-var apiConfiguration = builder.Configuration.GetSection(
-    DispatcherApiClientOptions.SectionName
-);
+var apiConfiguration =
+    builder.Configuration.GetSection(
+        DispatcherApiClientOptions.SectionName
+    );
 
-var apiOptions = new DispatcherApiClientOptions {
-    BaseUrl = apiConfiguration["BaseUrl"]
-        ?? defaultApiOptions.BaseUrl,
+var apiOptions =
+    new DispatcherApiClientOptions
+    {
+        BaseUrl =
+            apiConfiguration["BaseUrl"]
+            ?? defaultApiOptions.BaseUrl,
 
-    ApiBasePath = apiConfiguration["ApiBasePath"]
-        ?? defaultApiOptions.ApiBasePath,
+        ApiBasePath =
+            apiConfiguration["ApiBasePath"]
+            ?? defaultApiOptions.ApiBasePath,
 
-    UseMockData = bool.TryParse(
-        apiConfiguration["UseMockData"],
-        out var useMockData
-    )
-        ? useMockData
-        : defaultApiOptions.UseMockData,
+        UseMockData =
+            bool.TryParse(
+                apiConfiguration["UseMockData"],
+                out var useMockData
+            )
+                ? useMockData
+                : defaultApiOptions.UseMockData,
 
-    RequestTimeoutSeconds = int.TryParse(
-        apiConfiguration["RequestTimeoutSeconds"],
-        out var requestTimeoutSeconds
-    )
-        ? requestTimeoutSeconds
-        : defaultApiOptions.RequestTimeoutSeconds
-};
+        RequestTimeoutSeconds =
+            int.TryParse(
+                apiConfiguration["RequestTimeoutSeconds"],
+                out var requestTimeoutSeconds
+            )
+                ? requestTimeoutSeconds
+                : defaultApiOptions.RequestTimeoutSeconds
+    };
 
 builder.Services.AddSingleton(apiOptions);
 
 builder.Services.AddScoped(
-    _ => new HttpClient {
+    _ => new HttpClient
+    {
         BaseAddress = apiOptions.BackendBaseUri,
         Timeout = apiOptions.RequestTimeout
     }
@@ -55,16 +63,24 @@ builder.Services.AddScoped<
     DispatcherApiClient
 >();
 
-if (apiOptions.UseMockData) {
+if (apiOptions.UseMockData)
+{
     builder.Services.AddScoped<
         ISystemApiClient,
         MockSystemApiClient
     >();
-} else {
+}
+else
+{
     builder.Services.AddScoped<
         ISystemApiClient,
         SystemHttpApiClient
     >();
 }
+
+builder.Services.AddScoped<
+    IConfigurationApiClient,
+    ConfigurationHttpApiClient
+>();
 
 await builder.Build().RunAsync();
