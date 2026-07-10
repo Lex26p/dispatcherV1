@@ -1,1 +1,1 @@
-﻿# Dispatcher MVP specification
+# Dispatcher MVP specification

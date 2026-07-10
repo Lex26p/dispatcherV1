@@ -9,10 +9,7 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{bat,cmd}]
-end_of_line = crlf
-
-[*.{png,jpg,jpeg,gif,ico,pdf,zip,7z,dll,exe,pdb}]
+[*.{png,jpg,jpeg,gif,ico,pdf,zip,7z,dll,exe,pdb,lib,obj,bin}]
 charset = unset
 end_of_line = unset
 insert_final_newline = unset

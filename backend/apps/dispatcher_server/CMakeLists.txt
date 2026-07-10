@@ -1,4 +1,4 @@
-﻿add_executable(dispatcher_server
+add_executable(dispatcher_server
     src/main.cpp
 )
 

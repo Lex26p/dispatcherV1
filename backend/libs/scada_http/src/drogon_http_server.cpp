@@ -1,12 +1,16 @@
-﻿#include "scada_http/drogon_http_server.h"
+#include "scada_http/drogon_http_server.h"
 
 #include <drogon/drogon.h>
 
+#include <algorithm>
 #include <atomic>
 #include <functional>
+#include <set>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 namespace dispatcher::http {
 namespace {
@@ -33,6 +37,85 @@ namespace {
     case HttpMethod::Unknown:
     default:
         return drogon::Invalid;
+    }
+}
+
+[[nodiscard]] std::string join_values(
+    const std::vector<std::string>& values
+)
+{
+    std::ostringstream output;
+
+    for (std::size_t index = 0; index < values.size(); ++index) {
+        if (index > 0) {
+            output << ", ";
+        }
+
+        output << values[index];
+    }
+
+    return output.str();
+}
+
+[[nodiscard]] bool is_origin_allowed(
+    const HttpCorsOptions& cors_options,
+    const std::string& origin
+)
+{
+    if (!cors_options.enabled || origin.empty()) {
+        return false;
+    }
+
+    if (cors_options.allow_any_origin) {
+        return true;
+    }
+
+    return std::ranges::find(
+        cors_options.allowed_origins,
+        origin
+    ) != cors_options.allowed_origins.end();
+}
+
+void apply_cors_headers(
+    const HttpCorsOptions& cors_options,
+    const drogon::HttpRequestPtr& request,
+    const drogon::HttpResponsePtr& response
+)
+{
+    if (!cors_options.enabled) {
+        return;
+    }
+
+    const auto origin = request->getHeader("Origin");
+
+    if (!is_origin_allowed(cors_options, origin)) {
+        return;
+    }
+
+    if (cors_options.allow_any_origin && !cors_options.allow_credentials) {
+        response->addHeader("Access-Control-Allow-Origin", "*");
+    } else {
+        response->addHeader("Access-Control-Allow-Origin", origin);
+        response->addHeader("Vary", "Origin");
+    }
+
+    response->addHeader(
+        "Access-Control-Allow-Methods",
+        join_values(cors_options.allowed_methods)
+    );
+
+    response->addHeader(
+        "Access-Control-Allow-Headers",
+        join_values(cors_options.allowed_headers)
+    );
+
+    response->addHeader(
+        "Access-Control-Max-Age",
+        std::to_string(cors_options.max_age_seconds)
+    );
+
+    if (cors_options.allow_credentials) {
+        response->addHeader("Access-Control-Allow-Credentials", "true");
     }
 }
 
@@ -91,6 +174,22 @@ namespace {
     }
 
     return result;
+}
+
+[[nodiscard]] drogon::HttpResponsePtr make_cors_preflight_response()
+{
+    auto response = drogon::HttpResponse::newHttpResponse();
+
+    response->setStatusCode(
+        static_cast<drogon::HttpStatusCode>(
+            static_cast<int>(HttpStatusCode::NoContent)
+        )
+    );
+
+    response->setBody({});
+    response->setCloseConnection(true);
+
+    return response;
 }
 
 } // namespace
@@ -169,6 +268,8 @@ struct DrogonHttpServer::Impl {
             return;
         }
 
+        std::set<std::string> cors_preflight_paths;
+
         for (const auto& route : route_dispatcher.routes()) {
             if (!route.is_valid()) {
                 continue;
@@ -182,17 +283,48 @@ struct DrogonHttpServer::Impl {
 
             drogon::app().registerHandler(
                 route.endpoint.path,
-                [route](
+                [this, route](
                     const drogon::HttpRequestPtr& request,
                     std::function<void(const drogon::HttpResponsePtr&)>&& callback
                 ) {
                     const auto dispatcher_request = to_dispatcher_request(request);
                     const auto dispatcher_response = route.handler(dispatcher_request);
+                    const auto drogon_response = to_drogon_response(dispatcher_response);
 
-                    callback(to_drogon_response(dispatcher_response));
+                    apply_cors_headers(
+                        options.cors,
+                        request,
+                        drogon_response
+                    );
+
+                    callback(drogon_response);
                 },
                 {drogon_method}
             );
+
+            if (
+                options.cors.enabled
+                && cors_preflight_paths.insert(route.endpoint.path).second
+            ) {
+                drogon::app().registerHandler(
+                    route.endpoint.path,
+                    [this](
+                        const drogon::HttpRequestPtr& request,
+                        std::function<void(const drogon::HttpResponsePtr&)>&& callback
+                    ) {
+                        const auto response = make_cors_preflight_response();
+
+                        apply_cors_headers(
+                            options.cors,
+                            request,
+                            response
+                        );
+
+                        callback(response);
+                    },
+                    {drogon::Options}
+                );
+            }
         }
 
         routes_registered = true;

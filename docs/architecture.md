@@ -1,1 +1,1 @@
-﻿# Dispatcher architecture
+# Dispatcher architecture

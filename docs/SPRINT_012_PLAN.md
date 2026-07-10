@@ -1,4 +1,4 @@
-﻿# Sprint 012 Plan
+# Sprint 012 Plan
 
 ## Название спринта
 

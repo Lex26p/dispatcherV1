@@ -1,4 +1,4 @@
-﻿#include "scada_http/system_modules_endpoint.h"
+#include "scada_http/system_modules_endpoint.h"
 
 #include <sstream>
 #include <string>

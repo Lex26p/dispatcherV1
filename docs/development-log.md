@@ -1324,3 +1324,30 @@ Started.
 - mock mode остается как fallback/development option;
 - нужен backend development CORS foundation;
 - production auth/CORS/WebSocket не входят в Sprint 013.
+
+### Шаг 92
+
+Добавлен backend development CORS foundation.
+
+Обновлен модуль:
+
+    backend/libs/scada_http
+
+Добавлено:
+
+- `HttpCorsOptions`;
+- default development allowed origins;
+- default development allowed methods;
+- default development allowed headers;
+- CORS headers для Drogon responses;
+- OPTIONS preflight handlers для registered API routes.
+
+Default allowed origins:
+
+    http://localhost:5030
+    http://127.0.0.1:5030
+    https://localhost:5030
+
+Development CORS добавлен только на уровне `scada_http`.
+
+Drogon остается implementation detail модуля `scada_http`.

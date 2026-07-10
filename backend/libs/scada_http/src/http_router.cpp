@@ -1,4 +1,4 @@
-﻿#include "scada_http/http_router.h"
+#include "scada_http/http_router.h"
 
 #include <sstream>
 #include <utility>

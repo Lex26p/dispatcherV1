@@ -1,4 +1,4 @@
-﻿#include "scada_http/system_health_endpoint.h"
+#include "scada_http/system_health_endpoint.h"
 
 #include "scada_common/version.h"
 

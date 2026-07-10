@@ -1,4 +1,4 @@
-﻿# Dispatcher services index
+# Dispatcher services index
 
 ## Назначение
 

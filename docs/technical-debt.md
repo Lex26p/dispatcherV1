@@ -1,1 +1,1 @@
-﻿# Dispatcher technical debt
+# Dispatcher technical debt

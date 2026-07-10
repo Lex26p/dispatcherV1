@@ -1,4 +1,4 @@
-﻿# Dispatcher UI Terminology
+# Dispatcher UI Terminology
 
 ## Назначение документа
 

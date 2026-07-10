@@ -1,1 +1,1 @@
-﻿# Dispatcher roadmap
+# Dispatcher roadmap

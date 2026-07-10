@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -37,6 +37,42 @@ enum class HttpStatusCode : int {
     ServiceUnavailable = 503
 };
 
+struct HttpCorsOptions {
+    bool enabled = true;
+    bool allow_any_origin = false;
+    bool allow_credentials = false;
+    std::uint32_t max_age_seconds = 600;
+
+    std::vector<std::string> allowed_origins{
+        "http://localhost:5030",
+        "http://127.0.0.1:5030",
+        "https://localhost:5030"
+    };
+
+    std::vector<std::string> allowed_methods{
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS"
+    };
+
+    std::vector<std::string> allowed_headers{
+        "Accept",
+        "Authorization",
+        "Content-Type",
+        "Origin",
+        "X-Correlation-Id",
+        "X-Requested-With"
+    };
+
+    [[nodiscard]] bool has_allowed_origins() const noexcept;
+    [[nodiscard]] bool has_allowed_methods() const noexcept;
+    [[nodiscard]] bool has_allowed_headers() const noexcept;
+    [[nodiscard]] bool is_valid() const noexcept;
+};
+
 struct HttpServerOptions {
     std::string bind_address = "127.0.0.1";
     std::uint16_t port = 8080;
@@ -45,6 +81,7 @@ struct HttpServerOptions {
     bool start_on_launch = false;
     std::uint64_t request_body_limit_bytes = 1024 * 1024;
     std::string server_name = "Dispatcher";
+    HttpCorsOptions cors;
 
     [[nodiscard]] bool has_valid_bind_address() const noexcept;
     [[nodiscard]] bool has_valid_port() const noexcept;

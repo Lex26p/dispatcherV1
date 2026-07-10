@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "scada_core/module_info.h"
 

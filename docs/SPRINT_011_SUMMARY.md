@@ -1,4 +1,4 @@
-﻿# Sprint 011 Summary
+# Sprint 011 Summary
 
 ## Название спринта
 

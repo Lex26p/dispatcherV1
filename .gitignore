@@ -144,3 +144,5 @@ coverage/
 *.coveragexml
 lcov.info
 '@ | Set-Content -Encoding UTF8 .gitignore
+
+.vs/

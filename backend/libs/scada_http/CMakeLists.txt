@@ -1,4 +1,4 @@
-﻿find_package(Drogon CONFIG REQUIRED)
+find_package(Drogon CONFIG REQUIRED)
 
 add_library(scada_http STATIC
     src/http_module.cpp

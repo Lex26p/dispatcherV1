@@ -1,4 +1,4 @@
-﻿#include "scada_http/http_module.h"
+#include "scada_http/http_module.h"
 
 namespace dispatcher::http {
 

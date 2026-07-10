@@ -1,4 +1,4 @@
-﻿#include "scada_http/http_types.h"
+#include "scada_http/http_types.h"
 
 #include <algorithm>
 #include <cctype>
@@ -23,6 +23,36 @@ namespace {
 }
 
 } // namespace
+
+bool HttpCorsOptions::has_allowed_origins() const noexcept
+{
+    return allow_any_origin || !allowed_origins.empty();
+}
+
+bool HttpCorsOptions::has_allowed_methods() const noexcept
+{
+    return !allowed_methods.empty();
+}
+
+bool HttpCorsOptions::has_allowed_headers() const noexcept
+{
+    return !allowed_headers.empty();
+}
+
+bool HttpCorsOptions::is_valid() const noexcept
+{
+    if (!enabled) {
+        return true;
+    }
+
+    if (allow_any_origin && allow_credentials) {
+        return false;
+    }
+
+    return has_allowed_origins()
+        && has_allowed_methods()
+        && has_allowed_headers();
+}
 
 bool HttpServerOptions::has_valid_bind_address() const noexcept
 {
@@ -49,7 +79,8 @@ bool HttpServerOptions::is_valid() const noexcept
     return has_valid_bind_address()
         && has_valid_port()
         && has_valid_worker_thread_count()
-        && has_valid_request_body_limit();
+        && has_valid_request_body_limit()
+        && cors.is_valid();
 }
 
 bool HttpHeader::is_valid() const noexcept

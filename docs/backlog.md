@@ -1,1 +1,1 @@
-﻿# Dispatcher backlog
+# Dispatcher backlog
