@@ -1,26 +1,613 @@
 @page "/tags"
+@implements IDisposable
+@inject IConfigurationApiClient ConfigurationApiClient
 
 <PageTitle>Теги - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Теги</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Основа модели тегов, адресации и качества значений.
-    </MudText>
+    <MudStack Spacing="3">
+        <div class="tags-page__header">
+            <div>
+                <MudText Typo="Typo.h4"
+                         HtmlTag="h1">
+                    Теги
+                </MudText>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Планируемое содержимое</MudText>
+                <MudText Typo="Typo.body1"
+                         Color="Color.Secondary">
+                    Конфигурация адресации, типов значений, архивирования и связей тегов Dispatcher.
+                </MudText>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Список тегов" Icon="@Icons.Material.Filled.Label" />
-            <MudListItem Text="Тип тега" Icon="@Icons.Material.Filled.Category" />
-            <MudListItem Text="Политика архивирования" Icon="@Icons.Material.Filled.Inventory" />
-            <MudListItem Text="Качество значения" Icon="@Icons.Material.Filled.Verified" />
-        </MudList>
-    </MudPaper>
+                @if (_loadedAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption"
+                             Color="Color.Secondary"
+                             Class="mt-1">
+                        Последнее обновление:
+                        @_loadedAt.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                    </MudText>
+                }
+            </div>
 
-    <UiStatePanel Kind="UiStateKind.NotImplemented"
-                  Title="@UiText.NotImplementedTitle"
-                  Message="@UiText.TagsNotImplementedMessage"
-                  Class="mt-4" />
+            <div class="tags-page__header-actions">
+                <MudSwitch T="bool"
+                           Value="@_includeDisabled"
+                           ValueChanged="@OnIncludeDisabledChanged"
+                           Label="Показывать отключенные"
+                           Color="Color.Primary"
+                           Disabled="@_isLoading" />
+
+                <MudChip T="string"
+                         Color="@ConnectionColor"
+                         Variant="Variant.Outlined">
+                    @ConnectionLabel
+                </MudChip>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           Disabled="@_isLoading"
+                           OnClick="ReloadAsync">
+                    Обновить
+                </MudButton>
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <MudPaper Elevation="0"
+                      Class="dispatcher-card">
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2">
+                    <MudProgressCircular Color="Color.Primary"
+                                         Size="Size.Small"
+                                         Indeterminate="true" />
+
+                    <div>
+                        <MudText Typo="Typo.subtitle1">
+                            Загрузка тегов
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Выполняется запрос к Tag configuration API.
+                        </MudText>
+                    </div>
+                </MudStack>
+            </MudPaper>
+        }
+        else if (_stateKind.HasValue)
+        {
+            <UiStatePanel Kind="_stateKind.Value"
+                          Title="_stateTitle"
+                          Message="_stateMessage" />
+        }
+
+        @if (HasData)
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12"
+                         sm="6"
+                         md="3">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Всего тегов
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="tags-page__metric-value">
+                            @_tags.Total
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            После применения текущего фильтра.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="3">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Включены
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="tags-page__metric-value">
+                            @EnabledTagCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Configuration enabled state.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="3">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Архивируются
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="tags-page__metric-value">
+                            @ArchivedTagCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Archive policy отличается от Disabled.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="3">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Связаны с устройством
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="tags-page__metric-value">
+                            @DeviceLinkedTagCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Имеют ненулевой deviceId.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudPaper Elevation="0"
+                      Class="dispatcher-card">
+                <div class="tags-page__section-header">
+                    <div>
+                        <MudText Typo="Typo.h6">
+                            Конфигурация тегов
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Read-only представление backend Tag collection.
+                        </MudText>
+                    </div>
+
+                    <MudChip T="string"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Color="Color.Info">
+                        @_tags.Count показано
+                    </MudChip>
+                </div>
+
+                <MudTable T="TagViewModel"
+                          Items="_tags.Items"
+                          Dense="true"
+                          Hover="true"
+                          Elevation="0"
+                          Class="dispatcher-table">
+                    <HeaderContent>
+                        <MudTh>Тег</MudTh>
+                        <MudTh>Тип</MudTh>
+                        <MudTh>Связи</MudTh>
+                        <MudTh>Engineering</MudTh>
+                        <MudTh>Архивирование</MudTh>
+                        <MudTh>Состояние</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate Context="tag">
+                        <MudTd DataLabel="Тег">
+                            <MudText Typo="Typo.body2">
+                                @tag.Code
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @tag.Name
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @tag.Id
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Тип">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="@GetTagTypeColor(tag.Type)">
+                                @DeviceTagPagePresentation.FormatTagType(tag.Type)
+                            </MudChip>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary"
+                                     Class="mt-1">
+                                @DeviceTagPagePresentation.FormatValueType(tag.ValueType)
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Связи">
+                            <MudText Typo="Typo.body2">
+                                Объект:
+                                @DeviceTagPagePresentation.FormatRelationship(tag.ObjectId)
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Устройство:
+                                @DeviceTagPagePresentation.FormatRelationship(tag.DeviceId)
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Engineering">
+                            <MudText Typo="Typo.body2">
+                                Единица:
+                                @(string.IsNullOrWhiteSpace(tag.EngineeringUnit)
+                                    ? "Не задана"
+                                    : tag.EngineeringUnit)
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Scale:
+                                @tag.Scale.ToString("0.###");
+                                Offset:
+                                @tag.Offset.ToString("0.###")
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Адрес:
+                                @(string.IsNullOrWhiteSpace(tag.Address)
+                                    ? "Не задан"
+                                    : tag.Address)
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Архивирование">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="@GetArchivePolicyColor(tag.ArchivePolicy)">
+                                @DeviceTagPagePresentation.FormatArchivePolicy(tag.ArchivePolicy)
+                            </MudChip>
+                        </MudTd>
+
+                        <MudTd DataLabel="Состояние">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="@GetTagStateColor(tag.Enabled)">
+                                @DeviceTagPagePresentation.FormatTagState(tag.Enabled)
+                            </MudChip>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        }
+    </MudStack>
 </div>
+
+@code {
+    private ConfigurationPage<TagViewModel> _tags =
+        new();
+
+    private CancellationTokenSource? _loadCancellation;
+
+    private UiStateKind? _stateKind;
+
+    private string _stateTitle = string.Empty;
+
+    private string _stateMessage = string.Empty;
+
+    private bool _includeDisabled;
+
+    private bool _isLoading;
+
+    private DateTimeOffset? _loadedAt;
+
+    private bool HasData =>
+        !_tags.IsEmpty;
+
+    private int EnabledTagCount =>
+        DeviceTagPagePresentation.CountEnabledTags(
+            _tags.Items
+        );
+
+    private int ArchivedTagCount =>
+        DeviceTagPagePresentation.CountArchivedTags(
+            _tags.Items
+        );
+
+    private int DeviceLinkedTagCount =>
+        DeviceTagPagePresentation.CountDeviceLinkedTags(
+            _tags.Items
+        );
+
+    private string ConnectionLabel
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return "Подключение";
+            }
+
+            if (HasData)
+            {
+                return "Backend подключен";
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => "Нет связи",
+                UiStateKind.Error => "Ошибка API",
+                UiStateKind.Empty => "Нет тегов",
+                _ => "Нет данных"
+            };
+        }
+    }
+
+    private Color ConnectionColor
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return Color.Info;
+            }
+
+            if (HasData)
+            {
+                return Color.Success;
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => Color.Error,
+                UiStateKind.Error => Color.Error,
+                UiStateKind.Empty => Color.Warning,
+                _ => Color.Default
+            };
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        return ReloadAsync();
+    }
+
+    private async Task OnIncludeDisabledChanged(
+        bool includeDisabled
+    )
+    {
+        _includeDisabled = includeDisabled;
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+
+        _loadCancellation =
+            new CancellationTokenSource();
+
+        var cancellationToken =
+            _loadCancellation.Token;
+
+        _isLoading = true;
+        _loadedAt = null;
+
+        _tags =
+            new ConfigurationPage<TagViewModel>();
+
+        _stateKind = UiStateKind.Loading;
+        _stateTitle = "Загрузка тегов";
+        _stateMessage =
+            "Выполняется запрос к backend Dispatcher.";
+
+        try
+        {
+            _tags =
+                await ConfigurationApiClient
+                    .GetTagsAsync(
+                        new TagReadRequest
+                        {
+                            IncludeDisabled =
+                                _includeDisabled,
+
+                            Limit = 1000,
+                            Offset = 0
+                        },
+                        cancellationToken
+                    );
+
+            _loadedAt = DateTimeOffset.Now;
+
+            if (_tags.IsEmpty)
+            {
+                _stateKind = UiStateKind.Empty;
+                _stateTitle = "Теги не найдены";
+                _stateMessage =
+                    "Backend вернул пустую Tag collection.";
+            }
+            else
+            {
+                _stateKind = null;
+                _stateTitle = string.Empty;
+                _stateMessage = string.Empty;
+            }
+        }
+        catch (DispatcherApiException exception)
+        {
+            ApplyApiError(exception);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _stateKind = UiStateKind.Error;
+            _stateTitle = "Непредвиденная ошибка";
+            _stateMessage =
+                "Не удалось загрузить теги. " +
+                exception.Message;
+        }
+        finally
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private void ApplyApiError(
+        DispatcherApiException exception
+    )
+    {
+        _stateKind =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    UiStateKind.NoConnection,
+
+                DispatcherApiErrorKind.Timeout =>
+                    UiStateKind.NoConnection,
+
+                _ => UiStateKind.Error
+            };
+
+        _stateTitle =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    "Backend недоступен",
+
+                DispatcherApiErrorKind.Timeout =>
+                    "Backend не отвечает",
+
+                DispatcherApiErrorKind.HttpStatus =>
+                    "Ошибка Tag API",
+
+                DispatcherApiErrorKind.InvalidResponse =>
+                    "Некорректный ответ backend",
+
+                DispatcherApiErrorKind.Configuration =>
+                    "Ошибка конфигурации frontend",
+
+                _ => "Ошибка Tag API"
+            };
+
+        var details =
+            new List<string>
+            {
+                exception.ErrorKind switch
+                {
+                    DispatcherApiErrorKind.Connection =>
+                        "Не удалось подключиться к dispatcher_server.",
+
+                    DispatcherApiErrorKind.Timeout =>
+                        exception.Message,
+
+                    _ =>
+                        $"{exception.Message} " +
+                        $"Endpoint: {exception.Endpoint}."
+                }
+            };
+
+        if (!string.IsNullOrWhiteSpace(
+            exception.ApiErrorCode
+        ))
+        {
+            details.Add(
+                $"Код ошибки: {exception.ApiErrorCode}."
+            );
+        }
+
+        if (exception.HasCorrelationId)
+        {
+            details.Add(
+                $"Correlation ID: {exception.CorrelationId}."
+            );
+        }
+
+        _stateMessage =
+            string.Join(
+                " ",
+                details
+            );
+    }
+
+    private static Color GetTagTypeColor(
+        string type
+    )
+    {
+        return type switch
+        {
+            "DeviceTag" => Color.Primary,
+            "ManualTag" => Color.Info,
+            "CalculatedTag" => Color.Secondary,
+            "SystemTag" => Color.Warning,
+            "VirtualTag" => Color.Info,
+            "CommandTag" => Color.Error,
+            "SimulationTag" => Color.Secondary,
+            "ExternalTag" => Color.Default,
+            _ => Color.Default
+        };
+    }
+
+    private static Color GetArchivePolicyColor(
+        string policy
+    )
+    {
+        return policy switch
+        {
+            "Disabled" => Color.Default,
+            "OnAlarm" => Color.Error,
+            "OnQualityChange" => Color.Warning,
+            "Periodic" => Color.Info,
+            "OnChange" => Color.Success,
+            "OnChangeWithDeadband" => Color.Success,
+            "AlwaysButThrottled" => Color.Primary,
+            _ => Color.Default
+        };
+    }
+
+    private static Color GetTagStateColor(
+        bool enabled
+    )
+    {
+        return enabled
+            ? Color.Success
+            : Color.Error;
+    }
+
+    public void Dispose()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+    }
+}

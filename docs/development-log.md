@@ -2202,3 +2202,80 @@ Tree приходит из backend application service.
 Frontend Object demo-data не добавлялись.
 
 Созданы Object presentation unit tests.
+
+### Шаг 115
+
+Страницы Devices и Tags подключены к реальному backend.
+
+Routes:
+
+    /devices
+    /tags
+
+Devices page использует:
+
+    IConfigurationApiClient.GetDevicesAsync
+
+Tags page использует:
+
+    IConfigurationApiClient.GetTagsAsync
+
+Devices page отображает:
+
+- total device count;
+- runtime enabled count;
+- object-assigned count;
+- code;
+- name;
+- ID;
+- protocol;
+- configuration state;
+- object relationship;
+- connection;
+- IP mode;
+- network interface;
+- runtime state.
+
+Tags page отображает:
+
+- total tag count;
+- enabled tag count;
+- archived tag count;
+- device-linked tag count;
+- code;
+- name;
+- ID;
+- Tag type;
+- value type;
+- object relationship;
+- device relationship;
+- engineering unit;
+- scale;
+- offset;
+- address;
+- archive policy;
+- enabled state.
+
+Обе страницы поддерживают:
+
+- includeDisabled toggle;
+- automatic reload после изменения toggle;
+- loading state;
+- empty state;
+- no-connection state;
+- timeout state;
+- backend API error state;
+- API error code;
+- correlation ID;
+- last update time;
+- manual refresh;
+- cancellation предыдущего request;
+- cancellation при уничтожении component.
+
+Создан общий presentation helper:
+
+    DeviceTagPagePresentation
+
+Frontend Device и Tag demo-data не используются.
+
+Добавлены presentation unit tests.

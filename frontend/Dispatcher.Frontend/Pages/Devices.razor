@@ -1,25 +1,565 @@
 @page "/devices"
+@implements IDisposable
+@inject IConfigurationApiClient ConfigurationApiClient
 
 <PageTitle>Устройства - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Устройства</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Основа модели устройств и подключений.
-    </MudText>
+    <MudStack Spacing="3">
+        <div class="devices-page__header">
+            <div>
+                <MudText Typo="Typo.h4"
+                         HtmlTag="h1">
+                    Устройства
+                </MudText>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Планируемое содержимое</MudText>
+                <MudText Typo="Typo.body1"
+                         Color="Color.Secondary">
+                    Конфигурация устройств, протоколов, подключений и runtime-состояний Dispatcher.
+                </MudText>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Список устройств" Icon="@Icons.Material.Filled.Memory" />
-            <MudListItem Text="Состояние подключения" Icon="@Icons.Material.Filled.SettingsEthernet" />
-            <MudListItem Text="Диагностика устройства" Icon="@Icons.Material.Filled.MonitorHeart" />
-        </MudList>
-    </MudPaper>
+                @if (_loadedAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption"
+                             Color="Color.Secondary"
+                             Class="mt-1">
+                        Последнее обновление:
+                        @_loadedAt.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                    </MudText>
+                }
+            </div>
 
-    <UiStatePanel Kind="UiStateKind.NotImplemented"
-                  Title="@UiText.NotImplementedTitle"
-                  Message="@UiText.DevicesNotImplementedMessage"
-                  Class="mt-4" />
+            <div class="devices-page__header-actions">
+                <MudSwitch T="bool"
+                           Value="@_includeDisabled"
+                           ValueChanged="@OnIncludeDisabledChanged"
+                           Label="Показывать отключенные"
+                           Color="Color.Primary"
+                           Disabled="@_isLoading" />
+
+                <MudChip T="string"
+                         Color="@ConnectionColor"
+                         Variant="Variant.Outlined">
+                    @ConnectionLabel
+                </MudChip>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           Disabled="@_isLoading"
+                           OnClick="ReloadAsync">
+                    Обновить
+                </MudButton>
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <MudPaper Elevation="0"
+                      Class="dispatcher-card">
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2">
+                    <MudProgressCircular Color="Color.Primary"
+                                         Size="Size.Small"
+                                         Indeterminate="true" />
+
+                    <div>
+                        <MudText Typo="Typo.subtitle1">
+                            Загрузка устройств
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Выполняется запрос к Device configuration API.
+                        </MudText>
+                    </div>
+                </MudStack>
+            </MudPaper>
+        }
+        else if (_stateKind.HasValue)
+        {
+            <UiStatePanel Kind="_stateKind.Value"
+                          Title="_stateTitle"
+                          Message="_stateMessage" />
+        }
+
+        @if (HasData)
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Всего устройств
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="devices-page__metric-value">
+                            @_devices.Total
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            После применения текущего фильтра.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Runtime включен
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="devices-page__metric-value">
+                            @RuntimeEnabledCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Устройства Active или Simulation.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Назначены объектам
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="devices-page__metric-value">
+                            @AssignedDeviceCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Имеют связь с Object configuration.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudPaper Elevation="0"
+                      Class="dispatcher-card">
+                <div class="devices-page__section-header">
+                    <div>
+                        <MudText Typo="Typo.h6">
+                            Конфигурация устройств
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Read-only представление backend Device collection.
+                        </MudText>
+                    </div>
+
+                    <MudChip T="string"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined"
+                             Color="Color.Info">
+                        @_devices.Count показано
+                    </MudChip>
+                </div>
+
+                <MudTable T="DeviceViewModel"
+                          Items="_devices.Items"
+                          Dense="true"
+                          Hover="true"
+                          Elevation="0"
+                          Class="dispatcher-table">
+                    <HeaderContent>
+                        <MudTh>Устройство</MudTh>
+                        <MudTh>Протокол</MudTh>
+                        <MudTh>Состояние</MudTh>
+                        <MudTh>Объект</MudTh>
+                        <MudTh>Подключение</MudTh>
+                        <MudTh>Runtime</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate Context="device">
+                        <MudTd DataLabel="Устройство">
+                            <MudText Typo="Typo.body2">
+                                @device.Code
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @device.Name
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @device.Id
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Протокол">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="@GetProtocolColor(device.Protocol)">
+                                @DeviceTagPagePresentation.FormatProtocol(device.Protocol)
+                            </MudChip>
+                        </MudTd>
+
+                        <MudTd DataLabel="Состояние">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Outlined"
+                                     Color="@GetDeviceStateColor(device.State)">
+                                @DeviceTagPagePresentation.FormatDeviceState(device.State)
+                            </MudChip>
+                        </MudTd>
+
+                        <MudTd DataLabel="Объект">
+                            <MudText Typo="Typo.body2">
+                                @DeviceTagPagePresentation.FormatRelationship(device.ObjectId)
+                            </MudText>
+                        </MudTd>
+
+                        <MudTd DataLabel="Подключение">
+                            <MudText Typo="Typo.body2">
+                                @device.Connection.Summary
+                            </MudText>
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @device.Connection.IpMode
+                            </MudText>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                device.Connection.NetworkInterface
+                            ))
+                            {
+                                <MudText Typo="Typo.caption"
+                                         Color="Color.Secondary">
+                                    Интерфейс:
+                                    @device.Connection.NetworkInterface
+                                </MudText>
+                            }
+                        </MudTd>
+
+                        <MudTd DataLabel="Runtime">
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="@GetRuntimeColor(device.RuntimeEnabled)">
+                                @DeviceTagPagePresentation.FormatRuntimeState(device.RuntimeEnabled)
+                            </MudChip>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        }
+    </MudStack>
 </div>
+
+@code {
+    private ConfigurationPage<DeviceViewModel> _devices =
+        new();
+
+    private CancellationTokenSource? _loadCancellation;
+
+    private UiStateKind? _stateKind;
+
+    private string _stateTitle = string.Empty;
+
+    private string _stateMessage = string.Empty;
+
+    private bool _includeDisabled;
+
+    private bool _isLoading;
+
+    private DateTimeOffset? _loadedAt;
+
+    private bool HasData =>
+        !_devices.IsEmpty;
+
+    private int RuntimeEnabledCount =>
+        DeviceTagPagePresentation.CountRuntimeEnabled(
+            _devices.Items
+        );
+
+    private int AssignedDeviceCount =>
+        DeviceTagPagePresentation.CountAssignedDevices(
+            _devices.Items
+        );
+
+    private string ConnectionLabel
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return "Подключение";
+            }
+
+            if (HasData)
+            {
+                return "Backend подключен";
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => "Нет связи",
+                UiStateKind.Error => "Ошибка API",
+                UiStateKind.Empty => "Нет устройств",
+                _ => "Нет данных"
+            };
+        }
+    }
+
+    private Color ConnectionColor
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return Color.Info;
+            }
+
+            if (HasData)
+            {
+                return Color.Success;
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => Color.Error,
+                UiStateKind.Error => Color.Error,
+                UiStateKind.Empty => Color.Warning,
+                _ => Color.Default
+            };
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        return ReloadAsync();
+    }
+
+    private async Task OnIncludeDisabledChanged(
+        bool includeDisabled
+    )
+    {
+        _includeDisabled = includeDisabled;
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+
+        _loadCancellation =
+            new CancellationTokenSource();
+
+        var cancellationToken =
+            _loadCancellation.Token;
+
+        _isLoading = true;
+        _loadedAt = null;
+
+        _devices =
+            new ConfigurationPage<DeviceViewModel>();
+
+        _stateKind = UiStateKind.Loading;
+        _stateTitle = "Загрузка устройств";
+        _stateMessage =
+            "Выполняется запрос к backend Dispatcher.";
+
+        try
+        {
+            _devices =
+                await ConfigurationApiClient
+                    .GetDevicesAsync(
+                        new DeviceReadRequest
+                        {
+                            IncludeDisabled =
+                                _includeDisabled,
+
+                            Limit = 1000,
+                            Offset = 0
+                        },
+                        cancellationToken
+                    );
+
+            _loadedAt = DateTimeOffset.Now;
+
+            if (_devices.IsEmpty)
+            {
+                _stateKind = UiStateKind.Empty;
+                _stateTitle = "Устройства не найдены";
+                _stateMessage =
+                    "Backend вернул пустую Device collection.";
+            }
+            else
+            {
+                _stateKind = null;
+                _stateTitle = string.Empty;
+                _stateMessage = string.Empty;
+            }
+        }
+        catch (DispatcherApiException exception)
+        {
+            ApplyApiError(exception);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _stateKind = UiStateKind.Error;
+            _stateTitle = "Непредвиденная ошибка";
+            _stateMessage =
+                "Не удалось загрузить устройства. " +
+                exception.Message;
+        }
+        finally
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private void ApplyApiError(
+        DispatcherApiException exception
+    )
+    {
+        _stateKind =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    UiStateKind.NoConnection,
+
+                DispatcherApiErrorKind.Timeout =>
+                    UiStateKind.NoConnection,
+
+                _ => UiStateKind.Error
+            };
+
+        _stateTitle =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    "Backend недоступен",
+
+                DispatcherApiErrorKind.Timeout =>
+                    "Backend не отвечает",
+
+                DispatcherApiErrorKind.HttpStatus =>
+                    "Ошибка Device API",
+
+                DispatcherApiErrorKind.InvalidResponse =>
+                    "Некорректный ответ backend",
+
+                DispatcherApiErrorKind.Configuration =>
+                    "Ошибка конфигурации frontend",
+
+                _ => "Ошибка Device API"
+            };
+
+        var details =
+            new List<string>
+            {
+                exception.ErrorKind switch
+                {
+                    DispatcherApiErrorKind.Connection =>
+                        "Не удалось подключиться к dispatcher_server.",
+
+                    DispatcherApiErrorKind.Timeout =>
+                        exception.Message,
+
+                    _ =>
+                        $"{exception.Message} " +
+                        $"Endpoint: {exception.Endpoint}."
+                }
+            };
+
+        if (!string.IsNullOrWhiteSpace(
+            exception.ApiErrorCode
+        ))
+        {
+            details.Add(
+                $"Код ошибки: {exception.ApiErrorCode}."
+            );
+        }
+
+        if (exception.HasCorrelationId)
+        {
+            details.Add(
+                $"Correlation ID: {exception.CorrelationId}."
+            );
+        }
+
+        _stateMessage =
+            string.Join(
+                " ",
+                details
+            );
+    }
+
+    private static Color GetProtocolColor(
+        string protocol
+    )
+    {
+        return protocol switch
+        {
+            "ModbusTcp" => Color.Primary,
+            "Snmp" => Color.Info,
+            "Simulator" => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+
+    private static Color GetDeviceStateColor(
+        string state
+    )
+    {
+        return state switch
+        {
+            "Active" => Color.Success,
+            "Simulation" => Color.Info,
+            "Commissioning" => Color.Info,
+            "Maintenance" => Color.Warning,
+            "Disabled" => Color.Error,
+            "OutOfService" => Color.Error,
+            "Decommissioned" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private static Color GetRuntimeColor(
+        bool enabled
+    )
+    {
+        return enabled
+            ? Color.Success
+            : Color.Default;
+    }
+
+    public void Dispose()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+    }
+}
