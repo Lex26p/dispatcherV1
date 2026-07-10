@@ -1,0 +1,102 @@
+<div class="object-tree-node">
+    <div class="object-tree-node__card">
+        <div class="object-tree-node__row">
+            <MudIcon Icon="@GetTypeIcon(Node.Type)"
+                     Color="@GetTypeColor(Node.Type)"
+                     Size="Size.Medium" />
+
+            <div class="object-tree-node__identity">
+                <MudText Typo="Typo.subtitle1">
+                    @Node.Name
+                </MudText>
+
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary">
+                    @Node.Id
+                </MudText>
+            </div>
+
+            <div class="object-tree-node__chips">
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Variant="Variant.Outlined"
+                         Color="@GetTypeColor(Node.Type)">
+                    @ObjectPagePresentation.FormatType(Node.Type)
+                </MudChip>
+
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Variant="Variant.Outlined"
+                         Color="Color.Default">
+                    @Node.Code
+                </MudChip>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Node.Description))
+        {
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary"
+                     Class="mt-2">
+                @Node.Description
+            </MudText>
+        }
+    </div>
+
+    @if (Node.HasChildren)
+    {
+        <div class="object-tree-node__children">
+            @foreach (var child in Node.Children)
+            {
+                <ObjectTreeNodeView @key="child.Id"
+                                    Node="child" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public ObjectTreeNodeViewModel Node { get; set; } = new();
+
+    private static string GetTypeIcon(
+        string type
+    )
+    {
+        return type switch
+        {
+            "Site" => Icons.Material.Filled.LocationCity,
+            "Building" => Icons.Material.Filled.Apartment,
+            "Floor" => Icons.Material.Filled.Layers,
+            "Room" => Icons.Material.Filled.MeetingRoom,
+            "Zone" => Icons.Material.Filled.Map,
+            "Cabinet" => Icons.Material.Filled.Dns,
+            "Rack" => Icons.Material.Filled.Storage,
+            "Line" => Icons.Material.Filled.LinearScale,
+            "EquipmentGroup" => Icons.Material.Filled.PrecisionManufacturing,
+            "Custom" => Icons.Material.Filled.Category,
+            _ => Icons.Material.Filled.AccountTree
+        };
+    }
+
+    private static Color GetTypeColor(
+        string type
+    )
+    {
+        return type switch
+        {
+            "Site" => Color.Primary,
+            "Building" => Color.Info,
+            "Floor" => Color.Secondary,
+            "Room" => Color.Success,
+            "Zone" => Color.Warning,
+            "Cabinet" => Color.Tertiary,
+            "Rack" => Color.Tertiary,
+            "Line" => Color.Info,
+            "EquipmentGroup" => Color.Warning,
+            "Custom" => Color.Default,
+            _ => Color.Default
+        };
+    }
+}

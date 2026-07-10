@@ -1,0 +1,54 @@
+.object-tree-node {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.object-tree-node__card {
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 0.85rem;
+    background: rgba(15, 23, 42, 0.42);
+}
+
+.object-tree-node__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.object-tree-node__identity {
+    min-width: 0;
+}
+
+.object-tree-node__chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+.object-tree-node__children {
+    display: grid;
+    gap: 0.7rem;
+    margin-left: 1.3rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+@media (max-width: 700px) {
+    .object-tree-node__row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .object-tree-node__chips {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        padding-left: 2.2rem;
+    }
+
+    .object-tree-node__children {
+        margin-left: 0.6rem;
+        padding-left: 0.7rem;
+    }
+}

@@ -1,25 +1,551 @@
 @page "/objects"
+@implements IDisposable
+@inject IConfigurationApiClient ConfigurationApiClient
 
 <PageTitle>Объекты - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
-    <MudText Typo="Typo.h4" HtmlTag="h1">Объекты</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary">
-        Основа объектной модели Dispatcher.
-    </MudText>
+    <MudStack Spacing="3">
+        <div class="objects-page__header">
+            <div>
+                <MudText Typo="Typo.h4"
+                         HtmlTag="h1">
+                    Объекты
+                </MudText>
 
-    <MudPaper Elevation="0" Class="dispatcher-card mt-4">
-        <MudText Typo="Typo.h6">Планируемое содержимое</MudText>
+                <MudText Typo="Typo.body1"
+                         Color="Color.Secondary">
+                    Иерархия площадок, зданий, помещений и групп оборудования Dispatcher.
+                </MudText>
 
-        <MudList T="string" Dense="true" Class="mt-2">
-            <MudListItem Text="Дерево объектов" Icon="@Icons.Material.Filled.AccountTree" />
-            <MudListItem Text="Карточка объекта" Icon="@Icons.Material.Filled.Info" />
-            <MudListItem Text="Зоны ответственности" Icon="@Icons.Material.Filled.Groups" />
-        </MudList>
-    </MudPaper>
+                @if (_loadedAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption"
+                             Color="Color.Secondary"
+                             Class="mt-1">
+                        Последнее обновление:
+                        @_loadedAt.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                    </MudText>
+                }
+            </div>
 
-    <UiStatePanel Kind="UiStateKind.NotImplemented"
-                  Title="@UiText.NotImplementedTitle"
-                  Message="@UiText.ObjectsNotImplementedMessage"
-                  Class="mt-4" />
+            <div class="objects-page__header-actions">
+                <MudChip T="string"
+                         Color="@ConnectionColor"
+                         Variant="Variant.Outlined">
+                    @ConnectionLabel
+                </MudChip>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Refresh"
+                           Disabled="@_isLoading"
+                           OnClick="ReloadAsync">
+                    Обновить
+                </MudButton>
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <MudPaper Elevation="0"
+                      Class="dispatcher-card">
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2">
+                    <MudProgressCircular Color="Color.Primary"
+                                         Size="Size.Small"
+                                         Indeterminate="true" />
+
+                    <div>
+                        <MudText Typo="Typo.subtitle1">
+                            Загрузка объектов
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Выполняются запросы Object tree и Object collection.
+                        </MudText>
+                    </div>
+                </MudStack>
+            </MudPaper>
+        }
+        else if (_stateKind.HasValue)
+        {
+            <UiStatePanel Kind="_stateKind.Value"
+                          Title="_stateTitle"
+                          Message="_stateMessage" />
+        }
+
+        @if (HasData)
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Всего объектов
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="objects-page__metric-value">
+                            @TotalObjectCount
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Получено из backend configuration API.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Корневые объекты
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="objects-page__metric-value">
+                            @_tree.Roots.Count
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Независимые верхние уровни иерархии.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+                    <MudPaper Elevation="0"
+                              Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Глубина дерева
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Class="objects-page__metric-value">
+                            @MaxTreeDepth
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Максимальное число уровней иерархии.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            @if (!_tree.IsEmpty)
+            {
+                <MudPaper Elevation="0"
+                          Class="dispatcher-card">
+                    <div class="objects-page__section-header">
+                        <div>
+                            <MudText Typo="Typo.h6">
+                                Дерево объектов
+                            </MudText>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Secondary">
+                                Иерархия сформирована backend application service.
+                            </MudText>
+                        </div>
+
+                        <MudChip T="string"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Primary">
+                            @_tree.Count узлов
+                        </MudChip>
+                    </div>
+
+                    <div class="objects-page__tree">
+                        @foreach (var root in _tree.Roots)
+                        {
+                            <ObjectTreeNodeView @key="root.Id"
+                                                Node="root" />
+                        }
+                    </div>
+                </MudPaper>
+            }
+
+            @if (!_objects.IsEmpty)
+            {
+                <MudPaper Elevation="0"
+                          Class="dispatcher-card">
+                    <div class="objects-page__section-header">
+                        <div>
+                            <MudText Typo="Typo.h6">
+                                Плоский список
+                            </MudText>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Secondary">
+                                Техническое представление Object collection.
+                            </MudText>
+                        </div>
+
+                        <MudChip T="string"
+                                 Size="Size.Small"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Info">
+                            @_objects.Count показано
+                        </MudChip>
+                    </div>
+
+                    <MudTable T="ObjectViewModel"
+                              Items="_objects.Items"
+                              Dense="true"
+                              Hover="true"
+                              Elevation="0"
+                              Class="dispatcher-table">
+                        <HeaderContent>
+                            <MudTh>Код</MudTh>
+                            <MudTh>Название</MudTh>
+                            <MudTh>Тип</MudTh>
+                            <MudTh>Родитель</MudTh>
+                            <MudTh>Идентификатор</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate Context="item">
+                            <MudTd DataLabel="Код">
+                                <MudText Typo="Typo.body2">
+                                    @item.Code
+                                </MudText>
+                            </MudTd>
+
+                            <MudTd DataLabel="Название">
+                                <MudText Typo="Typo.body2">
+                                    @item.Name
+                                </MudText>
+
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <MudText Typo="Typo.caption"
+                                             Color="Color.Secondary">
+                                        @item.Description
+                                    </MudText>
+                                }
+                            </MudTd>
+
+                            <MudTd DataLabel="Тип">
+                                <MudChip T="string"
+                                         Size="Size.Small"
+                                         Variant="Variant.Outlined"
+                                         Color="@GetObjectTypeColor(item.Type)">
+                                    @ObjectPagePresentation.FormatType(item.Type)
+                                </MudChip>
+                            </MudTd>
+
+                            <MudTd DataLabel="Родитель">
+                                <MudText Typo="Typo.body2">
+                                    @ObjectPagePresentation.FormatParent(item.ParentId)
+                                </MudText>
+                            </MudTd>
+
+                            <MudTd DataLabel="Идентификатор">
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Secondary">
+                                    @item.Id
+                                </MudText>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudPaper>
+            }
+        }
+    </MudStack>
 </div>
+
+@code {
+    private ObjectTreeViewModel _tree = new();
+
+    private ConfigurationPage<ObjectViewModel> _objects = new();
+
+    private CancellationTokenSource? _loadCancellation;
+
+    private UiStateKind? _stateKind;
+
+    private string _stateTitle = string.Empty;
+
+    private string _stateMessage = string.Empty;
+
+    private bool _isLoading;
+
+    private DateTimeOffset? _loadedAt;
+
+    private bool HasData =>
+        !_tree.IsEmpty
+        || !_objects.IsEmpty;
+
+    private long TotalObjectCount =>
+        _tree.Count > 0
+            ? _tree.Count
+            : _objects.Total;
+
+    private int MaxTreeDepth =>
+        ObjectPagePresentation.CalculateMaxDepth(
+            _tree.Roots
+        );
+
+    private string ConnectionLabel
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return "Подключение";
+            }
+
+            if (HasData)
+            {
+                return "Backend подключен";
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => "Нет связи",
+                UiStateKind.Error => "Ошибка API",
+                UiStateKind.Empty => "Нет объектов",
+                _ => "Нет данных"
+            };
+        }
+    }
+
+    private Color ConnectionColor
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return Color.Info;
+            }
+
+            if (HasData)
+            {
+                return Color.Success;
+            }
+
+            return _stateKind switch
+            {
+                UiStateKind.NoConnection => Color.Error,
+                UiStateKind.Error => Color.Error,
+                UiStateKind.Empty => Color.Warning,
+                _ => Color.Default
+            };
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        return ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+
+        _loadCancellation =
+            new CancellationTokenSource();
+
+        var cancellationToken =
+            _loadCancellation.Token;
+
+        _isLoading = true;
+        _loadedAt = null;
+
+        _tree = new ObjectTreeViewModel();
+
+        _objects =
+            new ConfigurationPage<ObjectViewModel>();
+
+        _stateKind = UiStateKind.Loading;
+        _stateTitle = "Загрузка объектов";
+        _stateMessage =
+            "Выполняются запросы к backend Dispatcher.";
+
+        try
+        {
+            var treeTask =
+                ConfigurationApiClient
+                    .GetObjectTreeAsync(
+                        cancellationToken:
+                            cancellationToken
+                    );
+
+            var objectsTask =
+                ConfigurationApiClient
+                    .GetObjectsAsync(
+                        new ObjectReadRequest
+                        {
+                            Limit = 1000,
+                            Offset = 0
+                        },
+                        cancellationToken
+                    );
+
+            await Task.WhenAll(
+                treeTask,
+                objectsTask
+            );
+
+            _tree = await treeTask;
+            _objects = await objectsTask;
+            _loadedAt = DateTimeOffset.Now;
+
+            if (
+                _tree.IsEmpty
+                && _objects.IsEmpty
+            )
+            {
+                _stateKind = UiStateKind.Empty;
+                _stateTitle = "Объекты не найдены";
+                _stateMessage =
+                    "Backend вернул пустые Object tree " +
+                    "и Object collection.";
+            }
+            else
+            {
+                _stateKind = null;
+                _stateTitle = string.Empty;
+                _stateMessage = string.Empty;
+            }
+        }
+        catch (DispatcherApiException exception)
+        {
+            ApplyApiError(exception);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _stateKind = UiStateKind.Error;
+            _stateTitle = "Непредвиденная ошибка";
+            _stateMessage =
+                "Не удалось загрузить объекты. " +
+                exception.Message;
+        }
+        finally
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private void ApplyApiError(
+        DispatcherApiException exception
+    )
+    {
+        _stateKind =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    UiStateKind.NoConnection,
+
+                DispatcherApiErrorKind.Timeout =>
+                    UiStateKind.NoConnection,
+
+                _ => UiStateKind.Error
+            };
+
+        _stateTitle =
+            exception.ErrorKind switch
+            {
+                DispatcherApiErrorKind.Connection =>
+                    "Backend недоступен",
+
+                DispatcherApiErrorKind.Timeout =>
+                    "Backend не отвечает",
+
+                DispatcherApiErrorKind.HttpStatus =>
+                    "Ошибка Object API",
+
+                DispatcherApiErrorKind.InvalidResponse =>
+                    "Некорректный ответ backend",
+
+                DispatcherApiErrorKind.Configuration =>
+                    "Ошибка конфигурации frontend",
+
+                _ => "Ошибка Object API"
+            };
+
+        var details =
+            new List<string>
+            {
+                exception.ErrorKind switch
+                {
+                    DispatcherApiErrorKind.Connection =>
+                        "Не удалось подключиться к dispatcher_server.",
+
+                    DispatcherApiErrorKind.Timeout =>
+                        exception.Message,
+
+                    _ =>
+                        $"{exception.Message} " +
+                        $"Endpoint: {exception.Endpoint}."
+                }
+            };
+
+        if (!string.IsNullOrWhiteSpace(exception.ApiErrorCode))
+        {
+            details.Add(
+                $"Код ошибки: {exception.ApiErrorCode}."
+            );
+        }
+
+        if (exception.HasCorrelationId)
+        {
+            details.Add(
+                $"Correlation ID: {exception.CorrelationId}."
+            );
+        }
+
+        _stateMessage =
+            string.Join(
+                " ",
+                details
+            );
+    }
+
+    private static Color GetObjectTypeColor(
+        string type
+    )
+    {
+        return type switch
+        {
+            "Site" => Color.Primary,
+            "Building" => Color.Info,
+            "Floor" => Color.Secondary,
+            "Room" => Color.Success,
+            "Zone" => Color.Warning,
+            "Cabinet" => Color.Tertiary,
+            "Rack" => Color.Tertiary,
+            "Line" => Color.Info,
+            "EquipmentGroup" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    public void Dispose()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+    }
+}

@@ -2159,3 +2159,46 @@ Frontend configuration mock-data не добавлялись.
 Добавлены DTO mapping и HTTP client xUnit tests.
 
 Razor pages на шаге 113 не изменялись.
+
+### Шаг 114
+
+Страница Objects подключена к реальному backend.
+
+Route:
+
+    /objects
+
+Страница использует:
+
+    IConfigurationApiClient.GetObjectTreeAsync
+    IConfigurationApiClient.GetObjectsAsync
+
+Реализованы:
+
+- параллельная загрузка Object tree и Object collection;
+- recursive Object tree component;
+- плоская Object table;
+- total Object count;
+- root count;
+- maximum hierarchy depth;
+- русские Object type labels;
+- type icons;
+- loading state;
+- empty state;
+- no-connection state;
+- timeout state;
+- backend API error state;
+- API error code;
+- correlation ID;
+- last update time;
+- manual refresh;
+- cancellation предыдущего request;
+- cancellation при уничтожении component.
+
+Frontend не реконструирует hierarchy из flat collection.
+
+Tree приходит из backend application service.
+
+Frontend Object demo-data не добавлялись.
+
+Созданы Object presentation unit tests.
