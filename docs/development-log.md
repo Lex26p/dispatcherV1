@@ -1675,3 +1675,38 @@ Frontend `SystemHttpApiClient` читает backend error envelope.
     CorrelationId
 
 Добавлены backend и frontend tests для correlation ID, error envelope, handler exceptions и error parsing.
+
+### Шаг 105
+
+Добавлены Linux CMake presets и выполнен portability cleanup.
+
+CMake presets:
+
+    linux-x64-debug
+    linux-x64-release
+
+Linux presets используют:
+
+- Ninja;
+- vcpkg manifest mode;
+- triplet `x64-linux`;
+- single-config Debug/Release;
+- CTest;
+- compile commands export.
+
+Добавлены test presets для Windows и Linux.
+
+В `scada_http` добавлена явная portable dependency:
+
+    Threads::Threads
+
+MSVC-specific debug information configuration теперь применяется только при MSVC.
+
+Созданы:
+
+    scripts/test-linux-build.sh
+    docs/development/linux-build.md
+
+Исправлен поврежденный `.gitignore`, в который ранее случайно попали PowerShell command wrappers.
+
+Windows Debug/Release presets сохранены.

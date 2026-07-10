@@ -1,5 +1,6 @@
 find_package(Drogon CONFIG REQUIRED)
 find_package(jsoncpp CONFIG REQUIRED)
+find_package(Threads REQUIRED)
 
 add_library(scada_http STATIC
     src/http_module.cpp
@@ -32,4 +33,5 @@ target_link_libraries(scada_http
     PRIVATE
         Drogon::Drogon
         JsonCpp::JsonCpp
+        Threads::Threads
 )

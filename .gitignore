@@ -1,5 +1,3 @@
-cd C:\Projects\dispatcherV1
-@'
 # Dispatcher gitignore
 
 # Visual Studio
@@ -11,7 +9,6 @@ cd C:\Projects\dispatcherV1
 *.VC.db
 *.VC.VC.opendb
 *.opendb
-*.VC.opendb
 *.aps
 *.ncb
 *.opensdf
@@ -33,6 +30,13 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CMakeUserPresets.json
+CTestTestfile.cmake
+Testing/
+build.ninja
+rules.ninja
+.ninja_deps
+.ninja_log
+vcpkg_installed/
 
 # Dispatcher build output
 out/
@@ -62,9 +66,8 @@ x86/
 *.tlog
 *.lastbuildstate
 *.recipe
-*.log
 
-# .NET / Blazor
+# .NET and Blazor
 bin/
 obj/
 [Bb]in/
@@ -78,7 +81,7 @@ project.assets.json
 *.nuget.props
 *.nuget.targets
 
-# Blazor / frontend generated files
+# Frontend generated files
 frontend/**/bin/
 frontend/**/obj/
 frontend/**/dist/
@@ -87,10 +90,8 @@ frontend/**/node_modules/
 # NuGet
 .nuget/
 packages/
-*.nupkg
-*.snupkg
 
-# Rider / JetBrains
+# Rider and JetBrains
 .idea/
 *.sln.iml
 
@@ -112,6 +113,7 @@ $RECYCLE.BIN/
 
 # Linux
 *~
+.core
 
 # Logs
 *.log
@@ -125,7 +127,7 @@ logs/
 *.swp
 *.swo
 
-# Environment / local secrets
+# Environment and local secrets
 .env
 .env.*
 !.env.example
@@ -143,6 +145,3 @@ coverage/
 *.coverage
 *.coveragexml
 lcov.info
-'@ | Set-Content -Encoding UTF8 .gitignore
-
-.vs/
