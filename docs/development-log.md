@@ -1459,3 +1459,31 @@ Sprint status:
     Sprint 014 — Engineering Baseline
 
 Object, Device и Tag Read API перенесены на Sprint 015 после создания test, CI и stable transport foundations.
+
+---
+
+## Sprint 014 — Engineering Baseline
+
+### Статус
+
+Started.
+
+### Цель
+
+Защитить post-MVP foundation Dispatcher автоматическими тестами, Windows/Linux CI и стабильными transport contracts до расширения Object, Device и Tag API.
+
+### Шаг 99
+
+Созданы:
+
+    docs/SPRINT_014_PLAN.md
+    docs/adr/0003-testing-and-ci-strategy.md
+
+Приняты решения:
+
+- Catch2 v3 для backend unit tests;
+- CTest для discovery и запуска C++ tests;
+- xUnit для frontend service tests;
+- отдельные unit, integration и smoke-test layers;
+- обязательная Windows/Linux CI matrix;
+- Object, Device и Tag API перенесены на Sprint 015.
