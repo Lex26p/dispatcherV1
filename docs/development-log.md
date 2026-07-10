@@ -1796,3 +1796,50 @@ Sprint status:
 Следующий спринт:
 
     Sprint 015 — Object, Device and Tag Read API Foundation
+
+### Шаг 108
+
+Начат Sprint 015 — Object, Device and Tag Read API Foundation.
+
+Созданы:
+
+    docs/SPRINT_015_PLAN.md
+    docs/adr/0006-configuration-read-api-boundaries.md
+
+Зафиксирована архитектурная цепочка:
+
+    domain models
+        -> scada_api read contracts
+        -> IConfigurationReadService
+        -> scada_app provider
+        -> scada_http endpoints
+        -> IConfigurationApiClient
+        -> operator pages
+
+Приняты решения:
+
+- domain entities не становятся HTTP wire contracts;
+- существующие `ApiRead*` concepts переиспользуются;
+- resource-specific read models размещаются в `scada_api`;
+- первая read service implementation размещается в `scada_app`;
+- deterministic development snapshot не размещается в endpoints или frontend;
+- `scada_http` отвечает только за query parsing, validation и serialization;
+- frontend использует единый `IConfigurationApiClient`;
+- отсутствующие relationships сериализуются как JSON `null`;
+- list responses используют count, total, offset, limit и hasMore;
+- пустой валидный filter возвращает HTTP 200;
+- dynamic path parameters и CRUD отложены;
+- Object tree строится application service;
+- ordering определяется до pagination.
+
+План Sprint 015:
+
+    108 — Read API scope and architecture
+    109 — Configuration read contracts and development provider
+    110 — Object list and tree HTTP API
+    111 — Device read HTTP API
+    112 — Tag read HTTP API
+    113 — Frontend configuration API client and tests
+    114 — Real Objects page integration
+    115 — Real Devices and Tags page integration
+    116 — Integration checks, current status and closure
