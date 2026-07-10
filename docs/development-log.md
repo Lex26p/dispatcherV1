@@ -1971,3 +1971,58 @@ Development configuration service создается composition root и пер�
 `scada_http` не зависит от concrete development provider.
 
 Добавлены query parser и Object endpoint unit tests.
+
+### Шаг 111
+
+Добавлен Device read HTTP API.
+
+Endpoint:
+
+    GET /api/devices
+
+Поддерживаются filters:
+
+    id
+    objectId
+    state
+    includeDisabled
+    limit
+    offset
+
+Реализованы:
+
+- strict query validation;
+- stable Device JSON contract;
+- nullable objectId;
+- protocol и configuration state;
+- runtimeEnabled;
+- nested connection contract;
+- IPv4 и IPv6 fields;
+- deterministic ordering;
+- pagination metadata;
+- disabled configuration filtering;
+- correlated invalid_query envelope.
+
+Default response скрывает:
+
+    Disabled
+    Decommissioned
+
+Поддерживаемые state values:
+
+    Draft
+    Commissioning
+    Active
+    Maintenance
+    Disabled
+    OutOfService
+    Decommissioned
+    Simulation
+
+Device endpoint получает данные через:
+
+    IConfigurationReadService
+
+Concrete development provider остается в composition root.
+
+Добавлены Device endpoint unit tests.

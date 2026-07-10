@@ -28,6 +28,7 @@
 
 #include "scada_api/api_module.h"
 
+#include "scada_http/device_read_endpoint.h"
 #include "scada_http/drogon_http_server.h"
 #include "scada_http/http_module.h"
 #include "scada_http/object_read_endpoint.h"
@@ -277,6 +278,22 @@ int main()
         return EXIT_FAILURE;
     }
 
+    const auto device_route_registered =
+        dispatcher::http::
+            register_device_read_endpoint(
+                http_route_dispatcher,
+                configuration_read_service
+            );
+
+    if (!device_route_registered) {
+        std::cerr
+            << "Device HTTP route failed "
+               "to register."
+            << '\n';
+
+        return EXIT_FAILURE;
+    }
+
     dispatcher::http::HttpServerOptions
         http_options;
 
@@ -426,6 +443,15 @@ int main()
         << http_options.port
         << dispatcher::http::
             object_tree_endpoint_path()
+        << '\n';
+
+    std::cout
+        << "HTTP devices: http://"
+        << http_options.bind_address
+        << ":"
+        << http_options.port
+        << dispatcher::http::
+            devices_endpoint_path()
         << '\n';
 
     std::cout
