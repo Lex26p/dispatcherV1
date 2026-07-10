@@ -1,0 +1,277 @@
+name: Dispatcher CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dispatcher-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_COMMIT_ID: 0308db5e395e701b5dff6e2f141bf7f42f58e60c
+  DOTNET_VERSION: 10.0.x
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_XMLDOC_MODE: skip
+
+jobs:
+  repository-quality:
+    name: Repository quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Validate line endings
+        shell: pwsh
+        run: ./scripts/check-line-endings.ps1
+
+      - name: Validate CMake presets JSON
+        shell: pwsh
+        run: |
+          Get-Content CMakePresets.json -Raw |
+              ConvertFrom-Json |
+              Out-Null
+
+          Write-Host "CMakePresets.json is valid JSON."
+
+      - name: Validate required repository files
+        shell: pwsh
+        run: |
+          $requiredFiles = @(
+              "CMakeLists.txt",
+              "CMakePresets.json",
+              "vcpkg.json",
+              "frontend/Dispatcher.Frontend.slnx",
+              "scripts/test-local-integration.ps1",
+              "scripts/test-linux-build.sh"
+          )
+
+          $missingFiles = @(
+              $requiredFiles |
+                  Where-Object {
+                      -not (Test-Path $_)
+                  }
+          )
+
+          if ($missingFiles.Count -gt 0) {
+              $missingFiles | ForEach-Object {
+                  Write-Error "Required file is missing: $_"
+              }
+
+              throw "Required repository files are missing."
+          }
+
+          Write-Host "Required repository files are present."
+
+  windows:
+    name: Windows VS 2026
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-windows-x64-
+
+      - name: Prepare pinned vcpkg
+        shell: pwsh
+        run: |
+          $vcpkgRoot = Join-Path $env:RUNNER_TEMP "dispatcher-vcpkg"
+          $binaryCache = Join-Path $env:RUNNER_TEMP "vcpkg-binary-cache"
+
+          if (Test-Path $vcpkgRoot) {
+              Remove-Item -Recurse -Force $vcpkgRoot
+          }
+
+          git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
+          git -C $vcpkgRoot checkout $env:VCPKG_COMMIT_ID
+
+          & (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat") -disableMetrics
+
+          New-Item `
+              -ItemType Directory `
+              -Force `
+              -Path $binaryCache |
+              Out-Null
+
+          "VCPKG_ROOT=$vcpkgRoot" |
+              Out-File `
+                  -FilePath $env:GITHUB_ENV `
+                  -Encoding utf8 `
+                  -Append
+
+          "VCPKG_DEFAULT_BINARY_CACHE=$binaryCache" |
+              Out-File `
+                  -FilePath $env:GITHUB_ENV `
+                  -Encoding utf8 `
+                  -Append
+
+      - name: Show Windows tool versions
+        shell: pwsh
+        run: |
+          cmake --version
+          dotnet --info
+          & "$env:VCPKG_ROOT\vcpkg.exe" version
+
+      - name: Configure Windows Debug
+        shell: pwsh
+        run: cmake --preset x64-debug
+
+      - name: Build Windows Debug
+        shell: pwsh
+        run: cmake --build --preset x64-debug --parallel
+
+      - name: Run Windows CTest
+        shell: pwsh
+        run: ctest --preset x64-debug
+
+      - name: Restore frontend
+        shell: pwsh
+        run: dotnet restore frontend/Dispatcher.Frontend.slnx
+
+      - name: Build frontend
+        shell: pwsh
+        run: >
+          dotnet build
+          frontend/Dispatcher.Frontend.slnx
+          --configuration Release
+          --no-restore
+
+      - name: Run frontend tests
+        shell: pwsh
+        run: >
+          dotnet test
+          frontend/Dispatcher.Frontend.slnx
+          --configuration Release
+          --no-build
+          --logger "console;verbosity=normal"
+
+      - name: Validate Windows line endings
+        shell: pwsh
+        run: ./scripts/check-line-endings.ps1
+
+  linux:
+    name: Ubuntu 24.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-linux-x64-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-linux-x64-
+
+      - name: Prepare pinned vcpkg
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          vcpkg_root="$RUNNER_TEMP/dispatcher-vcpkg"
+          binary_cache="$RUNNER_TEMP/vcpkg-binary-cache"
+
+          rm -rf "$vcpkg_root"
+
+          git clone https://github.com/microsoft/vcpkg.git "$vcpkg_root"
+          git -C "$vcpkg_root" checkout "$VCPKG_COMMIT_ID"
+
+          "$vcpkg_root/bootstrap-vcpkg.sh" -disableMetrics
+
+          mkdir -p "$binary_cache"
+
+          echo "VCPKG_ROOT=$vcpkg_root" >> "$GITHUB_ENV"
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$binary_cache" >> "$GITHUB_ENV"
+
+      - name: Show Linux tool versions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cmake --version
+          ninja --version
+          g++ --version | head -1
+          dotnet --info
+          "$VCPKG_ROOT/vcpkg" version
+
+      - name: Configure Linux Debug
+        shell: bash
+        run: cmake --preset linux-x64-debug
+
+      - name: Build Linux Debug
+        shell: bash
+        run: cmake --build --preset linux-x64-debug --parallel
+
+      - name: Run Linux Debug CTest
+        shell: bash
+        run: ctest --preset linux-x64-debug
+
+      - name: Configure Linux Release
+        shell: bash
+        run: cmake --preset linux-x64-release
+
+      - name: Build Linux Release
+        shell: bash
+        run: cmake --build --preset linux-x64-release --parallel
+
+      - name: Run Linux Release CTest
+        shell: bash
+        run: ctest --preset linux-x64-release
+
+      - name: Restore frontend
+        shell: bash
+        run: dotnet restore frontend/Dispatcher.Frontend.slnx
+
+      - name: Build frontend
+        shell: bash
+        run: >
+          dotnet build
+          frontend/Dispatcher.Frontend.slnx
+          --configuration Release
+          --no-restore
+
+      - name: Run frontend tests
+        shell: bash
+        run: >
+          dotnet test
+          frontend/Dispatcher.Frontend.slnx
+          --configuration Release
+          --no-build
+          --logger "console;verbosity=normal"
+
+      - name: Validate Linux line endings
+        shell: pwsh
+        run: ./scripts/check-line-endings.ps1
