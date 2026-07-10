@@ -35,6 +35,7 @@
 #include "scada_http/system_endpoint_registry.h"
 #include "scada_http/system_health_endpoint.h"
 #include "scada_http/system_modules_endpoint.h"
+#include "scada_http/tag_read_endpoint.h"
 
 #include "scada_realtime/realtime_module.h"
 
@@ -294,6 +295,22 @@ int main()
         return EXIT_FAILURE;
     }
 
+    const auto tag_route_registered =
+        dispatcher::http::
+            register_tag_read_endpoint(
+                http_route_dispatcher,
+                configuration_read_service
+            );
+
+    if (!tag_route_registered) {
+        std::cerr
+            << "Tag HTTP route failed "
+               "to register."
+            << '\n';
+
+        return EXIT_FAILURE;
+    }
+
     dispatcher::http::HttpServerOptions
         http_options;
 
@@ -452,6 +469,15 @@ int main()
         << http_options.port
         << dispatcher::http::
             devices_endpoint_path()
+        << '\n';
+
+    std::cout
+        << "HTTP tags: http://"
+        << http_options.bind_address
+        << ":"
+        << http_options.port
+        << dispatcher::http::
+            tags_endpoint_path()
         << '\n';
 
     std::cout

@@ -2026,3 +2026,60 @@ Device endpoint получает данные через:
 Concrete development provider остается в composition root.
 
 Добавлены Device endpoint unit tests.
+
+### Шаг 112
+
+Добавлен Tag read HTTP API.
+
+Endpoint:
+
+    GET /api/tags
+
+Поддерживаются filters:
+
+    id
+    objectId
+    deviceId
+    includeDisabled
+    limit
+    offset
+
+Реализованы:
+
+- strict query validation;
+- stable Tag JSON contract;
+- nullable objectId;
+- nullable deviceId;
+- Tag type;
+- value type;
+- archive policy;
+- engineering unit;
+- scale;
+- offset;
+- address;
+- enabled state;
+- deterministic ordering;
+- pagination metadata;
+- disabled configuration filtering;
+- correlated invalid_query envelope.
+
+Default response скрывает:
+
+    enabled = false
+
+Archive policy `Disabled` не считается disabled configuration state.
+
+Tag endpoint получает данные через:
+
+    IConfigurationReadService
+
+Concrete development provider остается в composition root.
+
+Добавлены Tag endpoint unit tests.
+
+После шага 112 backend предоставляет read-only configuration endpoints:
+
+    GET /api/objects
+    GET /api/objects/tree
+    GET /api/devices
+    GET /api/tags

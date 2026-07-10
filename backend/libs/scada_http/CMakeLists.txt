@@ -16,6 +16,7 @@ add_library(scada_http STATIC
     src/system_endpoint_registry.cpp
     src/object_read_endpoint.cpp
     src/device_read_endpoint.cpp
+    src/tag_read_endpoint.cpp
 )
 
 target_include_directories(scada_http

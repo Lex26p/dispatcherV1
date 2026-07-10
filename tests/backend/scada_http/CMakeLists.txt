@@ -8,6 +8,7 @@ add_executable(scada_http_tests
     system_endpoint_tests.cpp
     object_read_endpoint_tests.cpp
     device_read_endpoint_tests.cpp
+    tag_read_endpoint_tests.cpp
 )
 
 target_compile_features(scada_http_tests
