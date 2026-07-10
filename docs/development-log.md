@@ -1916,3 +1916,58 @@ Snapshot проходит:
 Созданы `scada_api` и `scada_app` unit test targets.
 
 HTTP endpoints на шаге 109 не добавлялись.
+
+### Шаг 110
+
+Добавлены Object list и Object tree HTTP API.
+
+Endpoints:
+
+    GET /api/objects
+    GET /api/objects/tree
+
+Создан общий strict HTTP query parser:
+
+    parse_http_query
+    parse_http_query_bool
+    parse_http_query_uint32
+
+Query parser поддерживает:
+
+- percent decoding;
+- plus-as-space decoding;
+- allowed parameter lists;
+- duplicate detection;
+- malformed encoding detection;
+- strict Boolean parsing;
+- strict unsigned integer parsing.
+
+Object collection поддерживает:
+
+    id
+    parentId
+    includeChildren
+    limit
+    offset
+
+Object tree поддерживает:
+
+    id
+    parentId
+
+Добавлены:
+
+- stable Object JSON contract;
+- JSON null для отсутствующего parent;
+- pagination metadata;
+- nested Object tree serialization;
+- invalid_query error envelope;
+- correlation ID;
+- unknown parameter rejection;
+- duplicate parameter rejection.
+
+Development configuration service создается composition root и передается HTTP layer через `IConfigurationReadService`.
+
+`scada_http` не зависит от concrete development provider.
+
+Добавлены query parser и Object endpoint unit tests.
