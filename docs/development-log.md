@@ -1551,3 +1551,88 @@ Catch2 test cases регистрируются в CTest через:
 - method not allowed response.
 
 Тесты не запускают реальный Drogon listener и не требуют сети.
+
+### Шаг 102
+
+Добавлен frontend xUnit test foundation.
+
+Создан проект:
+
+    frontend/Dispatcher.Frontend.Tests
+
+Проект добавлен в:
+
+    frontend/Dispatcher.Frontend.slnx
+
+Добавлены тесты:
+
+- `DispatcherApiClientOptions`;
+- backend URL normalization;
+- API path normalization;
+- request timeout fallback;
+- real/mock mode selection;
+- health DTO mapping;
+- module DTO mapping;
+- modules response mapping;
+- successful System health HTTP request;
+- successful System modules HTTP request;
+- HTTP status error;
+- invalid JSON;
+- null JSON response;
+- connection failure;
+- timeout conversion;
+- caller cancellation;
+- invalid HttpClient configuration.
+
+HTTP client tests используют controlled `HttpMessageHandler` и не требуют запущенного backend или сети.
+
+### Шаг 103
+
+Добавлен JSON serialization foundation в `scada_http`.
+
+Принято архитектурное решение:
+
+- JsonCpp используется как private implementation dependency HTTP transport;
+- JsonCpp объявлен прямой vcpkg dependency;
+- публичные `scada_http` headers не раскрывают JsonCpp или Drogon types;
+- domain и application modules не зависят от JSON framework.
+
+Созданы:
+
+    backend/libs/scada_http/include/scada_http/json_value.h
+    backend/libs/scada_http/src/json_value.cpp
+    docs/adr/0004-json-serialization-strategy.md
+
+`JsonValue` поддерживает:
+
+- null;
+- object;
+- array;
+- string;
+- bool;
+- signed 64-bit integer;
+- unsigned 64-bit integer;
+- double;
+- nested values;
+- compact serialization.
+
+Переведены на serializer foundation:
+
+    GET /api/system/health
+    GET /api/system/modules
+
+Удалены duplicated manual `json_escape` и string concatenation implementations.
+
+Добавлены tests для:
+
+- scalar JSON values;
+- escaping;
+- nested objects;
+- arrays;
+- null;
+- invalid container operations;
+- System health contract;
+- empty modules collection;
+- modules values и escaping.
+
+Формат существующих System API responses сохранен.

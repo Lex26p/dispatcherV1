@@ -1,82 +1,63 @@
 #include "scada_http/system_modules_endpoint.h"
 
-#include <sstream>
+#include "scada_http/json_value.h"
+
+#include <cstdint>
 #include <string>
 #include <utility>
 
 namespace dispatcher::http {
 namespace {
 
-[[nodiscard]] std::string json_escape(
-    const std::string_view value
-)
-{
-    std::ostringstream output;
-
-    for (const auto character : value) {
-        switch (character) {
-        case '"':
-            output << "\\\"";
-            break;
-        case '\\':
-            output << "\\\\";
-            break;
-        case '\b':
-            output << "\\b";
-            break;
-        case '\f':
-            output << "\\f";
-            break;
-        case '\n':
-            output << "\\n";
-            break;
-        case '\r':
-            output << "\\r";
-            break;
-        case '\t':
-            output << "\\t";
-            break;
-        default:
-            output << character;
-            break;
-        }
-    }
-
-    return output.str();
-}
-
 [[nodiscard]] std::string make_modules_json(
     const std::vector<dispatcher::core::ModuleInfo>& modules
 )
 {
-    std::ostringstream output;
+    auto module_values = JsonValue::array();
 
-    output
-        << "{"
-        << "\"modules\":[";
+    for (const auto& module : modules) {
+        auto module_value = JsonValue::object();
 
-    for (std::size_t index = 0; index < modules.size(); ++index) {
-        const auto& module = modules[index];
+        module_value
+            .set_string(
+                "code",
+                module.code
+            )
+            .set_string(
+                "name",
+                module.name
+            )
+            .set_string(
+                "description",
+                module.description
+            )
+            .set_string(
+                "status",
+                dispatcher::core::to_string(
+                    module.status
+                )
+            );
 
-        if (index > 0) {
-            output << ",";
-        }
-
-        output
-            << "{"
-            << "\"code\":\"" << json_escape(module.code) << "\","
-            << "\"name\":\"" << json_escape(module.name) << "\","
-            << "\"description\":\"" << json_escape(module.description) << "\","
-            << "\"status\":\"" << json_escape(dispatcher::core::to_string(module.status)) << "\""
-            << "}";
+        module_values.append_value(
+            std::move(module_value)
+        );
     }
 
-    output
-        << "],"
-        << "\"count\":" << modules.size()
-        << "}";
+    auto document = JsonValue::object();
 
-    return output.str();
+    document
+        .set_value(
+            "modules",
+            std::move(module_values)
+        )
+        .set_uint64(
+            "count",
+            static_cast<std::uint64_t>(
+                modules.size()
+            )
+        );
+
+    return document.serialize();
 }
 
 } // namespace
@@ -90,7 +71,9 @@ HttpEndpoint make_system_modules_endpoint()
 {
     return HttpEndpoint{
         .method = HttpMethod::Get,
-        .path = std::string{system_modules_endpoint_path()},
+        .path = std::string{
+            system_modules_endpoint_path()
+        },
         .name = "System modules",
         .public_endpoint = true
     };
@@ -113,10 +96,14 @@ bool register_system_modules_endpoint(
 {
     return route_dispatcher.add_route(
         make_system_modules_endpoint(),
-        [modules = std::move(modules)](const HttpRequest& request) {
+        [
+            modules = std::move(modules)
+        ](const HttpRequest& request) {
             (void)request;
 
-            return make_system_modules_response(modules);
+            return make_system_modules_response(
+                modules
+            );
         }
     );
 }

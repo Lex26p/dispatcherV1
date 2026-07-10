@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Dispatcher.Frontend/Dispatcher.Frontend.csproj" />
+  <Project Path="Dispatcher.Frontend.Tests/Dispatcher.Frontend.Tests.csproj" />
 </Solution>

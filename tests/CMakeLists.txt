@@ -1,4 +1,5 @@
 find_package(Catch2 3 CONFIG REQUIRED)
+find_package(jsoncpp CONFIG REQUIRED)
 
 include(Catch)
 

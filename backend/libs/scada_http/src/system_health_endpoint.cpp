@@ -2,69 +2,52 @@
 
 #include "scada_common/version.h"
 
-#include <sstream>
+#include "scada_http/json_value.h"
+
 #include <string>
 
 namespace dispatcher::http {
 namespace {
 
-[[nodiscard]] std::string json_escape(
-    const std::string_view value
-)
-{
-    std::ostringstream output;
-
-    for (const auto character : value) {
-        switch (character) {
-        case '"':
-            output << "\\\"";
-            break;
-        case '\\':
-            output << "\\\\";
-            break;
-        case '\b':
-            output << "\\b";
-            break;
-        case '\f':
-            output << "\\f";
-            break;
-        case '\n':
-            output << "\\n";
-            break;
-        case '\r':
-            output << "\\r";
-            break;
-        case '\t':
-            output << "\\t";
-            break;
-        default:
-            output << character;
-            break;
-        }
-    }
-
-    return output.str();
-}
-
 [[nodiscard]] std::string make_health_json()
 {
-    const auto version = dispatcher::common::get_version_info();
+    const auto version =
+        dispatcher::common::get_version_info();
 
-    std::ostringstream output;
+    auto document = JsonValue::object();
 
-    output
-        << "{"
-        << "\"status\":\"ok\","
-        << "\"product\":\"" << json_escape(version.product_name) << "\","
-        << "\"executable\":\"" << json_escape(version.executable_name) << "\","
-        << "\"version\":\"" << json_escape(version.version) << "\","
-        << "\"mode\":\"" << json_escape(version.mode) << "\","
-        << "\"api\":\"available\","
-        << "\"transport\":\"http\","
-        << "\"endpoint\":\"" << json_escape(system_health_endpoint_path()) << "\""
-        << "}";
+    document
+        .set_string("status", "ok")
+        .set_string(
+            "product",
+            version.product_name
+        )
+        .set_string(
+            "executable",
+            version.executable_name
+        )
+        .set_string(
+            "version",
+            version.version
+        )
+        .set_string(
+            "mode",
+            version.mode
+        )
+        .set_string(
+            "api",
+            "available"
+        )
+        .set_string(
+            "transport",
+            "http"
+        )
+        .set_string(
+            "endpoint",
+            system_health_endpoint_path()
+        );
 
-    return output.str();
+    return document.serialize();
 }
 
 } // namespace
@@ -78,7 +61,9 @@ HttpEndpoint make_system_health_endpoint()
 {
     return HttpEndpoint{
         .method = HttpMethod::Get,
-        .path = std::string{system_health_endpoint_path()},
+        .path = std::string{
+            system_health_endpoint_path()
+        },
         .name = "System health",
         .public_endpoint = true
     };
