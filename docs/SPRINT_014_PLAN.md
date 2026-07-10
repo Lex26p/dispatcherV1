@@ -6,11 +6,11 @@ Engineering Baseline
 
 ## Статус
 
-In Progress
+Completed
 
 ## Этап
 
-Post-MVP engineering stabilization
+Post-MVP engineering stabilization.
 
 ## Диапазон шагов
 
@@ -22,7 +22,7 @@ Post-MVP engineering stabilization
 
 ## Причина
 
-После Sprint 013 в проекте уже работают:
+После Sprint 013 в проекте уже работали:
 
 - модульный backend;
 - Drogon HTTP transport;
@@ -32,23 +32,25 @@ Post-MVP engineering stabilization
 - real System page integration;
 - local integration smoke-test.
 
-При этом пока отсутствуют:
+При этом отсутствовали:
 
 - backend unit tests;
 - frontend automated tests;
-- CTest integration;
+- CTest;
 - Windows/Linux CI;
 - регулярная Linux-сборка;
-- единый JSON serializer foundation;
+- контролируемый JSON serializer;
 - единый API error envelope;
-- correlation ID;
-- единый документ текущего состояния проекта.
+- transport correlation ID;
+- канонический current-status document.
 
-Расширение прикладного API без этих основ повысит стоимость последующих переделок.
+Расширение прикладного API без этих основ повысило бы стоимость последующих изменений.
 
 ## Главный результат
 
-После Sprint 014 проект должен иметь:
+Sprint 014 завершен.
+
+В проекте теперь есть:
 
 - повторяемые backend unit tests;
 - frontend service tests;
@@ -60,7 +62,7 @@ Post-MVP engineering stabilization
 - стабильный JSON serialization foundation;
 - единый API error envelope;
 - correlation ID foundation;
-- актуальный `CURRENT_STATUS.md`.
+- `docs/CURRENT_STATUS.md`.
 
 ## Testing strategy
 
@@ -70,7 +72,7 @@ Framework:
 
     Catch2 v3
 
-Runner and orchestration:
+Runner:
 
     CTest
 
@@ -78,14 +80,14 @@ Test registration:
 
     catch_discover_tests
 
-Backend tests должны:
+Backend tests:
 
-- собираться только при `BUILD_TESTING=ON`;
-- не запускать реальные сетевые listeners для unit tests;
-- не зависеть от внешней базы данных;
-- не зависеть от реальных устройств;
-- быть быстрыми и детерминированными;
-- тестировать публичное поведение модулей.
+- собираются только при `BUILD_TESTING=ON`;
+- не запускают настоящий network listener;
+- не требуют database;
+- не требуют реальных устройств;
+- являются быстрыми и детерминированными;
+- тестируют публичное поведение модулей.
 
 ### Frontend
 
@@ -100,92 +102,48 @@ Runner:
 Первый frontend test scope:
 
 - DTO mapping;
-- API options normalization;
+- API options;
 - `SystemHttpApiClient`;
-- connection failure;
-- HTTP error;
+- successful responses;
+- HTTP errors;
 - invalid JSON;
 - cancellation;
-- timeout-related behavior, где это возможно без нестабильных задержек.
-
-Component tests и browser tests не входят в минимальный baseline этого спринта.
+- connection failure;
+- timeout;
+- configuration errors;
+- correlation ID.
 
 ### Test layers
 
 Unit tests:
 
-- отдельные классы и чистые компоненты;
+- отдельные типы и компоненты;
 - без сети;
-- без filesystem side effects;
-- без database.
-
-Integration tests:
-
-- взаимодействие нескольких внутренних модулей;
-- controlled dependencies;
 - без production infrastructure.
 
-Local smoke-test:
+Local integration smoke-test:
 
     scripts/test-local-integration.ps1
 
-Проверяет работающий backend HTTP transport и CORS.
-
-CI smoke-test может иметь отдельный режим, если интерактивный lifecycle `dispatcher_server` нельзя надежно использовать в pipeline.
-
-## Test naming
-
-Имена C++ и C# тестов пишутся на английском языке.
-
-Пользовательские UI-тексты остаются на русском языке.
-
-Рекомендуемый стиль:
-
-    component_action_expected_result
-
-или читаемое поведение:
-
-    dispatch_returns_not_found_for_unknown_path
-
-## Test directory structure
-
-Рекомендуемая backend-структура:
-
-    tests/
-        CMakeLists.txt
-        backend/
-            scada_http/
-            scada_tags/
-            scada_historian/
-            scada_events/
-            scada_alarms/
-
-Рекомендуемая frontend-структура:
-
-    frontend/
-        Dispatcher.Frontend.Tests/
-
-Тесты группируются по тестируемому модулю, а не по типу assertion.
+Проверяет реальный development HTTP transport и CORS.
 
 ## Dependency rules
 
-Тестовые зависимости должны быть объявлены явно.
+Backend test dependency:
 
-Backend:
+    Catch2
 
-- Catch2 добавляется в `vcpkg.json`;
-- тестовые targets не должны становиться зависимостями product targets.
+Frontend test dependencies находятся только в test project.
 
-Frontend:
+JsonCpp является private implementation dependency `scada_http`.
 
-- test packages добавляются только в test project;
-- frontend product project не должен зависеть от xUnit.
+Domain modules не зависят от Drogon или JsonCpp.
 
 ## CI strategy
 
-GitHub Actions должен проверять:
-
 ### Windows
+
+Проверяются:
 
 - CMake configure;
 - backend build;
@@ -196,65 +154,64 @@ GitHub Actions должен проверять:
 
 ### Linux
 
-- CMake configure;
-- backend build;
-- CTest;
+Проверяются:
+
+- Debug configure;
+- Debug build;
+- Debug CTest;
+- Release configure;
+- Release build;
+- Release CTest;
 - frontend build;
 - frontend tests;
-- case-sensitive paths.
+- case-sensitive paths;
+- LF validation.
 
-CI не должен требовать:
+CI не требует:
 
 - PostgreSQL;
-- реальное оборудование;
+- оборудования;
 - Docker;
-- секреты;
+- секретов;
 - production certificates.
 
 ## Linux strategy
 
-Нужно добавить Linux presets, совместимые с:
+Добавлены presets:
+
+    linux-x64-debug
+    linux-x64-release
+
+Используются:
 
 - Ninja;
-- GCC или Clang;
+- GCC;
 - vcpkg triplet `x64-linux`;
 - Debug;
 - Release.
 
-Windows Visual Studio presets сохраняются.
-
-Product code не должен предполагать:
-
-- Windows paths;
-- console-only shutdown;
-- case-insensitive filesystem;
-- MSVC-specific behavior без защитных условий.
+Windows Visual Studio presets сохранены.
 
 ## JSON strategy
 
-Ручная сборка JSON через конкатенацию строк должна быть заменена контролируемым serializer foundation.
+Ручная сборка JSON заменена на:
 
-Требования:
+    dispatcher::http::JsonValue
 
-- JSON library остается implementation detail transport layer;
-- domain models не должны зависеть от Drogon;
-- serializers должны тестироваться;
-- enum, timestamp, nullable и array conventions должны быть единообразными;
-- ошибки сериализации должны обрабатываться явно.
+JsonCpp скрыт внутри implementation.
 
-Точный serializer design будет зафиксирован отдельным решением перед реализацией шага 103.
+System endpoints используют структурированную JSON serialization.
 
 ## API error contract
 
-Нужно определить единый envelope:
+Формат:
 
-    error
-        code
-        message
-        correlationId
-        details
+    error.code
+    error.message
+    error.correlationId
+    error.details
 
-Минимальные HTTP statuses:
+Покрыты основные transport statuses, включая:
 
 - 400;
 - 401;
@@ -262,45 +219,82 @@ Product code не должен предполагать:
 - 404;
 - 405;
 - 409;
+- 413;
 - 500;
+- 501;
 - 503.
-
-Frontend не должен анализировать plain-text ошибки Drogon.
 
 ## Correlation ID
 
-Каждый HTTP request должен получать correlation ID.
+Каждый API request получает correlation ID.
 
 Правила:
 
-- принять входящий `X-Correlation-Id`, если он валиден;
-- иначе создать новый ID;
-- вернуть ID в response header;
-- включить ID в JSON error envelope;
-- позже включить ID в structured logs.
+- валидный входящий `X-Correlation-Id` сохраняется;
+- отсутствующий или некорректный ID заменяется;
+- ID возвращается в response header;
+- ID включается в JSON error envelope.
 
-## In scope
+## Выполненные шаги
 
-В Sprint 014 входит:
+### Шаг 99
 
-- план и ADR engineering baseline;
-- Catch2 dependency;
-- CTest foundation;
-- первые backend unit tests;
-- frontend xUnit project;
-- frontend API client tests;
-- JSON serializer foundation;
-- API error envelope;
-- correlation ID;
-- Linux presets;
-- Windows/Linux GitHub Actions;
-- LF validation;
-- `CURRENT_STATUS.md`;
-- закрытие документации Sprint 014.
+Engineering baseline plan and test strategy.
+
+### Шаг 100
+
+Backend Catch2 and CTest foundation.
+
+### Шаг 101
+
+Backend HTTP and core behavior tests.
+
+### Шаг 102
+
+Frontend xUnit test foundation.
+
+### Шаг 103
+
+JSON serialization foundation.
+
+### Шаг 104
+
+API error envelope and correlation ID.
+
+### Шаг 105
+
+Linux CMake presets and portability cleanup.
+
+### Шаг 106
+
+Windows and Linux CI.
+
+### Шаг 107
+
+Current status and Sprint 014 closure.
+
+## Acceptance criteria
+
+Выполнены:
+
+- Windows backend build проходит;
+- Linux backend Debug build проходит;
+- Linux backend Release build проходит;
+- CTest запускает backend tests;
+- все 36 backend tests проходят;
+- frontend tests проходят;
+- CI проходит на Windows и Linux;
+- System endpoints используют serializer foundation;
+- API errors имеют единый JSON envelope;
+- responses содержат correlation ID;
+- LF validation проходит;
+- local integration smoke-test проходит;
+- frontend и backend не имеют новых warnings;
+- документация отражает текущее состояние.
 
 ## Out of scope
 
-В Sprint 014 не входит:
+В Sprint 014 не входили:
 
 - Object API;
 - Device API;
@@ -309,8 +303,8 @@ Frontend не должен анализировать plain-text ошибки Dr
 - Events API;
 - Alarms API;
 - PostgreSQL integration;
-- real Modbus TCP polling;
-- real SNMP polling;
+- real Modbus TCP;
+- real SNMP;
 - authentication;
 - authorization;
 - dashboards;
@@ -318,111 +312,12 @@ Frontend не должен анализировать plain-text ошибки Dr
 - Docker;
 - production deployment.
 
-## План шагов
+## Итог
 
-### Шаг 99 — Engineering baseline plan and test strategy
+Sprint 014 закрыт.
 
-Результат:
-
-- создан Sprint 014 plan;
-- принято решение по Catch2, CTest и xUnit;
-- определены test layers и CI scope.
-
-### Шаг 100 — Backend Catch2 and CTest foundation
-
-Результат:
-
-- Catch2 добавлен в vcpkg;
-- корневой CMake подключает CTest;
-- создан `tests/CMakeLists.txt`;
-- первый backend test target собирается и запускается.
-
-### Шаг 101 — Backend HTTP and core behavior tests
-
-Результат:
-
-- протестирован `HttpRouteDispatcher`;
-- протестированы HTTP method/status helpers;
-- протестирован `HttpCorsOptions`;
-- зафиксированы 400, 404, 405 и duplicate route rules.
-
-### Шаг 102 — Frontend xUnit test foundation
-
-Результат:
-
-- создан `Dispatcher.Frontend.Tests`;
-- добавлены tests для API options;
-- добавлены DTO mapping tests;
-- добавлены `SystemHttpApiClient` tests;
-- `dotnet test` проходит.
-
-### Шаг 103 — JSON serialization foundation
-
-Результат:
-
-- выбран и зафиксирован serializer design;
-- ручная сборка JSON в System endpoints заменена;
-- serialization покрыта tests;
-- domain modules не зависят от JSON framework.
-
-### Шаг 104 — API error envelope and correlation ID
-
-Результат:
-
-- добавлен единый error response contract;
-- добавлен correlation ID;
-- базовые transport errors возвращаются как Dispatcher JSON;
-- frontend foundation готов к чтению correlation ID.
-
-### Шаг 105 — Linux CMake presets and portability cleanup
-
-Результат:
-
-- добавлены Linux Debug/Release presets;
-- проект собирается с GCC или Clang;
-- исправлены найденные portability warnings;
-- Windows presets продолжают работать.
-
-### Шаг 106 — Windows and Linux CI
-
-Результат:
-
-- добавлен GitHub Actions workflow;
-- проверяется backend build;
-- запускается CTest;
-- проверяется frontend build;
-- запускается `dotnet test`;
-- проверяются LF endings.
-
-### Шаг 107 — Current status and Sprint 014 closure
-
-Результат:
-
-- создан `docs/CURRENT_STATUS.md`;
-- создан `docs/SPRINT_014_SUMMARY.md`;
-- обновлены limitations и development log;
-- Sprint 014 закрыт.
-
-## Acceptance criteria
-
-Sprint 014 считается выполненным, если:
-
-- Windows backend build проходит;
-- Linux backend build проходит;
-- CTest запускает backend tests;
-- backend unit tests проходят;
-- frontend tests проходят;
-- CI проходит на Windows и Linux;
-- System endpoints используют serializer foundation;
-- базовые API errors имеют единый JSON envelope;
-- responses содержат correlation ID;
-- LF validation проходит;
-- local integration smoke-test продолжает работать;
-- frontend и backend не имеют новых warnings;
-- documentation отражает текущее состояние.
+Engineering baseline готов к расширению прикладного API.
 
 ## Следующий спринт
 
-    Sprint 015 — Object, Device and Tag Read API Foundation
-
-Sprint 015 начинается только после стабильного прохождения test и CI baseline.
+Sprint 015 — Object, Device and Tag Read API Foundation.

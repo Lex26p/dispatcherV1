@@ -1746,3 +1746,53 @@ CI проверяет:
 Windows preset architecture strategy изменена с `external` на `set`, чтобы command-line CI явно конфигурировал x64.
 
 vcpkg binary cache разделен между Windows и Linux.
+
+### Шаг 107
+
+Sprint 014 — Engineering Baseline закрыт.
+
+Созданы:
+
+    docs/CURRENT_STATUS.md
+    docs/SPRINT_014_SUMMARY.md
+
+Актуализированы:
+
+    docs/SPRINT_014_PLAN.md
+    docs/known-limitations.md
+    docs/MVP_STATUS.md
+    docs/roadmap.md
+
+`CURRENT_STATUS.md` теперь является каноническим документом текущего технического состояния Dispatcher.
+
+`MVP_STATUS.md` переведен в исторический статус и больше не описывает текущее состояние проекта.
+
+Зафиксированы результаты Engineering Baseline:
+
+- 36 backend CTest tests;
+- frontend xUnit service tests;
+- JSON serialization foundation;
+- единый API error envelope;
+- correlation ID;
+- Linux Debug и Release presets;
+- Windows/Linux CI;
+- LF validation;
+- local integration smoke-test.
+
+Все acceptance criteria Sprint 014 выполнены.
+
+## Итог Sprint 014
+
+Сформирован повторяемый engineering baseline Dispatcher.
+
+Проект автоматически проверяется на Windows и Linux.
+
+Transport contracts защищены tests.
+
+Sprint status:
+
+    Completed
+
+Следующий спринт:
+
+    Sprint 015 — Object, Device and Tag Read API Foundation
