@@ -2279,3 +2279,83 @@ Tags page отображает:
 Frontend Device и Tag demo-data не используются.
 
 Добавлены presentation unit tests.
+
+### Шаг 116
+
+Выполнены integration checks и закрытие Sprint 015.
+
+Расширен local integration smoke-test:
+
+    scripts/test-local-integration.ps1
+
+Smoke-test теперь проверяет:
+
+- System health;
+- System modules;
+- Object collection;
+- Object filters;
+- Object pagination;
+- Object tree;
+- Object subtree;
+- Device collection;
+- Device object filter;
+- Device state filter;
+- disabled Device configuration;
+- Tag collection;
+- Tag object filter;
+- Tag device filter;
+- disabled Tag configuration;
+- invalid query;
+- unsupported query;
+- error details;
+- correlation ID в body;
+- correlation ID в header;
+- development CORS;
+- OPTIONS preflight;
+- rejected origin;
+- отсутствие secret fields в Device contract.
+
+Создан:
+
+    docs/SPRINT_015_SUMMARY.md
+
+Актуализированы:
+
+    docs/SPRINT_015_PLAN.md
+    docs/CURRENT_STATUS.md
+    docs/known-limitations.md
+    docs/MVP_STATUS.md
+    docs/roadmap.md
+
+Подтверждены:
+
+- 78 CTest tests;
+- frontend xUnit tests;
+- Windows Debug build;
+- Windows Release build;
+- local integration smoke-test;
+- browser System page;
+- browser Objects page;
+- browser Devices page;
+- browser Tags page;
+- LF validation;
+- Windows CI;
+- Linux Debug CI;
+- Linux Release CI;
+- отсутствие новых warnings.
+
+Sprint 015 закрыт.
+
+Dispatcher имеет первый прикладной read-only configuration vertical slice:
+
+    Object
+        ->
+    Device
+        ->
+    Tag
+
+Следующий Sprint scope должен быть согласован отдельным plan.
+
+Рекомендуемое направление:
+
+    Configuration Persistence Foundation

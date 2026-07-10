@@ -6,7 +6,7 @@ Historical.
 
 Этот документ фиксирует завершение MVP foundation после Sprint 010.
 
-Он больше не является источником текущего технического состояния проекта.
+Он не является источником текущего технического состояния.
 
 Актуальный статус:
 
@@ -22,7 +22,7 @@ Historical.
 
 ## Что означает MVP foundation
 
-MVP в Dispatcher означал минимальный архитектурный и пользовательский контур, который:
+MVP foundation означал минимальный архитектурный и пользовательский контур, который:
 
 - определил основные domain boundaries;
 - создал modular backend foundation;
@@ -36,11 +36,11 @@ MVP foundation не означал production-ready SCADA.
 
 К завершению Sprint 010 были созданы:
 
-- C++20 backend project;
+- C++20 backend;
 - common и core foundations;
-- object model foundation;
-- device model foundation;
-- tag model foundation;
+- Object model foundation;
+- Device model foundation;
+- Tag model foundation;
 - protocol foundation;
 - polling foundation;
 - runtime foundation;
@@ -59,13 +59,10 @@ MVP foundation не означал production-ready SCADA.
 - Objects placeholder;
 - Devices placeholder;
 - Tags placeholder;
-- MVP scope и stabilization documentation.
+- MVP scope;
+- stabilization documentation.
 
-## Закрытие этапа
-
-MVP foundation stage закрыт в Sprint 010.
-
-Завершенные MVP foundation спринты:
+## Завершенные MVP foundation sprints
 
 - Sprint 001 — Project Foundation;
 - Sprint 002 — Object Model Foundation;
@@ -80,27 +77,44 @@ MVP foundation stage закрыт в Sprint 010.
 
 ## Развитие после MVP
 
-После закрытия MVP foundation были выполнены:
+После закрытия MVP foundation выполнены:
 
 - Sprint 011 — Russian UI Cleanup and Frontend Terminology;
 - Sprint 012 — Backend HTTP API Transport Foundation;
 - Sprint 013 — Frontend Real API Client Integration;
-- Sprint 014 — Engineering Baseline.
+- Sprint 014 — Engineering Baseline;
+- Sprint 015 — Object, Device and Tag Read API Foundation.
 
-В результате после MVP появились:
+## Результаты post-MVP development
 
-- реальный HTTP transport;
-- реальные System endpoints;
+После MVP появились:
+
+- реальный Drogon HTTP transport;
+- System endpoints;
 - real System frontend integration;
 - development CORS;
 - local integration smoke-test;
-- JSON serialization foundation;
+- JSON serializer foundation;
 - API error envelope;
 - correlation ID;
-- backend tests;
-- frontend tests;
-- Windows/Linux CI.
+- backend Catch2 tests;
+- frontend xUnit tests;
+- Windows/Linux CI;
+- strict reusable query parser;
+- configuration read application service;
+- Object list endpoint;
+- Object tree endpoint;
+- Device list endpoint;
+- Tag list endpoint;
+- typed frontend configuration client;
+- real Objects page;
+- real Devices page;
+- real Tags page.
 
-Эти результаты описаны в:
+## Текущее положение
+
+MVP foundation остается закрытым историческим этапом.
+
+Текущий технический статус описан в:
 
     docs/CURRENT_STATUS.md

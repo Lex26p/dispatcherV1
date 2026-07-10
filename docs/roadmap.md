@@ -2,11 +2,19 @@
 
 ## Статус
 
-Актуально после завершения Sprint 014.
+Актуально после завершения Sprint 015.
 
-Канонический технический статус:
+Дата фиксации:
+
+    2026-07-10
+
+Канонический статус:
 
     docs/CURRENT_STATUS.md
+
+Текущие ограничения:
+
+    docs/known-limitations.md
 
 ## Завершенные этапы
 
@@ -32,81 +40,107 @@
 - Sprint 011 — Russian UI Cleanup and Frontend Terminology;
 - Sprint 012 — Backend HTTP API Transport Foundation;
 - Sprint 013 — Frontend Real API Client Integration;
-- Sprint 014 — Engineering Baseline.
+- Sprint 014 — Engineering Baseline;
+- Sprint 015 — Object, Device and Tag Read API Foundation.
 
 ## Текущее состояние
 
 Сформированы:
 
-- modular backend;
-- domain foundations;
-- operator UI foundation;
-- real System HTTP API;
-- real System frontend integration;
-- stable JSON serializer boundary;
+- modular C++20 backend;
+- Object, Device и Tag domain models;
+- protocol and polling foundations;
+- runtime, historian, event и alarm foundations;
+- Drogon HTTP transport;
+- JSON serializer boundary;
 - API error envelope;
 - correlation ID;
-- backend tests;
-- frontend tests;
-- Windows/Linux CI.
-
-## Следующий спринт
-
-### Sprint 015 — Object, Device and Tag Read API Foundation
-
-Основная цель:
-
-    domain foundations
-        -> read application services
-        -> HTTP endpoints
-        -> JSON contracts
-        -> typed frontend clients
-        -> real operator pages
-
-Предполагаемый scope:
-
-- Object read models;
-- object tree endpoint;
-- object list endpoint;
-- Device read models;
-- device list endpoint;
-- Tag read models;
-- tag list endpoint;
-- query validation;
-- API DTO mapping;
-- unit tests;
-- endpoint contract tests;
-- frontend typed clients;
-- loading, empty и error states;
+- strict HTTP query parser;
+- configuration read application service;
+- deterministic development configuration provider;
+- Object list API;
+- Object tree API;
+- Device list API;
+- Tag list API;
+- typed frontend configuration client;
+- real System page;
 - real Objects page;
 - real Devices page;
 - real Tags page;
-- documentation.
+- backend Catch2 tests;
+- frontend xUnit tests;
+- local integration smoke-test;
+- Windows CI;
+- Linux Debug and Release CI.
 
-Не входят в первый read API scope:
+## Рабочий configuration vertical slice
 
-- create;
-- update;
-- delete;
-- commands;
-- authentication;
-- authorization;
-- database persistence;
-- realtime updates.
+    Object
+        ->
+    Device
+        ->
+    Tag
+
+Техническая цепочка:
+
+    domain
+        ->
+    IConfigurationReadService
+        ->
+    HTTP
+        ->
+    JSON
+        ->
+    ConfigurationHttpApiClient
+        ->
+    Blazor pages
+
+## Следующий planning checkpoint
+
+Sprint 016 scope должен быть утвержден отдельным plan.
+
+Рекомендуемый приоритет:
+
+    Configuration Persistence Foundation
+
+Предполагаемая цель:
+
+    development snapshot
+        ->
+    repository-backed configuration reads
+
+Возможный scope для отдельного обсуждения:
+
+- PostgreSQL connection foundation;
+- backend configuration options;
+- migration runner boundary;
+- Object repository implementation;
+- Device repository implementation;
+- Tag repository implementation;
+- transaction boundary;
+- seed/development data strategy;
+- repository-backed `IConfigurationReadService`;
+- development snapshot fallback policy;
+- persistence integration tests;
+- startup validation;
+- failure reporting.
+
+Этот scope не считается утвержденным до создания Sprint 016 plan и архитектурного решения.
 
 ## Последующие направления
 
-Точный порядок следующих спринтов фиксируется отдельными sprint plans.
+Точный порядок фиксируется отдельными sprint plans.
 
-Основные направления:
+### Configuration management
 
-### Persistence
-
-- PostgreSQL connection;
-- migration runner;
-- repository implementations;
-- transaction boundaries;
-- configuration persistence.
+- CRUD;
+- validation reports;
+- versioning;
+- import and export;
+- audit;
+- conflict handling;
+- responsibility zones;
+- engineering workflows.
 
 ### Protocols and polling
 
@@ -115,34 +149,37 @@
 - connection lifecycle;
 - background polling;
 - retry/backoff;
-- diagnostics.
+- diagnostics;
+- load limiting.
 
 ### Runtime data pipeline
 
 - TagValueStore lifecycle;
 - EventBus integration;
 - historian delivery;
-- events generation;
+- event generation;
 - alarm evaluation;
 - realtime publication.
 
 ### Historian
 
-- batch writer;
-- TimescaleDB;
+- PostgreSQL or TimescaleDB writer;
+- batch worker;
 - query API;
 - retention;
 - compression;
-- downsampling.
+- downsampling;
+- trend data.
 
 ### Events and alarms
 
 - Event Manager;
 - Alarm Manager;
+- persistent state;
 - acknowledgement;
 - shelving;
 - suppression;
-- notifications;
+- notification delivery;
 - audit trail.
 
 ### Realtime
@@ -159,6 +196,7 @@
 - authorization;
 - roles;
 - responsibility zones;
+- operator identity;
 - audit identity;
 - secrets management.
 
@@ -169,7 +207,8 @@
 - commands;
 - trends;
 - reports;
-- maintenance workflows.
+- maintenance workflows;
+- commissioning tools.
 
 ### Production engineering
 

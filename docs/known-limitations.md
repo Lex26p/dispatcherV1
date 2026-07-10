@@ -1,12 +1,16 @@
 # Dispatcher Known Limitations
 
-## Назначение
+## Статус документа
 
-Документ описывает актуальные ограничения Dispatcher после завершения Sprint 014.
+Актуально после завершения:
 
-Это текущий список ограничений, а не исторический журнал.
+    Sprint 015 — Object, Device and Tag Read API Foundation
 
-Текущее состояние проекта:
+Дата фиксации:
+
+    2026-07-10
+
+Текущий статус:
 
     docs/CURRENT_STATUS.md
 
@@ -16,173 +20,198 @@
 
 ## Общий статус
 
-Dispatcher находится на стадии post-MVP engineering development.
+Dispatcher находится на стадии post-MVP application development.
 
-Архитектурный, transport, frontend integration, testing и CI foundations работают.
+Работают:
 
-Система пока не готова к промышленной эксплуатации.
-
-## Что уже работает
-
-Реализованы:
-
-- модульный C++20 backend;
-- application composition;
-- object, device и tag domain foundations;
-- protocol driver interfaces;
-- polling foundation;
-- runtime value foundation;
-- historian foundation;
-- event foundation;
-- alarm foundation;
-- API route foundation;
+- modular backend;
+- domain foundations;
 - Drogon HTTP transport;
-- development CORS;
-- System health endpoint;
-- System modules endpoint;
-- JSON serialization foundation;
-- единый API error envelope;
-- correlation ID;
-- Blazor WebAssembly frontend;
-- русский UI;
-- реальная интеграция System page;
-- backend Catch2 tests;
-- frontend xUnit tests;
-- CTest;
-- local integration smoke-test;
+- System API;
+- Object API;
+- Device API;
+- Tag API;
+- typed frontend clients;
+- real System page;
+- real Objects page;
+- real Devices page;
+- real Tags page;
+- backend tests;
+- frontend tests;
 - Windows CI;
-- Linux Debug и Release CI;
-- LF validation.
+- Linux CI.
 
-## Backend limitations
+Dispatcher пока не готов к промышленной эксплуатации.
 
-### Ограниченный HTTP API
+## Configuration data source
 
-Реально доступны только:
+Object, Device и Tag read API используют:
 
-    GET /api/system/health
-    GET /api/system/modules
+    DevelopmentConfigurationReadService
 
-Objects, Devices, Tags, Runtime, History, Events и Alarms пока не предоставляют полноценные HTTP endpoints.
+Источник данных:
 
-### JSON conventions пока ограничены
+    deterministic in-process snapshot
 
-`JsonValue` поддерживает базовые JSON types и используется System endpoints.
+Ограничения:
 
-Пока не зафиксированы полные conventions для:
+- данные не читаются из PostgreSQL;
+- данные не сохраняются;
+- изменения после перезапуска невозможны;
+- snapshot предназначен только для development и tests;
+- production configuration files отсутствуют;
+- configuration reload отсутствует;
+- configuration versioning отсутствует;
+- audit trail отсутствует.
 
-- timestamps во всех API areas;
-- pagination;
-- filtering;
-- sorting;
-- nullable domain fields;
-- polymorphic values;
-- large numeric values во frontend;
-- API contract versioning.
+## Read-only API
 
-### Error catalog пока минимален
+Configuration API поддерживает только чтение.
 
-Единый error envelope реализован.
+Отсутствуют:
 
-Пока отсутствуют:
+- create;
+- update;
+- delete;
+- bulk edit;
+- import;
+- export;
+- validation preview;
+- conflict handling;
+- optimistic concurrency;
+- audit history.
 
-- централизованный production error catalog;
-- localized frontend mapping для всех backend error codes;
-- field-level validation errors;
-- batch operation errors;
-- retry metadata;
-- rate-limit metadata.
+## Exact-path routing
 
-### Correlation ID не связан с logging
+Текущий HTTP router использует exact paths.
 
-Correlation ID передается через HTTP и error body.
+Поддерживаются query filters:
 
-Пока отсутствуют:
+    /api/devices?id=device-1
 
-- structured request logs;
-- correlation ID в log context;
-- distributed tracing;
-- span identifiers;
-- trace export.
+Не поддерживаются path templates:
 
-### CORS предназначен только для разработки
+    /api/devices/{id}
 
-Development origins задаются backend options.
+Path-template engine отложен до появления реальной необходимости.
 
-Нет:
+## Pagination UI
 
-- external production configuration;
-- production origin policy;
-- reverse-proxy-aware policy;
-- deployment-specific credential policy.
+Backend предоставляет:
 
-### Нет HTTPS configuration
+    limit
+    offset
+    count
+    total
+    hasMore
 
-Backend development listener использует HTTP.
+Frontend пока загружает development collections одним большим page request.
 
-Production TLS termination и HTTPS deployment пока не настроены.
+Отсутствуют:
 
-### Завершение процесса development-only
+- pagination controls;
+- server-side grid virtualization;
+- page-size selection;
+- sort UI;
+- filter UI;
+- search UI.
 
-`dispatcher_server` останавливается через ввод в консоль.
+## Object page
 
-Не реализованы:
+Работают:
 
-- SIGINT handling;
-- SIGTERM handling;
-- Windows Service lifecycle;
-- systemd lifecycle;
-- coordinated shutdown timeout;
-- background worker shutdown;
-- production service supervision.
+- Object tree;
+- flat Object list;
+- summary metrics;
+- refresh;
+- loading and error states.
 
-### Module status является startup snapshot
+Отсутствуют:
 
-System modules endpoint получает список модулей при создании route dispatcher.
+- selection state;
+- Object details panel;
+- create and edit;
+- drag-and-drop hierarchy;
+- responsibility zones;
+- search;
+- saved expansion state;
+- commands;
+- audit history.
 
-Динамическое изменение runtime status пока не предоставляется через отдельный status provider.
+## Device page
 
-### Нет authentication и authorization
+Работают:
 
-Не реализованы:
+- Device collection;
+- state;
+- protocol;
+- connection fields;
+- runtimeEnabled;
+- disabled configuration toggle.
 
-- users;
-- sessions;
-- access tokens;
-- refresh tokens;
-- roles;
-- permissions;
-- object responsibility enforcement;
-- external identity providers;
-- operator identity context.
+Отсутствуют:
 
-### Нет production persistence
+- live communication status;
+- live diagnostics;
+- last poll time;
+- test connection;
+- reconnect command;
+- protocol-specific settings editor;
+- credentials;
+- Device CRUD;
+- maintenance workflows.
 
-Database migrations и repository interfaces существуют.
+`runtimeEnabled` является configuration-derived read field, а не доказательством активного network connection.
 
-Нет production implementations для:
+## Tag page
 
-- objects;
-- devices;
-- tags;
-- polling configuration;
-- current values;
+Работают:
+
+- Tag configuration;
+- relationships;
+- type;
+- value type;
+- archive policy;
+- engineering metadata;
+- enabled state.
+
+Отсутствуют:
+
+- current value;
+- quality;
+- timestamp;
+- source;
 - history;
-- events;
-- alarms.
+- alarm state;
+- command execution;
+- live updates;
+- Tag CRUD;
+- address validation against real driver;
+- engineering conversion preview.
 
-### Нет production configuration subsystem
+## Runtime
 
-Пока отсутствуют:
+Runtime domain foundation существует.
 
-- backend configuration files;
-- environment override model;
-- secret references;
-- configuration validation report;
-- configuration reload;
-- deployment profiles.
+Не завершена production chain:
 
-### Нет реальных protocol drivers
+    Polling
+        ->
+    TagValueStore
+        ->
+    EventBus
+        ->
+    Historian
+        ->
+    Events
+        ->
+    Alarms
+        ->
+    Realtime
+
+`TagValueStore` остается in-memory.
+
+## Protocols and polling
 
 Существуют protocol contracts и simulator foundation.
 
@@ -196,297 +225,234 @@ Database migrations и repository interfaces существуют.
 - S7;
 - IEC 60870-5-104;
 - DNP3;
-- retry/backoff;
 - connection pooling;
-- protocol diagnostics workers.
-
-### Polling ограничен foundation-уровнем
-
-Нет:
-
+- retry/backoff;
+- connection lifecycle;
 - background polling loop;
-- scheduler service lifecycle;
-- concurrency control;
-- device load limiting;
-- retry scheduling;
-- connection-aware polling;
-- production diagnostics.
+- protocol diagnostics workers;
+- load limiting.
 
-### Runtime pipeline не завершен
+## Persistence
 
-`TagValueStore` и value applier существуют.
-
-Нет полной production-цепочки:
-
-    Polling
-        -> TagValueStore
-        -> EventBus
-        -> Historian
-        -> Events
-        -> Alarms
-        -> Realtime
-
-### Historian ограничен foundation-уровнем
+Существуют repository interfaces и SQL migration drafts.
 
 Не реализованы:
 
-- PostgreSQL writer;
-- TimescaleDB hypertables;
-- batch persistence service;
-- retention jobs;
+- PostgreSQL connection;
+- migration runner;
+- schema version check;
+- repository implementations;
+- transaction boundaries;
+- connection pool;
+- TimescaleDB integration;
+- restart recovery;
+- backup;
+- restore.
+
+## Historian
+
+Historian foundation существует.
+
+Не реализованы:
+
+- persistent writer;
+- TimescaleDB hypertable;
+- batch worker;
+- retention;
 - compression;
 - downsampling;
-- archive query API;
+- query API;
+- trend API;
 - disk spool;
-- restart recovery.
+- backpressure;
+- recovery.
 
-### Events ограничены foundation-уровнем
+## Events
+
+Event domain foundation существует.
 
 Не реализованы:
 
 - Event Manager;
-- automatic event creation;
-- persistence;
-- filtering API;
-- operator journal API;
-- realtime delivery.
+- automatic event generation;
+- persistent journal;
+- event query API;
+- filtering;
+- realtime delivery;
+- real frontend journal.
 
-### Alarm processing ограничен foundation-уровнем
+Страница `/events` пока использует demo-data.
+
+## Alarms
+
+Alarm domain foundation существует.
 
 Не реализованы:
 
 - Alarm Manager;
-- persistent state;
-- automatic rule loop;
+- persistent active state;
+- automatic evaluation loop;
+- deduplication;
 - acknowledgement API;
 - shelving;
 - suppression;
 - escalation;
-- notification delivery;
-- operator audit trail.
+- notifications;
+- audit trail;
+- realtime delivery.
 
-### Нет realtime transport
+Страница `/alarms` пока использует demo-data.
 
-WebSocket и SSE пока не работают как transport.
+## Realtime
 
-Нет:
+WebSocket и SSE transport отсутствуют.
+
+Не реализованы:
 
 - client registry;
-- subscription lifecycle;
+- subscriptions;
 - topic routing;
-- delivery backpressure;
-- reconnect protocol;
+- ping/pong;
+- reconnect;
+- backpressure;
+- delivery guarantees;
 - frontend realtime client.
 
-## Frontend limitations
+## Security
 
-### Реальная интеграция ограничена System page
+Не реализованы:
 
-Реальный backend используется только страницей:
+- authentication;
+- authorization;
+- users;
+- roles;
+- sessions;
+- access tokens;
+- refresh tokens;
+- responsibility enforcement;
+- secure command policy;
+- audit identity;
+- secrets management;
+- rate limiting;
+- TLS policy;
+- secure headers;
+- threat model.
+
+Device read API сознательно не возвращает secrets.
+
+## CORS and HTTPS
+
+CORS policy предназначена для development origins.
+
+Отсутствуют:
+
+- production origin configuration;
+- reverse-proxy awareness;
+- credentialed-origin policy;
+- HTTPS listener configuration;
+- certificate management;
+- TLS hardening.
+
+## Process lifecycle
+
+`dispatcher_server` development mode останавливается через ввод в консоль.
+
+Не реализованы:
+
+- SIGINT lifecycle;
+- SIGTERM lifecycle;
+- Windows Service;
+- systemd service;
+- coordinated shutdown timeout;
+- background worker shutdown;
+- restart policy;
+- service supervision.
+
+## Frontend
+
+Реальные backend data используют:
 
     /system
+    /objects
+    /devices
+    /tags
 
-Другие страницы используют placeholder или demo-data.
+Demo-data пока используют:
 
-### Legacy demo-client остается
-
-`IDispatcherApiClient` и `DispatcherApiClient` временно обслуживают demo-data для:
-
-- Runtime;
-- Events;
-- Alarms.
-
-Они должны заменяться отдельными typed API clients.
-
-### Objects, Devices и Tags не подключены к backend
-
-Пока отсутствуют:
-
-- typed clients;
-- loading real data;
-- empty real state;
-- backend validation errors;
-- selection state;
-- pagination;
-- editing operations.
-
-### Нет authentication UI
+    /runtime
+    /events
+    /alarms
 
 Не реализованы:
 
-- login;
-- logout;
-- session state;
-- role-aware navigation;
-- permission-aware widgets;
-- token refresh.
+- authentication UI;
+- authorization-aware navigation;
+- global retry policy;
+- global notification policy;
+- offline mode;
+- localization engine;
+- browser persistence;
+- accessibility audit;
+- responsive large-data virtualization.
 
-### Нет realtime client
+## Testing
 
-Frontend не получает live values, events или alarms через WebSocket/SSE.
+Backend имеет 78 CTest tests.
 
-### Нет полноценных операторских функций
+Frontend имеет xUnit tests.
 
-Не реализованы:
+Local smoke-test проверяет реальный listener.
 
-- command execution;
-- alarm acknowledgement;
-- alarm shelving;
-- dashboard editor;
-- mimic editor;
-- reports;
-- maintenance workflows;
-- notification settings.
+Ограничения:
 
-### Нет localization engine
+- CTest не запускает network listener;
+- local smoke-test не запускается в CI;
+- нет browser E2E tests;
+- нет component tests;
+- нет accessibility tests;
+- нет visual regression;
+- нет contract schema generation;
+- нет coverage reports;
+- нет mutation testing;
+- нет load tests;
+- нет endurance tests.
 
-UI написан на русском языке.
-
-Полноценная localization infrastructure пока не добавлена.
-
-### Frontend configuration публична
-
-`wwwroot/appsettings.json` загружается браузером.
-
-В нем нельзя хранить секреты.
-
-## Testing limitations
-
-### Backend coverage пока сосредоточен на transport foundation
-
-Автоматически покрыты:
-
-- `scada_common` version behavior;
-- `scada_http`;
-- JSON;
-- routing;
-- CORS;
-- API errors;
-- correlation ID;
-- System contracts.
-
-Пока нет систематических unit tests для:
-
-- objects;
-- devices;
-- tags;
-- protocols;
-- polling;
-- runtime;
-- historian;
-- events;
-- alarms;
-- application composition.
-
-### Нет настоящих network integration tests в CTest
-
-Unit tests не запускают реальный Drogon listener.
-
-Реальный listener проверяет local PowerShell smoke-test.
-
-CI пока не запускает автоматический HTTP smoke-test.
-
-### Frontend coverage ограничен service layer
-
-Покрыты API options, DTO mappings и `SystemHttpApiClient`.
-
-Не добавлены:
-
-- Razor component tests;
-- MudBlazor component tests;
-- browser end-to-end tests;
-- accessibility tests;
-- visual regression tests.
-
-### Нет performance и endurance tests
-
-Не выполняются:
-
-- HTTP load tests;
-- high-frequency tag update tests;
-- historian throughput tests;
-- long-running polling tests;
-- memory growth tests;
-- reconnect storm tests.
-
-## Build and delivery limitations
-
-### CI не публикует artifacts
-
-CI собирает и тестирует проект, но не публикует:
-
-- backend executable;
-- frontend static assets;
-- symbols;
-- checksums;
-- test reports as artifacts;
-- coverage reports.
-
-### Linux CI использует один основной compiler path
-
-Linux CI проверяет GCC на Ubuntu.
-
-Clang matrix пока не добавлена.
-
-### Нет release packaging
-
-Не реализованы:
-
-- versioned release artifacts;
-- Linux package;
-- Windows installer;
-- release archive;
-- migration runner package;
-- deployment manifest;
-- checksum publishing.
-
-### Docker отложен
-
-Docker не используется на текущем этапе.
-
-Domain architecture не должна зависеть от контейнеризации.
-
-## Observability limitations
+## Observability
 
 Не реализованы:
 
 - structured logging;
-- log rotation policy;
-- request logging policy;
-- correlation-aware logs;
+- correlation-aware log context;
+- request logs;
 - metrics;
-- dependency health checks;
+- tracing;
+- health checks dependencies;
 - performance counters;
 - centralized diagnostics;
-- audit persistence;
-- tracing backend.
+- audit persistence.
 
-## Security limitations
+## Build and delivery
 
-Не выполнены:
+CI собирает и тестирует Windows и Linux.
 
-- threat model;
-- secrets management;
-- TLS policy;
-- secure headers policy;
-- rate limiting;
-- dependency vulnerability workflow;
-- static security analysis;
-- security audit;
-- penetration testing;
-- authorization tests.
+Не реализованы:
 
-## Следующий инженерный этап
+- published build artifacts;
+- signed artifacts;
+- checksums;
+- Windows installer;
+- Linux package;
+- release archive;
+- Docker image;
+- deployment manifest;
+- systemd unit;
+- release promotion;
+- rollback procedure.
 
-Sprint 015 — Object, Device and Tag Read API Foundation.
+## Следующий приоритет
 
-Приоритет:
+Рекомендуемое направление следующего sprint:
 
-- read-only transport contracts;
-- typed DTO mapping;
-- object tree read API;
-- device list read API;
-- tag list read API;
-- typed frontend clients;
-- real Objects, Devices и Tags page states;
-- tests для новых contracts и endpoints.
+    repository-backed configuration persistence
+
+Оно должно быть подтверждено отдельным Sprint plan до изменения architecture или dependencies.
