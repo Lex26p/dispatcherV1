@@ -1,7 +1,9 @@
 using Dispatcher.Frontend;
 using Dispatcher.Frontend.Services;
+
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
 using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -12,19 +14,25 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddMudServices();
 
 var defaultApiOptions = new DispatcherApiClientOptions();
+
 var apiConfiguration = builder.Configuration.GetSection(
     DispatcherApiClientOptions.SectionName
 );
 
 var apiOptions = new DispatcherApiClientOptions {
-    BaseUrl = apiConfiguration["BaseUrl"] ?? defaultApiOptions.BaseUrl,
-    ApiBasePath = apiConfiguration["ApiBasePath"] ?? defaultApiOptions.ApiBasePath,
+    BaseUrl = apiConfiguration["BaseUrl"]
+        ?? defaultApiOptions.BaseUrl,
+
+    ApiBasePath = apiConfiguration["ApiBasePath"]
+        ?? defaultApiOptions.ApiBasePath,
+
     UseMockData = bool.TryParse(
         apiConfiguration["UseMockData"],
         out var useMockData
     )
         ? useMockData
         : defaultApiOptions.UseMockData,
+
     RequestTimeoutSeconds = int.TryParse(
         apiConfiguration["RequestTimeoutSeconds"],
         out var requestTimeoutSeconds
@@ -42,6 +50,21 @@ builder.Services.AddScoped(
     }
 );
 
-builder.Services.AddScoped<IDispatcherApiClient, DispatcherApiClient>();
+builder.Services.AddScoped<
+    IDispatcherApiClient,
+    DispatcherApiClient
+>();
+
+if (apiOptions.UseMockData) {
+    builder.Services.AddScoped<
+        ISystemApiClient,
+        MockSystemApiClient
+    >();
+} else {
+    builder.Services.AddScoped<
+        ISystemApiClient,
+        SystemHttpApiClient
+    >();
+}
 
 await builder.Build().RunAsync();
