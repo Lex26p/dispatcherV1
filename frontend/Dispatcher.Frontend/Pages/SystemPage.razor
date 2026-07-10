@@ -1,185 +1,557 @@
 @page "/system"
-
-@inject IDispatcherApiClient ApiClient
+@implements IDisposable
+@inject ISystemApiClient SystemApiClient
 
 <PageTitle>Система - Dispatcher</PageTitle>
 
 <div class="dispatcher-page">
     <MudStack Spacing="3">
-        <MudStack Row="true" AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+        <MudStack Row="true"
+                  AlignItems="AlignItems.Start"
+                  Justify="Justify.SpaceBetween">
             <div>
-                <MudText Typo="Typo.h4" HtmlTag="h1">Система</MudText>
-                <MudText Typo="Typo.body1" Color="Color.Secondary">
-                    Обзор состояния backend foundation и системных модулей.
+                <MudText Typo="Typo.h4" HtmlTag="h1">
+                    Система
                 </MudText>
+
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Состояние backend Dispatcher и зарегистрированных системных модулей.
+                </MudText>
+
+                @if (_loadedAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption"
+                             Color="Color.Secondary"
+                             Class="mt-1">
+                        Последнее обновление:
+                        @_loadedAt.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                    </MudText>
+                }
             </div>
 
-            <MudChip T="string"
-                     Color="Color.Warning"
-                     Variant="Variant.Outlined">
-                Демо-данные
-            </MudChip>
+            <MudStack Row="true"
+                      AlignItems="AlignItems.Center"
+                      Spacing="2">
+                <MudChip T="string"
+                         Color="@ConnectionColor"
+                         Variant="Variant.Outlined">
+                    @ConnectionLabel
+                </MudChip>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Disabled="@_isLoading"
+                           OnClick="ReloadAsync">
+                    Обновить
+                </MudButton>
+            </MudStack>
         </MudStack>
 
-        <UiStatePanel Kind="UiStateKind.MockData"
-                      Title="@UiText.DemoDataTitle"
-                      Message="@UiText.SystemDemoDataMessage" />
+        @if (_isLoading)
+        {
+            <UiStatePanel Kind="UiStateKind.Loading"
+                          Title="Подключение к backend"
+                          Message="Frontend запрашивает состояние Dispatcher и список системных модулей." />
+        }
+        else if (_stateKind.HasValue)
+        {
+            <UiStatePanel Kind="@_stateKind.Value"
+                          Title="@_stateTitle"
+                          Message="@_stateMessage" />
+        }
 
-        <MudGrid Spacing="3">
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="0" Class="dispatcher-card">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Режим шлюза
-                    </MudText>
-
-                    <MudText Typo="Typo.h5" Class="mt-1">
-                        @FormatGatewayMode(_gatewaySummary.Mode)
-                    </MudText>
-
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        @_gatewaySummary.Message
-                    </MudText>
-                </MudPaper>
-            </MudItem>
-
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="0" Class="dispatcher-card">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        API-слой
-                    </MudText>
-
-                    <MudText Typo="Typo.h5" Class="mt-1">
-                        @_apiSummary.RouteCount маршрутов
-                    </MudText>
-
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        @_apiSummary.ReadEndpointCount endpoints чтения
-                    </MudText>
-                </MudPaper>
-            </MudItem>
-
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="0" Class="dispatcher-card">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
-                        Реальное время
-                    </MudText>
-
-                    <MudText Typo="Typo.h5" Class="mt-1">
-                        @_apiSummary.RealtimeChannelCount каналов
-                    </MudText>
-
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                        WebSocket/SSE transport будет добавлен позже.
-                    </MudText>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
-
-        <MudPaper Elevation="0" Class="dispatcher-card">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
-                <div>
-                    <MudText Typo="Typo.h6">Backend-модули</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Модули, зарегистрированные в foundation-контуре dispatcher_server.
-                    </MudText>
-                </div>
-
-                <MudChip T="string"
-                         Color="Color.Success"
-                         Variant="Variant.Filled"
-                         Size="Size.Small">
-                    @_modules.Count работает
-                </MudChip>
-            </MudStack>
-
-            <MudTable T="BackendModuleViewModel"
-                      Items="_modules"
-                      Dense="true"
-                      Hover="true"
-                      Elevation="0"
-                      Class="dispatcher-table">
-                <HeaderContent>
-                    <MudTh>Код</MudTh>
-                    <MudTh>Название</MudTh>
-                    <MudTh>Описание</MudTh>
-                    <MudTh>Статус</MudTh>
-                </HeaderContent>
-
-                <RowTemplate Context="module">
-                    <MudTd DataLabel="Код">
-                        <MudText Typo="Typo.body2">@module.Code</MudText>
-                    </MudTd>
-
-                    <MudTd DataLabel="Название">
-                        <MudText Typo="Typo.body2">@module.Name</MudText>
-                    </MudTd>
-
-                    <MudTd DataLabel="Описание">
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                            @module.Description
+        @if (_health is not null)
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudPaper Elevation="0" Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Backend
                         </MudText>
-                    </MudTd>
 
-                    <MudTd DataLabel="Статус">
                         <MudChip T="string"
-                                 Color="@GetModuleStatusColor(module.Status)"
+                                 Color="@GetHealthStatusColor(_health)"
+                                 Variant="Variant.Filled"
+                                 Size="Size.Small"
+                                 Class="mt-2">
+                            @FormatHealthStatus(_health.Status)
+                        </MudChip>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary"
+                                 Class="mt-2">
+                            @_health.Product
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudPaper Elevation="0" Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Версия
+                        </MudText>
+
+                        <MudText Typo="Typo.h5" Class="mt-1">
+                            @_health.Version
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary"
+                                 Class="mt-2">
+                            @_health.Executable
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudPaper Elevation="0" Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            Режим
+                        </MudText>
+
+                        <MudText Typo="Typo.h5" Class="mt-1">
+                            @FormatMode(_health.Mode)
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary"
+                                 Class="mt-2">
+                            @(_health.IsRealBackend
+                                ? "Реальный backend"
+                                : "Демонстрационный источник")
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" lg="3">
+                    <MudPaper Elevation="0" Class="dispatcher-card">
+                        <MudText Typo="Typo.subtitle2"
+                                 Color="Color.Secondary">
+                            API transport
+                        </MudText>
+
+                        <MudText Typo="Typo.h5" Class="mt-1">
+                            @FormatTransport(_health.Transport)
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary"
+                                 Class="mt-2">
+                            @FormatApiStatus(_health.Api)
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudPaper Elevation="0" Class="dispatcher-card">
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Justify="Justify.SpaceBetween"
+                          Class="mb-3">
+                    <div>
+                        <MudText Typo="Typo.h6">
+                            Backend-модули
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Модули, зарегистрированные в dispatcher_server.
+                        </MudText>
+                    </div>
+
+                    <MudStack Row="true"
+                              AlignItems="AlignItems.Center"
+                              Spacing="1">
+                        <MudChip T="string"
+                                 Color="Color.Default"
                                  Variant="Variant.Outlined"
                                  Size="Size.Small">
-                            @FormatModuleStatus(module.Status)
+                            @_modules.Count всего
                         </MudChip>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        </MudPaper>
+
+                        <MudChip T="string"
+                                 Color="Color.Success"
+                                 Variant="Variant.Filled"
+                                 Size="Size.Small">
+                            @_runningModuleCount работает
+                        </MudChip>
+                    </MudStack>
+                </MudStack>
+
+                @if (_modules.Count == 0)
+                {
+                    <UiStatePanel Kind="UiStateKind.Empty"
+                                  Title="Модули отсутствуют"
+                                  Message="Backend ответил успешно, но не вернул зарегистрированных модулей." />
+                }
+                else
+                {
+                    <MudTable T="BackendModuleViewModel"
+                              Items="_modules"
+                              Dense="true"
+                              Hover="true"
+                              Elevation="0"
+                              Class="dispatcher-table">
+                        <HeaderContent>
+                            <MudTh>Код</MudTh>
+                            <MudTh>Название</MudTh>
+                            <MudTh>Описание</MudTh>
+                            <MudTh>Статус</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate Context="module">
+                            <MudTd DataLabel="Код">
+                                <MudText Typo="Typo.body2">
+                                    @module.Code
+                                </MudText>
+                            </MudTd>
+
+                            <MudTd DataLabel="Название">
+                                <MudText Typo="Typo.body2">
+                                    @module.Name
+                                </MudText>
+                            </MudTd>
+
+                            <MudTd DataLabel="Описание">
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Secondary">
+                                    @module.Description
+                                </MudText>
+                            </MudTd>
+
+                            <MudTd DataLabel="Статус">
+                                <MudChip T="string"
+                                         Color="@GetModuleStatusColor(module.Status)"
+                                         Variant="Variant.Outlined"
+                                         Size="Size.Small">
+                                    @FormatModuleStatus(module.Status)
+                                </MudChip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        }
     </MudStack>
 </div>
 
 @code {
     private IReadOnlyList<BackendModuleViewModel> _modules = [];
-    private GatewaySummaryViewModel _gatewaySummary = new();
-    private ApiRouteSummaryViewModel _apiSummary = new();
 
-    protected override async Task OnInitializedAsync()
+    private BackendHealthViewModel? _health;
+
+    private CancellationTokenSource? _loadCancellation;
+
+    private UiStateKind? _stateKind;
+
+    private string _stateTitle = string.Empty;
+
+    private string _stateMessage = string.Empty;
+
+    private bool _isLoading;
+
+    private int _runningModuleCount;
+
+    private DateTimeOffset? _loadedAt;
+
+    private string ConnectionLabel
     {
-        _modules = await ApiClient.GetBackendModulesAsync();
-        _gatewaySummary = await ApiClient.GetGatewaySummaryAsync();
-        _apiSummary = await ApiClient.GetApiRouteSummaryAsync();
+        get
+        {
+            if (_isLoading)
+            {
+                return "Подключение";
+            }
+
+            if (_health is null)
+            {
+                return "Нет связи";
+            }
+
+            if (!_health.IsRealBackend)
+            {
+                return "Демо-режим";
+            }
+
+            return _health.IsHealthy
+                ? "Backend подключен"
+                : "Backend отвечает с ошибкой";
+        }
+    }
+
+    private Color ConnectionColor
+    {
+        get
+        {
+            if (_isLoading)
+            {
+                return Color.Info;
+            }
+
+            if (_health is null)
+            {
+                return Color.Error;
+            }
+
+            if (!_health.IsRealBackend)
+            {
+                return Color.Warning;
+            }
+
+            return _health.IsHealthy
+                ? Color.Success
+                : Color.Warning;
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        return ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+        _loadCancellation = new CancellationTokenSource();
+
+        var cancellationToken = _loadCancellation.Token;
+
+        _isLoading = true;
+        _health = null;
+        _modules = [];
+        _runningModuleCount = 0;
+        _loadedAt = null;
+
+        _stateKind = UiStateKind.Loading;
+        _stateTitle = "Подключение к backend";
+        _stateMessage = "Выполняется запрос состояния Dispatcher.";
+
+        try
+        {
+            var healthTask = SystemApiClient.GetHealthAsync(
+                cancellationToken
+            );
+
+            var modulesTask = SystemApiClient.GetModulesAsync(
+                cancellationToken
+            );
+
+            await Task.WhenAll(
+                healthTask,
+                modulesTask
+            );
+
+            _health = await healthTask;
+            _modules = await modulesTask;
+
+            _runningModuleCount = _modules.Count(
+                module => string.Equals(
+                    module.Status,
+                    "Running",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
+
+            _loadedAt = DateTimeOffset.Now;
+
+            if (_health.IsRealBackend)
+            {
+                _stateKind = null;
+                _stateTitle = string.Empty;
+                _stateMessage = string.Empty;
+            }
+            else
+            {
+                _stateKind = UiStateKind.MockData;
+                _stateTitle = "Демонстрационные данные";
+                _stateMessage =
+                    "Страница работает через MockSystemApiClient. " +
+                    "Для подключения к backend отключите UseMockData.";
+            }
+        }
+        catch (DispatcherApiException exception)
+        {
+            ApplyApiError(exception);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            _stateKind = UiStateKind.Error;
+            _stateTitle = "Непредвиденная ошибка";
+            _stateMessage =
+                "Не удалось загрузить состояние системы. " +
+                exception.Message;
+        }
+        finally
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private void ApplyApiError(
+        DispatcherApiException exception
+    )
+    {
+        _stateKind = exception.ErrorKind switch
+        {
+            DispatcherApiErrorKind.Connection =>
+                UiStateKind.NoConnection,
+
+            DispatcherApiErrorKind.Timeout =>
+                UiStateKind.NoConnection,
+
+            _ => UiStateKind.Error
+        };
+
+        _stateTitle = exception.ErrorKind switch
+        {
+            DispatcherApiErrorKind.Connection =>
+                "Backend недоступен",
+
+            DispatcherApiErrorKind.Timeout =>
+                "Backend не отвечает",
+
+            DispatcherApiErrorKind.HttpStatus =>
+                "Ошибка backend API",
+
+            DispatcherApiErrorKind.InvalidResponse =>
+                "Некорректный ответ backend",
+
+            DispatcherApiErrorKind.Configuration =>
+                "Ошибка конфигурации frontend",
+
+            _ => "Ошибка backend API"
+        };
+
+        _stateMessage = exception.ErrorKind switch
+        {
+            DispatcherApiErrorKind.Connection =>
+                "Не удалось подключиться к dispatcher_server. " +
+                "Проверьте, что backend запущен на 127.0.0.1:8080.",
+
+            DispatcherApiErrorKind.Timeout =>
+                exception.Message,
+
+            DispatcherApiErrorKind.HttpStatus =>
+                $"{exception.Message} Endpoint: {exception.Endpoint}",
+
+            DispatcherApiErrorKind.InvalidResponse =>
+                $"{exception.Message} Endpoint: {exception.Endpoint}",
+
+            DispatcherApiErrorKind.Configuration =>
+                exception.Message,
+
+            _ => exception.Message
+        };
+    }
+
+    private static Color GetHealthStatusColor(
+        BackendHealthViewModel health
+    )
+    {
+        return health.IsHealthy
+            ? Color.Success
+            : Color.Warning;
     }
 
     private static Color GetModuleStatusColor(
         string status
     )
     {
-        return string.Equals(status, "Running", StringComparison.OrdinalIgnoreCase)
-            ? Color.Success
-            : Color.Warning;
+        return status.ToLowerInvariant() switch
+        {
+            "running" => Color.Success,
+            "starting" => Color.Info,
+            "stopping" => Color.Warning,
+            "stopped" => Color.Default,
+            "failed" => Color.Error,
+            _ => Color.Warning
+        };
+    }
+
+    private static string FormatHealthStatus(
+        string status
+    )
+    {
+        return status.ToLowerInvariant() switch
+        {
+            "ok" => "Работает",
+            "healthy" => "Работает",
+            "degraded" => "Ограниченная работа",
+            "error" => "Ошибка",
+            "failed" => "Ошибка",
+            _ => "Неизвестно"
+        };
     }
 
     private static string FormatModuleStatus(
         string status
     )
     {
-        return status switch
+        return status.ToLowerInvariant() switch
         {
-            "Running" => "Работает",
-            "Stopped" => "Остановлен",
-            "Starting" => "Запускается",
-            "Stopping" => "Останавливается",
-            "Failed" => "Ошибка",
+            "running" => "Работает",
+            "stopped" => "Остановлен",
+            "starting" => "Запускается",
+            "stopping" => "Останавливается",
+            "failed" => "Ошибка",
             _ => "Неизвестно"
         };
     }
 
-    private static string FormatGatewayMode(
+    private static string FormatMode(
         string mode
     )
     {
-        return mode switch
+        return mode.ToLowerInvariant() switch
         {
-            "ApiAndRealtime" => "API и реальное время",
-            "ApiOnly" => "Только API",
-            "RealtimeOnly" => "Только реальное время",
+            "development" => "Разработка",
+            "production" => "Эксплуатация",
+            "test" => "Тестирование",
+            "mock" => "Демо",
             _ => mode
         };
+    }
+
+    private static string FormatApiStatus(
+        string status
+    )
+    {
+        return status.ToLowerInvariant() switch
+        {
+            "available" => "API доступен",
+            "unavailable" => "API недоступен",
+            "mock" => "Демонстрационный API",
+            _ => status
+        };
+    }
+
+    private static string FormatTransport(
+        string transport
+    )
+    {
+        return transport.ToLowerInvariant() switch
+        {
+            "http" => "HTTP",
+            "https" => "HTTPS",
+            "memory" => "В памяти",
+            _ => transport
+        };
+    }
+
+    public void Dispose()
+    {
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
     }
 }
