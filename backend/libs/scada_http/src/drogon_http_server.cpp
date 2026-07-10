@@ -1,5 +1,8 @@
 #include "scada_http/drogon_http_server.h"
 
+#include "scada_http/api_error.h"
+#include "scada_http/correlation_id.h"
+
 #include <drogon/drogon.h>
 
 #include <algorithm>
@@ -16,24 +19,31 @@ namespace dispatcher::http {
 namespace {
 
 [[nodiscard]] drogon::HttpMethod to_drogon_method(
-    HttpMethod method
+    const HttpMethod method
 )
 {
     switch (method) {
     case HttpMethod::Get:
         return drogon::Get;
+
     case HttpMethod::Post:
         return drogon::Post;
+
     case HttpMethod::Put:
         return drogon::Put;
+
     case HttpMethod::Patch:
         return drogon::Patch;
+
     case HttpMethod::Delete:
         return drogon::Delete;
+
     case HttpMethod::Options:
         return drogon::Options;
+
     case HttpMethod::Head:
         return drogon::Head;
+
     case HttpMethod::Unknown:
     default:
         return drogon::Invalid;
@@ -46,7 +56,11 @@ namespace {
 {
     std::ostringstream output;
 
-    for (std::size_t index = 0; index < values.size(); ++index) {
+    for (
+        std::size_t index = 0;
+        index < values.size();
+        ++index
+    ) {
         if (index > 0) {
             output << ", ";
         }
@@ -62,7 +76,10 @@ namespace {
     const std::string& origin
 )
 {
-    if (!cors_options.enabled || origin.empty()) {
+    if (
+        !cors_options.enabled
+        || origin.empty()
+    ) {
         return false;
     }
 
@@ -86,13 +103,22 @@ void apply_cors_headers(
         return;
     }
 
-    const auto origin = request->getHeader("Origin");
+    const auto origin =
+        request->getHeader("Origin");
 
-    if (!is_origin_allowed(cors_options, origin)) {
+    if (
+        !is_origin_allowed(
+            cors_options,
+            origin
+        )
+    ) {
         return;
     }
 
-    if (cors_options.allow_any_origin && !cors_options.allow_credentials) {
+    if (
+        cors_options.allow_any_origin
+        && !cors_options.allow_credentials
+    ) {
         response->addHeader(
             "Access-Control-Allow-Origin",
             "*"
@@ -111,17 +137,23 @@ void apply_cors_headers(
 
     response->addHeader(
         "Access-Control-Allow-Methods",
-        join_values(cors_options.allowed_methods)
+        join_values(
+            cors_options.allowed_methods
+        )
     );
 
     response->addHeader(
         "Access-Control-Allow-Headers",
-        join_values(cors_options.allowed_headers)
+        join_values(
+            cors_options.allowed_headers
+        )
     );
 
     response->addHeader(
         "Access-Control-Max-Age",
-        std::to_string(cors_options.max_age_seconds)
+        std::to_string(
+            cors_options.max_age_seconds
+        )
     );
 
     if (cors_options.allow_credentials) {
@@ -167,6 +199,9 @@ void apply_cors_headers(
         body.size()
     };
 
+    result.correlation_id =
+        resolve_correlation_id(result);
+
     return result;
 }
 
@@ -174,7 +209,8 @@ void apply_cors_headers(
     const HttpResponse& response
 )
 {
-    auto result = drogon::HttpResponse::newHttpResponse();
+    auto result =
+        drogon::HttpResponse::newHttpResponse();
 
     result->setStatusCode(
         static_cast<drogon::HttpStatusCode>(
@@ -186,7 +222,10 @@ void apply_cors_headers(
         response.content_type
     );
 
-    result->setBody(response.body);
+    result->setBody(
+        response.body
+    );
+
     result->setCloseConnection(true);
 
     for (const auto& header : response.headers) {
@@ -201,9 +240,13 @@ void apply_cors_headers(
     return result;
 }
 
-[[nodiscard]] drogon::HttpResponsePtr make_cors_preflight_response()
+[[nodiscard]] drogon::HttpResponsePtr
+make_cors_preflight_response(
+    const std::string_view correlation_id
+)
 {
-    auto response = drogon::HttpResponse::newHttpResponse();
+    auto response =
+        drogon::HttpResponse::newHttpResponse();
 
     response->setStatusCode(
         static_cast<drogon::HttpStatusCode>(
@@ -216,7 +259,99 @@ void apply_cors_headers(
     response->setBody("");
     response->setCloseConnection(true);
 
+    response->addHeader(
+        std::string{
+            correlation_id_header_name
+        },
+        ensure_correlation_id(
+            correlation_id
+        )
+    );
+
     return response;
+}
+
+[[nodiscard]] HttpResponse make_framework_error_response(
+    const drogon::HttpStatusCode status,
+    const HttpRequest& request
+)
+{
+    const auto correlation_id =
+        resolve_correlation_id(request);
+
+    switch (static_cast<int>(status)) {
+    case 400:
+        return make_bad_request_response(
+            correlation_id
+        );
+
+    case 401:
+        return make_api_error_response(
+            HttpStatusCode::Unauthorized,
+            "unauthorized",
+            "Authentication is required.",
+            correlation_id
+        );
+
+    case 403:
+        return make_api_error_response(
+            HttpStatusCode::Forbidden,
+            "forbidden",
+            "Access to this resource is forbidden.",
+            correlation_id
+        );
+
+    case 404:
+        return make_not_found_response(
+            request.path,
+            correlation_id
+        );
+
+    case 405:
+        return make_method_not_allowed_response(
+            request.path,
+            request.method,
+            correlation_id
+        );
+
+    case 409:
+        return make_api_error_response(
+            HttpStatusCode::Conflict,
+            "conflict",
+            "The request conflicts with the current state.",
+            correlation_id
+        );
+
+    case 413:
+        return make_api_error_response(
+            HttpStatusCode::PayloadTooLarge,
+            "payload_too_large",
+            "The request body is too large.",
+            correlation_id
+        );
+
+    case 501:
+        return make_api_error_response(
+            HttpStatusCode::NotImplemented,
+            "not_implemented",
+            "The requested operation is not implemented.",
+            correlation_id
+        );
+
+    case 503:
+        return make_api_error_response(
+            HttpStatusCode::ServiceUnavailable,
+            "service_unavailable",
+            "The service is temporarily unavailable.",
+            correlation_id
+        );
+
+    case 500:
+    default:
+        return make_internal_server_error_response(
+            correlation_id
+        );
+    }
 }
 
 } // namespace
@@ -224,16 +359,22 @@ void apply_cors_headers(
 struct DrogonHttpServer::Impl {
     HttpServerOptions options;
     HttpRouteDispatcher route_dispatcher;
+
     std::thread worker;
     std::atomic_bool running = false;
+
     bool routes_registered = false;
 
     Impl(
         HttpServerOptions server_options,
         HttpRouteDispatcher dispatcher
     )
-        : options(std::move(server_options))
-        , route_dispatcher(std::move(dispatcher))
+        : options(
+            std::move(server_options)
+        )
+        , route_dispatcher(
+            std::move(dispatcher)
+        )
     {
     }
 
@@ -257,7 +398,9 @@ struct DrogonHttpServer::Impl {
         auto& app = drogon::app();
 
         app
-            .setThreadNum(options.worker_threads)
+            .setThreadNum(
+                options.worker_threads
+            )
             .addListener(
                 options.bind_address,
                 options.port
@@ -292,6 +435,45 @@ struct DrogonHttpServer::Impl {
         return running.load();
     }
 
+    void register_framework_error_handler()
+    {
+        const auto cors_options =
+            options.cors;
+
+        drogon::app().setCustomErrorHandler(
+            [
+                cors_options
+            ](
+                const drogon::HttpStatusCode status,
+                const drogon::HttpRequestPtr& request
+            ) {
+                const auto dispatcher_request =
+                    to_dispatcher_request(
+                        request
+                    );
+
+                const auto dispatcher_response =
+                    make_framework_error_response(
+                        status,
+                        dispatcher_request
+                    );
+
+                const auto drogon_response =
+                    to_drogon_response(
+                        dispatcher_response
+                    );
+
+                apply_cors_headers(
+                    cors_options,
+                    request,
+                    drogon_response
+                );
+
+                return drogon_response;
+            }
+        );
+    }
+
     void register_cors_preflight_advice()
     {
         if (!options.cors.enabled) {
@@ -308,7 +490,8 @@ struct DrogonHttpServer::Impl {
             }
         }
 
-        const auto cors_options = options.cors;
+        const auto cors_options =
+            options.cors;
 
         drogon::app().registerPreRoutingAdvice(
             [
@@ -319,24 +502,37 @@ struct DrogonHttpServer::Impl {
                 drogon::FilterCallback&& stop,
                 drogon::FilterChainCallback&& pass
             ) {
-                const auto requested_method = request->getHeader(
-                    "Access-Control-Request-Method"
-                );
+                const auto requested_method =
+                    request->getHeader(
+                        "Access-Control-Request-Method"
+                    );
 
                 const auto is_preflight =
                     request->method() == drogon::Options
                     && !requested_method.empty();
 
                 const auto is_registered_path =
-                    cors_paths.find(request->path())
-                    != cors_paths.end();
+                    cors_paths.find(
+                        request->path()
+                    ) != cors_paths.end();
 
-                if (!is_preflight || !is_registered_path) {
+                if (
+                    !is_preflight
+                    || !is_registered_path
+                ) {
                     pass();
                     return;
                 }
 
-                auto response = make_cors_preflight_response();
+                const auto dispatcher_request =
+                    to_dispatcher_request(
+                        request
+                    );
+
+                auto response =
+                    make_cors_preflight_response(
+                        dispatcher_request.correlation_id
+                    );
 
                 apply_cors_headers(
                     cors_options,
@@ -355,6 +551,7 @@ struct DrogonHttpServer::Impl {
             return;
         }
 
+        register_framework_error_handler();
         register_cors_preflight_advice();
 
         for (const auto& route : route_dispatcher.routes()) {
@@ -362,9 +559,10 @@ struct DrogonHttpServer::Impl {
                 continue;
             }
 
-            const auto drogon_method = to_drogon_method(
-                route.endpoint.method
-            );
+            const auto drogon_method =
+                to_drogon_method(
+                    route.endpoint.method
+                );
 
             if (drogon_method == drogon::Invalid) {
                 continue;
@@ -372,17 +570,21 @@ struct DrogonHttpServer::Impl {
 
             drogon::app().registerHandler(
                 route.endpoint.path,
-                [this, route](
+                [this](
                     const drogon::HttpRequestPtr& request,
                     std::function<void(
                         const drogon::HttpResponsePtr&
                     )>&& callback
                 ) {
                     const auto dispatcher_request =
-                        to_dispatcher_request(request);
+                        to_dispatcher_request(
+                            request
+                        );
 
                     const auto dispatcher_response =
-                        route.handler(dispatcher_request);
+                        route_dispatcher.dispatch(
+                            dispatcher_request
+                        );
 
                     const auto drogon_response =
                         to_drogon_response(
@@ -395,7 +597,9 @@ struct DrogonHttpServer::Impl {
                         drogon_response
                     );
 
-                    callback(drogon_response);
+                    callback(
+                        drogon_response
+                    );
                 },
                 {drogon_method}
             );
@@ -443,7 +647,8 @@ bool DrogonHttpServer::is_running() const noexcept
     return impl_->is_running();
 }
 
-const HttpServerOptions& DrogonHttpServer::options() const noexcept
+const HttpServerOptions&
+DrogonHttpServer::options() const noexcept
 {
     return impl_->options;
 }

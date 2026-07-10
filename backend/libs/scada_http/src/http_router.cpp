@@ -1,68 +1,14 @@
 #include "scada_http/http_router.h"
 
-#include <sstream>
+#include "scada_http/api_error.h"
+#include "scada_http/correlation_id.h"
+#include "scada_http/json_value.h"
+
+#include <exception>
+#include <string>
 #include <utility>
 
 namespace dispatcher::http {
-namespace {
-
-[[nodiscard]] std::string json_escape(
-    const std::string& value
-)
-{
-    std::ostringstream output;
-
-    for (const auto character : value) {
-        switch (character) {
-        case '"':
-            output << "\\\"";
-            break;
-        case '\\':
-            output << "\\\\";
-            break;
-        case '\b':
-            output << "\\b";
-            break;
-        case '\f':
-            output << "\\f";
-            break;
-        case '\n':
-            output << "\\n";
-            break;
-        case '\r':
-            output << "\\r";
-            break;
-        case '\t':
-            output << "\\t";
-            break;
-        default:
-            output << character;
-            break;
-        }
-    }
-
-    return output.str();
-}
-
-[[nodiscard]] std::string make_error_json(
-    const std::string& code,
-    const std::string& message
-)
-{
-    std::ostringstream output;
-
-    output
-        << "{"
-        << "\"error\":{"
-        << "\"code\":\"" << json_escape(code) << "\","
-        << "\"message\":\"" << json_escape(message) << "\""
-        << "}"
-        << "}";
-
-    return output.str();
-}
-
-} // namespace
 
 bool HttpRoute::has_handler() const noexcept
 {
@@ -89,11 +35,18 @@ bool HttpRouteDispatcher::add_route(
         return false;
     }
 
-    if (has_route(route.endpoint.method, route.endpoint.path)) {
+    if (
+        has_route(
+            route.endpoint.method,
+            route.endpoint.path
+        )
+    ) {
         return false;
     }
 
-    routes_.push_back(std::move(route));
+    routes_.push_back(
+        std::move(route)
+    );
 
     return true;
 }
@@ -102,43 +55,84 @@ HttpResponse HttpRouteDispatcher::dispatch(
     const HttpRequest& request
 ) const
 {
-    if (!request.is_valid()) {
-        return make_bad_request_response();
+    auto normalized_request = request;
+
+    normalized_request.correlation_id =
+        resolve_correlation_id(request);
+
+    if (!normalized_request.is_valid()) {
+        return make_bad_request_response(
+            normalized_request.correlation_id
+        );
     }
 
     bool path_exists = false;
 
     for (const auto& route : routes_) {
-        if (route.endpoint.path != request.path) {
+        if (
+            route.endpoint.path
+            != normalized_request.path
+        ) {
             continue;
         }
 
         path_exists = true;
 
-        if (route.endpoint.method != request.method) {
+        if (
+            route.endpoint.method
+            != normalized_request.method
+        ) {
             continue;
         }
 
-        return route.handler(request);
+        try {
+            auto response = route.handler(
+                normalized_request
+            );
+
+            set_correlation_id_header(
+                response,
+                normalized_request.correlation_id
+            );
+
+            return response;
+        }
+        catch (const std::exception&) {
+            return make_internal_server_error_response(
+                normalized_request.correlation_id
+            );
+        }
+        catch (...) {
+            return make_internal_server_error_response(
+                normalized_request.correlation_id
+            );
+        }
     }
 
     if (path_exists) {
         return make_method_not_allowed_response(
-            request.path,
-            request.method
+            normalized_request.path,
+            normalized_request.method,
+            normalized_request.correlation_id
         );
     }
 
-    return make_not_found_response(request.path);
+    return make_not_found_response(
+        normalized_request.path,
+        normalized_request.correlation_id
+    );
 }
 
 bool HttpRouteDispatcher::has_route(
-    HttpMethod method,
+    const HttpMethod method,
     const std::string& path
 ) const
 {
     for (const auto& route : routes_) {
-        if (route.endpoint.method == method && route.endpoint.path == path) {
+        if (
+            route.endpoint.method == method
+            && route.endpoint.path == path
+        ) {
             return true;
         }
     }
@@ -164,46 +158,81 @@ std::size_t HttpRouteDispatcher::route_count() const noexcept
     return routes_.size();
 }
 
-const std::vector<HttpRoute>& HttpRouteDispatcher::routes() const noexcept
+const std::vector<HttpRoute>&
+HttpRouteDispatcher::routes() const noexcept
 {
     return routes_;
 }
 
-HttpResponse make_bad_request_response()
+HttpResponse make_bad_request_response(
+    const std::string_view correlation_id
+)
 {
-    return make_json_response(
+    return make_api_error_response(
         HttpStatusCode::BadRequest,
-        make_error_json(
-            "bad_request",
-            "HTTP request is invalid."
-        )
+        "bad_request",
+        "HTTP request is invalid.",
+        correlation_id
     );
 }
 
 HttpResponse make_not_found_response(
-    const std::string& path
+    const std::string& path,
+    const std::string_view correlation_id
 )
 {
-    return make_json_response(
+    auto details = JsonValue::object();
+
+    details.set_string(
+        "path",
+        path
+    );
+
+    return make_api_error_response(
         HttpStatusCode::NotFound,
-        make_error_json(
-            "not_found",
-            "Route was not found: " + path
-        )
+        "not_found",
+        "The requested API route was not found.",
+        correlation_id,
+        std::move(details)
     );
 }
 
 HttpResponse make_method_not_allowed_response(
     const std::string& path,
-    HttpMethod method
+    const HttpMethod method,
+    const std::string_view correlation_id
 )
 {
-    return make_json_response(
-        HttpStatusCode::MethodNotAllowed,
-        make_error_json(
-            "method_not_allowed",
-            "HTTP method " + std::string(to_string(method)) + " is not allowed for route: " + path
+    auto details = JsonValue::object();
+
+    details
+        .set_string(
+            "path",
+            path
         )
+        .set_string(
+            "method",
+            to_string(method)
+        );
+
+    return make_api_error_response(
+        HttpStatusCode::MethodNotAllowed,
+        "method_not_allowed",
+        "The HTTP method is not allowed for this API route.",
+        correlation_id,
+        std::move(details)
+    );
+}
+
+HttpResponse make_internal_server_error_response(
+    const std::string_view correlation_id
+)
+{
+    return make_api_error_response(
+        HttpStatusCode::InternalServerError,
+        "internal_server_error",
+        "An internal server error occurred.",
+        correlation_id
     );
 }
 

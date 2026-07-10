@@ -3,11 +3,15 @@
 #include "scada_http/http_types.h"
 
 #include <functional>
+#include <string_view>
 #include <vector>
 
 namespace dispatcher::http {
 
-using HttpRouteHandler = std::function<HttpResponse(const HttpRequest& request)>;
+using HttpRouteHandler =
+    std::function<HttpResponse(
+        const HttpRequest& request
+    )>;
 
 struct HttpRoute {
     HttpEndpoint endpoint;
@@ -45,15 +49,23 @@ private:
     std::vector<HttpRoute> routes_;
 };
 
-[[nodiscard]] HttpResponse make_bad_request_response();
+[[nodiscard]] HttpResponse make_bad_request_response(
+    std::string_view correlation_id = {}
+);
 
 [[nodiscard]] HttpResponse make_not_found_response(
-    const std::string& path
+    const std::string& path,
+    std::string_view correlation_id = {}
 );
 
 [[nodiscard]] HttpResponse make_method_not_allowed_response(
     const std::string& path,
-    HttpMethod method
+    HttpMethod method,
+    std::string_view correlation_id = {}
+);
+
+[[nodiscard]] HttpResponse make_internal_server_error_response(
+    std::string_view correlation_id = {}
 );
 
 } // namespace dispatcher::http

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include <string>
 #include <string_view>
 #include <vector>
@@ -23,7 +24,6 @@ enum class HttpStatusCode : int {
     Created = 201,
     Accepted = 202,
     NoContent = 204,
-
     BadRequest = 400,
     Unauthorized = 401,
     Forbidden = 403,
@@ -31,7 +31,6 @@ enum class HttpStatusCode : int {
     MethodNotAllowed = 405,
     Conflict = 409,
     PayloadTooLarge = 413,
-
     InternalServerError = 500,
     NotImplemented = 501,
     ServiceUnavailable = 503
@@ -41,6 +40,7 @@ struct HttpCorsOptions {
     bool enabled = true;
     bool allow_any_origin = false;
     bool allow_credentials = false;
+
     std::uint32_t max_age_seconds = 600;
 
     std::vector<std::string> allowed_origins{
@@ -75,12 +75,17 @@ struct HttpCorsOptions {
 
 struct HttpServerOptions {
     std::string bind_address = "127.0.0.1";
+
     std::uint16_t port = 8080;
     std::uint32_t worker_threads = 1;
+
     bool reuse_address = true;
     bool start_on_launch = false;
+
     std::uint64_t request_body_limit_bytes = 1024 * 1024;
+
     std::string server_name = "Dispatcher";
+
     HttpCorsOptions cors;
 
     [[nodiscard]] bool has_valid_bind_address() const noexcept;
@@ -99,10 +104,14 @@ struct HttpHeader {
 
 struct HttpRequest {
     HttpMethod method = HttpMethod::Unknown;
+
     std::string target;
     std::string path;
     std::string query;
+
     std::vector<HttpHeader> headers;
+
+    std::string correlation_id;
     std::string body;
 
     [[nodiscard]] bool has_target() const noexcept;
@@ -113,8 +122,12 @@ struct HttpRequest {
 
 struct HttpResponse {
     HttpStatusCode status = HttpStatusCode::Ok;
-    std::string content_type = "application/json; charset=utf-8";
+
+    std::string content_type =
+        "application/json; charset=utf-8";
+
     std::vector<HttpHeader> headers;
+
     std::string body;
 
     [[nodiscard]] int status_code() const noexcept;
@@ -124,8 +137,10 @@ struct HttpResponse {
 
 struct HttpEndpoint {
     HttpMethod method = HttpMethod::Get;
+
     std::string path;
     std::string name;
+
     bool public_endpoint = true;
 
     [[nodiscard]] bool has_path() const noexcept;
@@ -133,10 +148,17 @@ struct HttpEndpoint {
     [[nodiscard]] bool is_valid() const noexcept;
 };
 
-[[nodiscard]] std::string_view to_string(HttpMethod method) noexcept;
-[[nodiscard]] std::string_view to_string(HttpStatusCode status) noexcept;
+[[nodiscard]] std::string_view to_string(
+    HttpMethod method
+) noexcept;
 
-[[nodiscard]] HttpMethod http_method_from_string(std::string_view value) noexcept;
+[[nodiscard]] std::string_view to_string(
+    HttpStatusCode status
+) noexcept;
+
+[[nodiscard]] HttpMethod http_method_from_string(
+    std::string_view value
+) noexcept;
 
 [[nodiscard]] HttpResponse make_json_response(
     HttpStatusCode status,

@@ -4,8 +4,10 @@ find_package(jsoncpp CONFIG REQUIRED)
 add_library(scada_http STATIC
     src/http_module.cpp
     src/http_types.cpp
-    src/http_router.cpp
+    src/correlation_id.cpp
     src/json_value.cpp
+    src/api_error.cpp
+    src/http_router.cpp
     src/drogon_http_server.cpp
     src/system_health_endpoint.cpp
     src/system_modules_endpoint.cpp

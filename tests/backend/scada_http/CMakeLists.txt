@@ -1,7 +1,9 @@
 add_executable(scada_http_tests
     http_types_tests.cpp
-    http_router_tests.cpp
+    correlation_id_tests.cpp
     json_value_tests.cpp
+    api_error_tests.cpp
+    http_router_tests.cpp
     system_endpoint_tests.cpp
 )
 

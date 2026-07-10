@@ -29,14 +29,16 @@ public sealed class SystemHttpApiClientTests
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
             new DispatcherApiClientOptions()
         );
 
-        var health = await client.GetHealthAsync();
+        var health =
+            await client.GetHealthAsync();
 
         Assert.True(health.IsHealthy);
         Assert.True(health.IsRealBackend);
@@ -86,21 +88,26 @@ public sealed class SystemHttpApiClientTests
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
             new DispatcherApiClientOptions()
         );
 
-        var modules = await client.GetModulesAsync();
+        var modules =
+            await client.GetModulesAsync();
 
         Assert.Equal(2, modules.Count);
         Assert.Equal("scada_http", modules[0].Code);
         Assert.Equal("scada_api", modules[1].Code);
+
         Assert.All(
             modules,
-            module => Assert.True(module.IsFoundation)
+            module => Assert.True(
+                module.IsFoundation
+            )
         );
 
         Assert.Equal(
@@ -112,19 +119,29 @@ public sealed class SystemHttpApiClientTests
     }
 
     [Fact]
-    public async Task GetHealthAsync_HttpError_ThrowsHttpStatusError()
+    public async Task GetHealthAsync_ErrorEnvelope_MapsBackendError()
     {
         var handler = new StubHttpMessageHandler(
             (_, _) => Task.FromResult(
-                new HttpResponseMessage(
-                    HttpStatusCode.ServiceUnavailable
-                ) {
-                    ReasonPhrase = "Service Unavailable"
-                }
+                CreateJsonResponse(
+                    """
+                    {
+                      "error": {
+                        "code": "service_unavailable",
+                        "message": "Backend is unavailable.",
+                        "correlationId": "backend-error-104",
+                        "details": null
+                      }
+                    }
+                    """,
+                    HttpStatusCode.ServiceUnavailable,
+                    "header-error-104"
+                )
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -147,12 +164,71 @@ public sealed class SystemHttpApiClientTests
         );
 
         Assert.Equal(
-            "/api/system/health",
-            exception.Endpoint
+            "service_unavailable",
+            exception.ApiErrorCode
         );
 
-        Assert.False(exception.IsConnectionFailure);
-        Assert.False(exception.IsTimeout);
+        Assert.Equal(
+            "backend-error-104",
+            exception.CorrelationId
+        );
+
+        Assert.Equal(
+            "Backend is unavailable.",
+            exception.Message
+        );
+
+        Assert.True(exception.HasCorrelationId);
+    }
+
+    [Fact]
+    public async Task GetHealthAsync_ErrorWithoutEnvelope_UsesFallback()
+    {
+        var handler = new StubHttpMessageHandler(
+            (_, _) => Task.FromResult(
+                CreateJsonResponse(
+                    "{invalid-error-json",
+                    HttpStatusCode.BadGateway,
+                    "fallback-error-104"
+                )
+            )
+        );
+
+        using var httpClient =
+            CreateHttpClient(handler);
+
+        var client = new SystemHttpApiClient(
+            httpClient,
+            new DispatcherApiClientOptions()
+        );
+
+        var exception =
+            await Assert.ThrowsAsync<DispatcherApiException>(
+                () => client.GetHealthAsync()
+            );
+
+        Assert.Equal(
+            DispatcherApiErrorKind.HttpStatus,
+            exception.ErrorKind
+        );
+
+        Assert.Equal(
+            HttpStatusCode.BadGateway,
+            exception.StatusCode
+        );
+
+        Assert.Null(exception.ApiErrorCode);
+
+        Assert.Equal(
+            "fallback-error-104",
+            exception.CorrelationId
+        );
+
+        Assert.Contains(
+            "502",
+            exception.Message,
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
@@ -160,11 +236,16 @@ public sealed class SystemHttpApiClientTests
     {
         var handler = new StubHttpMessageHandler(
             (_, _) => Task.FromResult(
-                CreateJsonResponse("{invalid-json")
+                CreateJsonResponse(
+                    "{invalid-json",
+                    correlationId:
+                        "invalid-json-104"
+                )
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -182,8 +263,8 @@ public sealed class SystemHttpApiClientTests
         );
 
         Assert.Equal(
-            "/api/system/health",
-            exception.Endpoint
+            "invalid-json-104",
+            exception.CorrelationId
         );
     }
 
@@ -192,11 +273,16 @@ public sealed class SystemHttpApiClientTests
     {
         var handler = new StubHttpMessageHandler(
             (_, _) => Task.FromResult(
-                CreateJsonResponse("null")
+                CreateJsonResponse(
+                    "null",
+                    correlationId:
+                        "null-json-104"
+                )
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -211,6 +297,11 @@ public sealed class SystemHttpApiClientTests
         Assert.Equal(
             DispatcherApiErrorKind.InvalidResponse,
             exception.ErrorKind
+        );
+
+        Assert.Equal(
+            "null-json-104",
+            exception.CorrelationId
         );
 
         Assert.Contains(
@@ -231,7 +322,8 @@ public sealed class SystemHttpApiClientTests
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -248,7 +340,10 @@ public sealed class SystemHttpApiClientTests
             exception.ErrorKind
         );
 
-        Assert.True(exception.IsConnectionFailure);
+        Assert.True(
+            exception.IsConnectionFailure
+        );
+
         Assert.False(exception.IsTimeout);
     }
 
@@ -263,11 +358,13 @@ public sealed class SystemHttpApiClientTests
             )
         );
 
-        using var httpClient = CreateHttpClient(handler);
+        using var httpClient =
+            CreateHttpClient(handler);
 
-        var options = new DispatcherApiClientOptions {
-            RequestTimeoutSeconds = 4
-        };
+        var options =
+            new DispatcherApiClientOptions {
+                RequestTimeoutSeconds = 4
+            };
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -303,8 +400,11 @@ public sealed class SystemHttpApiClientTests
                 )
         );
 
-        using var httpClient = CreateHttpClient(handler);
-        using var cancellation = new CancellationTokenSource();
+        using var httpClient =
+            CreateHttpClient(handler);
+
+        using var cancellation =
+            new CancellationTokenSource();
 
         cancellation.Cancel();
 
@@ -329,10 +429,11 @@ public sealed class SystemHttpApiClientTests
             )
         );
 
-        using var httpClient = CreateHttpClient(
-            handler,
-            includeBaseAddress: false
-        );
+        using var httpClient =
+            CreateHttpClient(
+                handler,
+                includeBaseAddress: false
+            );
 
         var client = new SystemHttpApiClient(
             httpClient,
@@ -354,7 +455,9 @@ public sealed class SystemHttpApiClientTests
             exception.Endpoint
         );
 
-        Assert.Null(handler.LastRequestUri);
+        Assert.Null(
+            handler.LastRequestUri
+        );
     }
 
     private static HttpClient CreateHttpClient(
@@ -362,14 +465,17 @@ public sealed class SystemHttpApiClientTests
         bool includeBaseAddress = true
     )
     {
-        var httpClient = new HttpClient(handler) {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+        var httpClient =
+            new HttpClient(handler) {
+                Timeout =
+                    TimeSpan.FromSeconds(30)
+            };
 
         if (includeBaseAddress) {
-            httpClient.BaseAddress = new Uri(
-                "http://127.0.0.1:8080/"
-            );
+            httpClient.BaseAddress =
+                new Uri(
+                    "http://127.0.0.1:8080/"
+                );
         }
 
         return httpClient;
@@ -377,15 +483,30 @@ public sealed class SystemHttpApiClientTests
 
     private static HttpResponseMessage CreateJsonResponse(
         string json,
-        HttpStatusCode statusCode = HttpStatusCode.OK
+        HttpStatusCode statusCode = HttpStatusCode.OK,
+        string? correlationId = null
     )
     {
-        return new HttpResponseMessage(statusCode) {
-            Content = new StringContent(
-                json,
-                Encoding.UTF8,
-                "application/json"
+        var response =
+            new HttpResponseMessage(statusCode) {
+                Content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json"
+                )
+            };
+
+        if (
+            !string.IsNullOrWhiteSpace(
+                correlationId
             )
-        };
+        ) {
+            response.Headers.TryAddWithoutValidation(
+                "X-Correlation-Id",
+                correlationId
+            );
+        }
+
+        return response;
     }
 }
