@@ -1351,3 +1351,43 @@ Default allowed origins:
 Development CORS добавлен только на уровне `scada_http`.
 
 Drogon остается implementation detail модуля `scada_http`.
+
+### Шаг 96
+
+Добавлен повторяемый local integration smoke-test:
+
+    scripts/test-local-integration.ps1
+
+Smoke-test проверяет:
+
+- `GET /api/system/health`;
+- `GET /api/system/modules`;
+- структуру списка backend-модулей;
+- CORS headers для разрешенного frontend origin;
+- OPTIONS preflight;
+- отсутствие CORS-разрешения для неизвестного origin.
+
+Во время проверки обнаружено, что обычная регистрация Drogon OPTIONS handler не гарантировала прохождение preflight через Dispatcher handler.
+
+CORS preflight перенесен на уровень:
+
+    drogon::app().registerPreRoutingAdvice
+
+После исправления проверены:
+
+- статус OPTIONS response;
+- `Access-Control-Allow-Origin`;
+- `Access-Control-Allow-Methods`;
+- `Access-Control-Allow-Headers`;
+- блокировка неизвестного origin.
+
+Local integration smoke-test завершается успешно:
+
+    SMOKE TEST PASSED
+
+System page проверена при:
+
+- работающем backend;
+- остановленном backend;
+- повторном запуске backend;
+- восстановлении соединения без перезапуска frontend.
