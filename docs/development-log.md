@@ -1487,3 +1487,34 @@ Started.
 - отдельные unit, integration и smoke-test layers;
 - обязательная Windows/Linux CI matrix;
 - Object, Device и Tag API перенесены на Sprint 015.
+
+### Шаг 100
+
+Добавлен backend automated test foundation.
+
+Build system:
+
+- Catch2 v3 добавлен в `vcpkg.json`;
+- CTest подключен в корневом `CMakeLists.txt`;
+- создана стандартная опция `BUILD_TESTING`;
+- каталог `tests` подключается только при включенном тестировании.
+
+Созданы:
+
+    tests/CMakeLists.txt
+    tests/backend/scada_common/CMakeLists.txt
+    tests/backend/scada_common/version_tests.cpp
+
+Первый test target:
+
+    scada_common_tests
+
+Первые тесты проверяют:
+
+- product identity Dispatcher;
+- executable identity dispatcher_server;
+- наличие обязательных version information fields.
+
+Catch2 test cases регистрируются в CTest через:
+
+    catch_discover_tests
