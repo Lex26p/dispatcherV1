@@ -1423,3 +1423,39 @@ System page проверена при:
 - правило развития отдельных typed API clients.
 
 Legacy `IDispatcherApiClient` остается временным demo-client для Runtime, Events и Alarms до появления соответствующих backend endpoints.
+
+### Шаг 98
+
+Sprint 013 — Frontend Real API Client Integration закрыт.
+
+Создан:
+
+    docs/SPRINT_013_SUMMARY.md
+
+Полностью актуализированы:
+
+    docs/SPRINT_013_PLAN.md
+    docs/known-limitations.md
+
+Зафиксированы результаты:
+
+- real System API integration;
+- отдельные real и mock System clients;
+- API configuration;
+- transport DTO;
+- frontend error model;
+- System page states;
+- development CORS;
+- Drogon pre-routing preflight;
+- local integration smoke-test;
+- текущие ограничения.
+
+Sprint status:
+
+    Completed
+
+Следующий спринт:
+
+    Sprint 014 — Engineering Baseline
+
+Object, Device и Tag Read API перенесены на Sprint 015 после создания test, CI и stable transport foundations.

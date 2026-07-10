@@ -1,12 +1,12 @@
 # Sprint 013 Plan
 
-## Название спринта
+## Название
 
 Frontend Real API Client Integration
 
 ## Статус
 
-Planned
+Completed
 
 ## Этап
 
@@ -16,322 +16,210 @@ Post-MVP vertical integration
 
 Шаги 91–98.
 
----
+## Цель
 
-# Цель спринта
+Подключить Blazor WebAssembly frontend Dispatcher к реальному backend HTTP API, созданному в Sprint 012.
 
-Цель Sprint 013 — подключить frontend Dispatcher к реальному backend HTTP API, созданному в Sprint 012.
+Первая область реальной интеграции:
 
-После Sprint 012 backend уже запускает Drogon HTTP server и предоставляет первые endpoints:
+    /system
+
+Backend endpoints:
 
     GET /api/system/health
     GET /api/system/modules
 
-После Sprint 013 frontend должен начать использовать реальные backend-данные хотя бы на странице:
+## Результат
 
-    /system
+Цель спринта достигнута.
 
----
+Страница «Система»:
 
-# Главный результат спринта
+- получает health из реального backend;
+- получает список зарегистрированных backend-модулей;
+- показывает loading state;
+- показывает состояние соединения;
+- показывает ошибки HTTP и JSON;
+- показывает timeout;
+- показывает пустой список модулей;
+- поддерживает явный mock mode;
+- восстанавливает соединение после повторного запуска backend;
+- позволяет повторить загрузку кнопкой «Обновить».
 
-После Sprint 013 страница frontend:
+## Реализованная frontend-архитектура
 
-    Система
+Для System API введена отдельная граница:
 
-должна получать данные из backend:
+    ISystemApiClient
+        SystemHttpApiClient
+        MockSystemApiClient
 
-    http://127.0.0.1:8080/api/system/health
-    http://127.0.0.1:8080/api/system/modules
+`SystemHttpApiClient` отвечает за реальные HTTP-запросы.
 
-и показывать реальные состояния:
+`MockSystemApiClient` используется только при явно включенном mock mode.
 
-- backend доступен;
-- backend недоступен;
-- загрузка;
-- ошибка;
-- список backend-модулей из backend API.
-
----
-
-# Текущая ситуация
-
-Frontend сейчас имеет:
-
-- русскоязычный UI;
-- `IDispatcherApiClient`;
-- `DispatcherApiClient`;
-- `DispatcherApiClientOptions`;
-- mock/demo data для System/Runtime/Events/Alarms;
-- `UiStatePanel`;
-- страницы с loading/mock/not implemented state foundation.
-
-Backend сейчас имеет:
-
-- Drogon HTTP server;
-- `/api/system/health`;
-- `/api/system/modules`;
-- vcpkg + Drogon foundation;
-- localhost HTTP API на порту 8080.
-
----
-
-# Архитектурное решение
-
-Frontend должен использовать typed API client:
+Legacy-клиент:
 
     IDispatcherApiClient
-        -> DispatcherApiClient
-            -> HttpClient
-            -> backend HTTP API
+    DispatcherApiClient
 
-Frontend UI не должен напрямую вызывать `HttpClient`.
+временно сохраняется для demo-data Runtime, Events и Alarms.
 
-Страницы должны работать через:
+Frontend pages не должны напрямую использовать `HttpClient`.
 
-    IDispatcherApiClient
+## API configuration
 
----
+Настройки frontend находятся в:
 
-# Frontend API settings
+    frontend/Dispatcher.Frontend/wwwroot/appsettings.json
 
-В Sprint 013 нужно добавить frontend-side API settings.
+Секция:
 
-Рекомендуемая модель:
+    DispatcherApi
 
-    DispatcherApiClientOptions
-        BaseUrl
-        ApiBasePath
-        UseMockData
-        RequestTimeoutSeconds
-
-На старте:
+Development configuration:
 
     BaseUrl = http://127.0.0.1:8080
     ApiBasePath = /api
     UseMockData = false
+    RequestTimeoutSeconds = 10
 
-Mock-data можно оставить как fallback mode, но не как основной режим System page.
+Blazor WebAssembly configuration доступна браузеру и не должна содержать секреты.
 
----
+## DTO и view models
 
-# CORS
+Добавлены transport models:
 
-Так как Blazor WebAssembly frontend запускается на своем localhost port, а backend API работает на другом port, frontend будет делать cross-origin request.
+    SystemHealthApiResponse
+    SystemModulesApiResponse
+    SystemModuleApiDto
 
-Поэтому Sprint 013 должен добавить development CORS policy на backend.
+Добавлена health view model:
 
-Development policy:
+    BackendHealthViewModel
 
-- разрешить frontend localhost origins;
-- разрешить GET;
-- разрешить basic headers;
-- пока не открывать production CORS policy.
+Backend transport DTO отделены от пользовательских view models.
 
-Минимально ожидаемые origins:
+## Обработка ошибок
+
+Добавлены:
+
+    DispatcherApiException
+    DispatcherApiErrorKind
+
+Категории ошибок:
+
+    Connection
+    Timeout
+    HttpStatus
+    InvalidResponse
+    Configuration
+
+UI не зависит напрямую от исключений `HttpClient`.
+
+## CORS
+
+В backend `scada_http` добавлена development CORS policy.
+
+Development origins:
 
     http://localhost:5030
     http://127.0.0.1:5030
     https://localhost:5030
 
-Точный порт может отличаться по launchSettings, поэтому policy должна быть легко расширяемой.
+OPTIONS preflight обрабатывается на уровне Drogon pre-routing advice.
 
----
+Неизвестные origins не получают `Access-Control-Allow-Origin`.
 
-# API response mapping
+## Local integration smoke-test
 
-Backend `/api/system/health` возвращает JSON health response.
+Добавлен скрипт:
 
-Frontend должен маппить его в отдельную модель:
+    scripts/test-local-integration.ps1
 
-    BackendHealthViewModel
+Скрипт проверяет:
 
-Backend `/api/system/modules` возвращает JSON со списком модулей.
+- system health;
+- system modules;
+- обязательные поля модулей;
+- количество модулей;
+- CORS GET response;
+- OPTIONS preflight;
+- отсутствие CORS-разрешения для неизвестного origin.
 
-Frontend должен маппить его в модели:
+Успешный результат:
 
-    BackendModulesResponse
-    BackendModuleViewModel
+    SMOKE TEST PASSED
 
----
+## Выполненные шаги
 
-# UI states
+### Шаг 91
 
-System page должна поддерживать состояния:
+Создан план Sprint 013 и зафиксированы правила frontend/backend integration.
 
-- Loading;
-- Connected;
-- NoConnection;
-- Error;
-- Empty.
+### Шаг 92
 
-Используем существующий `UiStatePanel`.
+Добавлен backend development CORS foundation.
 
----
+### Шаг 93
 
-# In scope
+Добавлены frontend API settings, DTO и view models.
 
-В Sprint 013 входит:
+### Шаг 94
 
-- создать Sprint 013 plan;
-- добавить backend development CORS foundation;
-- добавить frontend API response models;
-- добавить frontend real HTTP client calls;
-- подключить `/api/system/health`;
-- подключить `/api/system/modules`;
-- обновить System page;
-- добавить loading/no connection/error states;
-- сохранить mock mode как fallback/development option;
-- обновить документацию;
-- закрыть Sprint 013.
+Добавлены отдельные real и mock System API clients.
 
----
+### Шаг 95
 
-# Out of scope
+Страница «Система» подключена к реальному backend API.
 
-В Sprint 013 не входит:
+### Шаг 96
 
-- runtime API integration;
-- events API integration;
-- alarms API integration;
-- object/device/tag API endpoints;
-- authentication;
-- authorization;
-- token handling;
-- role-based UI;
-- WebSocket/SSE;
-- production CORS;
-- OpenAPI/Swagger;
-- deployment configuration.
+Добавлен local integration smoke-test и исправлена обработка CORS preflight.
 
----
+### Шаг 97
 
-# План шагов
+Актуализирована frontend service documentation.
 
-## Шаг 91 — Sprint 013 plan and frontend API integration rules
+### Шаг 98
 
-Результат:
+Обновлена документация проекта и Sprint 013 закрыт.
 
-- создан `docs/SPRINT_013_PLAN.md`;
-- правила интеграции frontend/backend зафиксированы.
+## Acceptance criteria
 
-## Шаг 92 — Add backend development CORS foundation
+Выполнено:
 
-Результат:
-
-- backend добавляет CORS headers для development frontend origins;
-- frontend сможет обращаться к backend API из браузера.
-
-## Шаг 93 — Add frontend API DTOs and options
-
-Результат:
-
-- добавлены DTO для `/api/system/health`;
-- добавлены DTO для `/api/system/modules`;
-- расширены API client options.
-
-## Шаг 94 — Implement real System API client calls
-
-Результат:
-
-- `DispatcherApiClient` умеет вызывать реальный backend;
-- mock mode остается как fallback option.
-
-## Шаг 95 — Update System page for real backend states
-
-Результат:
-
-- System page показывает loading state;
-- показывает backend health;
-- показывает real modules;
-- показывает no connection/error state.
-
-## Шаг 96 — End-to-end frontend/backend local integration check
-
-Результат:
-
-- backend запущен на 127.0.0.1:8080;
-- frontend запущен через dotnet run;
-- System page получает реальные backend данные.
-
-## Шаг 97 — Frontend service docs update
-
-Результат:
-
-- обновлены frontend service docs;
-- описан API base URL;
-- описан real/mock mode;
-- описаны ограничения Sprint 013.
-
-## Шаг 98 — Sprint 013 docs update and closure
-
-Результат:
-
-- создан `docs/SPRINT_013_SUMMARY.md`;
-- обновлены `docs/development-log.md`;
-- обновлены `docs/known-limitations.md`;
-- Sprint 013 закрыт.
-
----
-
-# Acceptance criteria
-
-Sprint 013 считается выполненным, если:
-
-- backend продолжает собираться;
-- frontend продолжает собираться;
+- backend собирается;
+- frontend собирается;
 - backend запускается;
 - frontend запускается;
-- browser frontend может вызвать backend API;
-- `/system` показывает real backend modules;
-- `/system` показывает состояние backend health;
-- при остановленном backend frontend показывает no connection/error state;
-- mock mode не удален полностью;
-- docs обновлены;
-- изменения отправлены в `master`.
+- browser frontend вызывает backend API;
+- System page показывает real backend health;
+- System page показывает real backend modules;
+- CORS работает;
+- OPTIONS preflight работает;
+- неизвестный origin не получает CORS-разрешение;
+- состояние отключенного backend отображается корректно;
+- соединение восстанавливается без перезапуска frontend;
+- mock mode сохранен как явная настройка;
+- smoke-test проходит;
+- документация обновлена.
 
----
+## Следующий спринт
 
-# Проверка backend API
+    Sprint 014 — Engineering Baseline
 
-Backend:
+Основные направления:
 
-    .\out\build\x64-debug\backend\apps\dispatcher_server\Debug\dispatcher_server.exe
+- backend unit-test foundation;
+- frontend client tests;
+- CTest integration;
+- Windows CI;
+- Linux CI;
+- Linux CMake preset;
+- единый JSON serialization foundation;
+- единый API error envelope;
+- correlation ID;
+- актуальный current-status document.
 
-PowerShell:
-
-    Invoke-RestMethod http://127.0.0.1:8080/api/system/health
-    Invoke-RestMethod http://127.0.0.1:8080/api/system/modules
-
----
-
-# Проверка frontend
-
-Frontend:
-
-    dotnet run --project frontend\Dispatcher.Frontend\Dispatcher.Frontend.csproj
-
-Browser:
-
-    http://localhost:5030/system
-
-Ожидаемый результат:
-
-- страница открывается;
-- нет CORS ошибки;
-- нет demo-only сообщения для System modules;
-- виден список backend-модулей из реального API;
-- visible state объясняет, что подключение к backend активно.
-
----
-
-# Следующий спринт после Sprint 013
-
-Рекомендуемый следующий спринт:
-
-    Sprint 014 — Backend Read API Foundation for Object/Device/Tag
-
-Цель:
-
-- добавить backend read endpoints для objects/devices/tags;
-- подготовить frontend pages к real data beyond system page.
+Object, Device и Tag Read API переносятся на Sprint 015.
