@@ -1391,3 +1391,35 @@ System page проверена при:
 - остановленном backend;
 - повторном запуске backend;
 - восстановлении соединения без перезапуска frontend.
+
+### Шаг 97
+
+Актуализирована frontend service documentation.
+
+Полностью обновлены:
+
+    frontend/README.md
+    frontend/Dispatcher.Frontend/SERVICE.md
+
+Удалены устаревшие утверждения:
+
+- frontend является mock-only;
+- backend HTTP transport отсутствует;
+- System page не подключена к backend;
+- реальные HTTP calls еще не реализованы.
+
+Зафиксированы:
+
+- real System API integration;
+- `ISystemApiClient`;
+- `SystemHttpApiClient`;
+- `MockSystemApiClient`;
+- frontend API configuration;
+- error categories;
+- System page states;
+- CORS requirements;
+- local integration smoke-test;
+- запрет хранения секретов в Blazor WebAssembly configuration;
+- правило развития отдельных typed API clients.
+
+Legacy `IDispatcherApiClient` остается временным demo-client для Runtime, Events и Alarms до появления соответствующих backend endpoints.

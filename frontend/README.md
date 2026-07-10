@@ -2,76 +2,180 @@
 
 ## Назначение
 
-Каталог `frontend` содержит frontend-часть Dispatcher.
+Каталог `frontend` содержит frontend-часть платформы Dispatcher.
 
 Основной проект:
 
-- `Dispatcher.Frontend`.
+    Dispatcher.Frontend
+
+Технологии:
+
+- .NET 10;
+- Blazor WebAssembly;
+- MudBlazor.
 
 ## Текущий статус
 
-Frontend находится на этапе post-MVP foundation.
+Frontend находится на этапе post-MVP vertical integration.
 
-Создано Blazor WebAssembly приложение с минимальным операторским UI shell.
+Реализовано:
+
+- операторский UI shell;
+- русскоязычная навигация;
+- страницы основных подсистем;
+- общий компонент отображения состояний;
+- real backend integration для страницы «Система»;
+- mock foundation для подсистем, backend API которых еще не реализован.
 
 ## Язык интерфейса
 
-Основной язык интерфейса:
+Основной язык пользовательского интерфейса:
 
     русский
 
 Английский язык будет добавлен позже как локализация.
 
-На текущем этапе полноценный localization engine не используется.
+Технические URL routes пока остаются на английском языке.
 
 ## Структура
 
-- `Dispatcher.Frontend` — Blazor WebAssembly приложение.
-- `Dispatcher.Frontend.slnx` — отдельная solution для frontend.
+    frontend/
+        Dispatcher.Frontend/
+        Dispatcher.Frontend.slnx
+        README.md
 
-## UI foundation
+`Dispatcher.Frontend` — Blazor WebAssembly приложение.
 
-Frontend использует:
+`Dispatcher.Frontend.slnx` — отдельная frontend solution.
 
-- Blazor WebAssembly;
-- MudBlazor.
+## Доступные страницы
 
-Реализовано:
+    /
+    /system
+    /objects
+    /devices
+    /tags
+    /runtime
+    /events
+    /alarms
 
-- AppBar;
-- Drawer/sidebar;
-- navigation;
-- improved loading screen;
-- русскоязычные страницы;
-- UI state panel;
-- demo-data предупреждения;
-- not implemented состояния.
+Страница `/system` подключена к реальному backend API.
 
-## API client foundation
+Остальные прикладные страницы пока используют placeholder или demo-data, пока соответствующие backend endpoints не реализованы.
 
-Добавлен placeholder API client:
+## Backend integration
 
-- `IDispatcherApiClient`;
-- `DispatcherApiClient`;
-- `DispatcherApiClientOptions`.
+Frontend использует отдельный service layer.
 
-На текущем этапе API client возвращает demo-data.
+Для страницы «Система»:
 
-Реальные HTTP-запросы будут добавлены после реализации backend HTTP transport и API handlers.
+    ISystemApiClient
+        SystemHttpApiClient
+        MockSystemApiClient
 
-## Placeholder screens
+`SystemHttpApiClient` выполняет реальные HTTP-запросы:
 
-Сейчас frontend содержит operator placeholders:
+    GET /api/system/health
+    GET /api/system/modules
 
-- System/modules;
-- Runtime values;
-- Event journal;
-- Active alarms;
-- Objects;
-- Devices;
-- Tags.
+`MockSystemApiClient` используется только при явно включенном mock mode.
 
-Пользовательские тексты интерфейса отображаются на русском языке.
+Legacy-клиент:
+
+    IDispatcherApiClient
+    DispatcherApiClient
+
+пока обслуживает demo-data для Runtime, Events и Alarms.
+
+Он будет постепенно заменяться отдельными typed API clients по мере появления backend endpoints.
+
+## API configuration
+
+Настройки находятся в:
+
+    frontend/Dispatcher.Frontend/wwwroot/appsettings.json
+
+Секция:
+
+    DispatcherApi
+
+Параметры:
+
+    BaseUrl
+    ApiBasePath
+    UseMockData
+    RequestTimeoutSeconds
+
+Development defaults:
+
+    BaseUrl = http://127.0.0.1:8080
+    ApiBasePath = /api
+    UseMockData = false
+    RequestTimeoutSeconds = 10
+
+Файл `appsettings.json` Blazor WebAssembly доступен браузеру.
+
+В него нельзя помещать:
+
+- пароли;
+- API keys;
+- private tokens;
+- connection strings;
+- другие секреты.
+
+## CORS
+
+Frontend обычно запускается на:
+
+    http://localhost:5030
+
+Backend запускается на:
+
+    http://127.0.0.1:8080
+
+Так как адреса имеют разные origins, backend должен разрешать development CORS.
+
+Текущая backend CORS policy включает frontend localhost origins и поддерживает OPTIONS preflight.
+
+## Состояния System page
+
+Страница `/system` поддерживает:
+
+- loading;
+- connected;
+- no connection;
+- timeout;
+- backend API error;
+- invalid response;
+- empty modules list;
+- mock mode.
+
+Страница позволяет повторно выполнить запрос кнопкой «Обновить».
+
+После остановки и повторного запуска backend соединение восстанавливается без перезапуска frontend.
+
+## Обработка ошибок
+
+Frontend service layer различает:
+
+    Connection
+    Timeout
+    HttpStatus
+    InvalidResponse
+    Configuration
+
+Ошибки HTTP transport преобразуются в:
+
+    DispatcherApiException
+
+UI не должен напрямую обрабатывать `HttpRequestException` или детали `HttpClient`.
+
+## Сборка
+
+Из корня репозитория:
+
+    dotnet build frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+    dotnet build frontend/Dispatcher.Frontend.slnx
 
 ## Запуск
 
@@ -79,34 +183,79 @@ Frontend использует:
 
     dotnet run --project frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
 
-Фактический адрес нужно смотреть в выводе команды `dotnet run`.
+Фактический адрес отображается в выводе `dotnet run`.
 
-Пример:
+Обычный development address:
 
     http://localhost:5030
 
-## Сборка
+## Рекомендуемый порядок локального запуска
 
-Из корня репозитория:
+Первый терминал:
 
-    dotnet build frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+    .\out\build\x64-debug\backend\apps\dispatcher_server\Debug\dispatcher_server.exe
 
-## Проверка solution
+Второй терминал:
 
-Из корня репозитория:
+    powershell -ExecutionPolicy Bypass -File scripts/test-local-integration.ps1
 
-    dotnet build frontend/Dispatcher.Frontend.slnx
+Третий терминал:
+
+    dotnet run --project frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+
+После этого открыть:
+
+    http://localhost:5030/system
+
+## Local integration smoke-test
+
+Скрипт:
+
+    scripts/test-local-integration.ps1
+
+Проверяет:
+
+- system health;
+- system modules;
+- структуру ответа modules;
+- CORS GET response;
+- OPTIONS preflight;
+- отсутствие CORS-разрешения для неизвестного origin.
+
+Успешный результат:
+
+    SMOKE TEST PASSED
 
 ## Ограничения
 
-Пока нет:
+Пока не реализованы:
 
-- real backend API integration;
-- realtime integration;
+- real Objects API integration;
+- real Devices API integration;
+- real Tags API integration;
+- real Runtime API integration;
+- real Events API integration;
+- real Alarms API integration;
+- realtime WebSocket/SSE client;
 - authentication;
-- real data;
+- authorization;
 - dashboards;
 - mimic diagrams;
-- alarm operations;
+- alarm acknowledgement;
 - command execution;
-- localization engine.
+- полноценная localization infrastructure.
+
+## Правило развития API clients
+
+Новые подсистемы не должны добавляться в один универсальный frontend client.
+
+Рекомендуемая структура:
+
+    IObjectApiClient
+    IDeviceApiClient
+    ITagApiClient
+    IRuntimeApiClient
+    IEventApiClient
+    IAlarmApiClient
+
+Каждый client должен отвечать только за свою API область.

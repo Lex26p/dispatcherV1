@@ -2,15 +2,27 @@
 
 ## Назначение
 
-`Dispatcher.Frontend` — frontend-приложение Dispatcher.
+`Dispatcher.Frontend` — браузерное frontend-приложение универсальной диспетчерской платформы Dispatcher.
 
-На текущем этапе это Blazor WebAssembly foundation для будущего операторского интерфейса Dispatcher.
+Frontend предоставляет операторский интерфейс для наблюдения, управления, настройки и диагностики системы.
+
+## Технологии
+
+Frontend использует:
+
+- .NET 10;
+- Blazor WebAssembly;
+- MudBlazor;
+- `HttpClient`;
+- `System.Text.Json`.
 
 ## Статус
 
-Post-MVP foundation.
+Post-MVP vertical integration.
 
-Приложение пока не подключено к реальному backend HTTP API.
+Страница «Система» подключена к реальному backend HTTP API.
+
+Остальные прикладные страницы пока используют placeholder или demo-data до появления соответствующих backend endpoints.
 
 ## Язык интерфейса
 
@@ -18,164 +30,268 @@ Post-MVP foundation.
 
     русский
 
-Английский язык рассматривается как будущая локализация.
+Новые пользовательские тексты должны добавляться на русском языке.
 
-Правило для дальнейшей разработки:
+URL routes и внутренние технические идентификаторы пока остаются на английском языке.
 
-    новый пользовательский текст во frontend пишем на русском языке
+## Текущие страницы
 
-## Текущие возможности
+    /
+    /system
+    /objects
+    /devices
+    /tags
+    /runtime
+    /events
+    /alarms
+    /not-found
 
-Реализовано:
+## Реальная System integration
 
-- Blazor WebAssembly project foundation;
-- MudBlazor foundation;
-- базовый operator shell;
-- AppBar;
-- sidebar navigation;
-- Drawer;
-- улучшенный стартовый экран загрузки;
-- overview page;
-- System page;
-- Runtime page;
-- Events page;
-- Alarms page;
-- backend modules placeholder;
-- gateway summary placeholder;
-- API client placeholder;
-- runtime values placeholder;
-- event journal placeholder;
-- active alarms placeholder;
-- общий UI state panel;
-- русские UI state тексты;
-- placeholder pages.
+Страница:
 
-## Страницы
+    /system
 
-Текущие страницы:
+использует:
 
-- `/`;
-- `/system`;
-- `/objects`;
-- `/devices`;
-- `/tags`;
-- `/runtime`;
-- `/events`;
-- `/alarms`;
-- `/not-found`.
+    ISystemApiClient
 
-URL routes пока остаются техническими и не переводятся на русский язык.
+Доступны две реализации:
+
+    SystemHttpApiClient
+    MockSystemApiClient
+
+### SystemHttpApiClient
+
+Выполняет реальные HTTP-запросы:
+
+    GET /api/system/health
+    GET /api/system/modules
+
+Возвращает frontend view models:
+
+    BackendHealthViewModel
+    BackendModuleViewModel
+
+Использует transport DTO:
+
+    SystemHealthApiResponse
+    SystemModulesApiResponse
+    SystemModuleApiDto
+
+### MockSystemApiClient
+
+Используется только при:
+
+    DispatcherApi:UseMockData = true
+
+Mock mode не должен автоматически включаться при ошибке backend.
+
+Если real backend недоступен, UI должен явно показать состояние отсутствия соединения, а не подменять данные демонстрационными.
+
+## Legacy API client
+
+Пока сохраняются:
+
+    IDispatcherApiClient
+    DispatcherApiClient
+
+Они предоставляют demo-data для:
+
+- Runtime;
+- Events;
+- Alarms;
+- части старых overview models.
+
+Legacy client будет постепенно заменяться отдельными typed clients после появления соответствующих backend endpoints.
+
+## API client boundaries
+
+Frontend pages не должны напрямую вызывать `HttpClient`.
+
+Допустимый поток:
+
+    Razor page
+        -> typed frontend API interface
+        -> HTTP or mock implementation
+        -> HttpClient
+        -> backend API
+
+Рекомендуемые будущие интерфейсы:
+
+    IObjectApiClient
+    IDeviceApiClient
+    ITagApiClient
+    IRuntimeApiClient
+    IEventApiClient
+    IAlarmApiClient
+
+Не рекомендуется создавать один универсальный client для всех API областей.
+
+## Dependency injection
+
+Регистрация frontend services выполняется в:
+
+    Program.cs
+
+`DispatcherApiClientOptions` загружается из configuration section:
+
+    DispatcherApi
+
+На основании `UseMockData` выбирается реализация `ISystemApiClient`.
+
+Real mode:
+
+    ISystemApiClient -> SystemHttpApiClient
+
+Mock mode:
+
+    ISystemApiClient -> MockSystemApiClient
+
+## API configuration
+
+Файл development configuration:
+
+    wwwroot/appsettings.json
+
+Параметры:
+
+    BaseUrl
+    ApiBasePath
+    UseMockData
+    RequestTimeoutSeconds
+
+Development values:
+
+    BaseUrl = http://127.0.0.1:8080
+    ApiBasePath = /api
+    UseMockData = false
+    RequestTimeoutSeconds = 10
+
+`DispatcherApiClientOptions` отвечает за:
+
+- нормализацию backend base URL;
+- нормализацию API base path;
+- формирование endpoint path;
+- request timeout;
+- выбор real или mock mode.
+
+## Security rule
+
+Blazor WebAssembly configuration загружается в браузер.
+
+Запрещено помещать в frontend configuration:
+
+- пароли;
+- database connection strings;
+- private API keys;
+- bearer tokens;
+- private certificates;
+- другие server-side secrets.
+
+Будущие access tokens должны выдаваться после authentication и храниться по отдельно принятой security policy.
+
+## Error handling
+
+Transport errors преобразуются в:
+
+    DispatcherApiException
+
+Категории:
+
+    Connection
+    Timeout
+    HttpStatus
+    InvalidResponse
+    Configuration
+
+UI должен работать с этими категориями и не зависеть от внутренних исключений `HttpClient`.
+
+Отмена через `CancellationToken` не должна отображаться пользователю как backend error.
+
+## System page states
+
+Страница `/system` поддерживает:
+
+- initial loading;
+- connected;
+- backend unhealthy;
+- no connection;
+- timeout;
+- HTTP status error;
+- invalid JSON;
+- configuration error;
+- empty modules response;
+- mock mode.
+
+Кнопка «Обновить» выполняет повторную загрузку health и modules.
+
+Предыдущий запрос отменяется перед началом нового запроса.
+
+## CORS
+
+Development frontend обычно работает на:
+
+    http://localhost:5030
+
+Backend работает на:
+
+    http://127.0.0.1:8080
+
+Backend `scada_http` разрешает development origins и обрабатывает OPTIONS preflight через Drogon pre-routing advice.
+
+Frontend не должен пытаться обходить browser CORS policy.
+
+Production CORS policy будет настраиваться отдельно.
 
 ## UI state foundation
 
-Добавлен общий компонент:
+Общий компонент:
 
-- `UiStatePanel`.
+    UiStatePanel
 
-Добавлены состояния:
+Поддерживаемые состояния:
 
-- demo data;
 - loading;
 - empty;
 - warning;
 - error;
 - not implemented;
-- no connection.
+- no connection;
+- mock data.
 
-Пользовательские подписи отображаются на русском языке.
+Пользовательские сообщения должны объяснять:
 
-## API client placeholder
+- что произошло;
+- доступен ли backend;
+- можно ли повторить операцию;
+- какие действия ожидаются от пользователя.
 
-Добавлен frontend service layer:
+## Local integration smoke-test
 
-- `IDispatcherApiClient`;
-- `DispatcherApiClient`;
-- `DispatcherApiClientOptions`.
+Скрипт:
 
-На текущем этапе `DispatcherApiClient` возвращает demo-data.
+    scripts/test-local-integration.ps1
 
-Mock methods:
+Проверяет:
 
-- `GetBackendModulesAsync()`;
-- `GetGatewaySummaryAsync()`;
-- `GetApiRouteSummaryAsync()`;
-- `GetRuntimeValuesAsync()`;
-- `GetEventsAsync()`;
-- `GetActiveAlarmsAsync()`.
+- `/api/system/health`;
+- `/api/system/modules`;
+- обязательные поля modules;
+- CORS для разрешенного origin;
+- OPTIONS preflight;
+- отсутствие CORS header для неизвестного origin.
 
-Причина:
+Успешный результат:
 
-- backend API route/read endpoint foundation уже есть;
-- реального HTTP transport пока нет;
-- frontend должен получить стабильную точку расширения до появления настоящего API.
+    SMOKE TEST PASSED
 
-Будущая замена:
+## Сборка
 
-    demo DispatcherApiClient
-        -> real HTTP DispatcherApiClient
-        -> /api/system/health
-        -> /api/system/modules
-        -> /api/runtime/values
-        -> /api/events
-        -> /api/alarms/active
+Из корня репозитория:
 
-## Models
-
-Добавлены frontend models:
-
-- `BackendModuleViewModel`;
-- `GatewaySummaryViewModel`;
-- `ApiRouteSummaryViewModel`;
-- `RuntimeValueViewModel`;
-- `EventRecordViewModel`;
-- `ActiveAlarmViewModel`;
-- `UiStateKind`.
-
-## Components
-
-Добавлены frontend components:
-
-- `UiStatePanel`.
-
-## Что пока не реализовано
-
-Пока нет:
-
-- real HTTP API calls;
-- realtime client;
-- authentication;
-- authorization;
-- real data loading;
-- charts;
-- mimic diagrams;
-- dashboards;
-- alarm acknowledgement action;
-- command execution;
-- localization engine.
-
-## Будущая цель
-
-Frontend должен стать минимальным operator workspace.
-
-Планируемые направления:
-
-- real system/modules page;
-- object tree page;
-- devices page;
-- tags page;
-- runtime values page;
-- event journal page;
-- active alarms page;
-- real API client;
-- realtime client;
-- localization layer.
-
-## Зависимости
-
-Frontend использует:
-
-- Blazor WebAssembly;
-- MudBlazor.
+    dotnet build frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+    dotnet build frontend/Dispatcher.Frontend.slnx
 
 ## Запуск
 
@@ -183,10 +299,56 @@ Frontend использует:
 
     dotnet run --project frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
 
-После запуска приложение будет доступно по адресу, который выведет dotnet CLI.
-
-Фактический адрес нужно смотреть в выводе команды `dotnet run`.
-
-Пример локального адреса:
+Development URL:
 
     http://localhost:5030
+
+System page:
+
+    http://localhost:5030/system
+
+## Проверка с backend
+
+Backend:
+
+    .\out\build\x64-debug\backend\apps\dispatcher_server\Debug\dispatcher_server.exe
+
+Smoke-test:
+
+    powershell -ExecutionPolicy Bypass -File scripts/test-local-integration.ps1
+
+Frontend:
+
+    dotnet run --project frontend/Dispatcher.Frontend/Dispatcher.Frontend.csproj
+
+## Текущие ограничения
+
+Пока нет:
+
+- real object/device/tag clients;
+- real runtime/events/alarms clients;
+- realtime client;
+- authentication;
+- authorization;
+- token handling;
+- operator commands;
+- alarm acknowledgement;
+- dashboards;
+- mimic diagrams;
+- charts;
+- production deployment configuration;
+- production CORS configuration;
+- localization engine;
+- frontend automated tests.
+
+## Следующее инженерное развитие
+
+После завершения Sprint 013 планируется Engineering Baseline:
+
+- frontend client tests;
+- backend unit tests;
+- Windows/Linux CI;
+- stable JSON contract;
+- unified API error envelope;
+- correlation ID;
+- актуальный current-status document.
